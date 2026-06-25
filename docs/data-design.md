@@ -7,12 +7,13 @@
 └── auth.users .............. ユーザー（メール・Google認証）
 
 アプリデータ（自分で設計）
-├── profiles ................ ユーザー設定・収入情報
+├── profiles ................ ユーザー設定・収入情報・同居人数
 ├── fixed_expenses .......... 固定費
+├── consumables ............. 消耗品費（日用品・消耗品の購入サイクル管理）
 ├── recurring_rules ......... 繰り返しルール（変動ルーチン費）
 ├── transactions ............ 実際の収支記録
-├── wishlist_items .......... 欲しいものリスト
-└── savings_goals ........... 貯金目標
+├── wishlist_items .......... 欲しいものリスト（将来実装予定）
+└── savings_goals ........... 貯金目標（将来実装予定）
 ```
 
 ---
@@ -28,6 +29,7 @@
 | monthly_income | number | 固定月収額 |
 | hourly_wage | number | 時給 |
 | expected_work_days | number | 月の想定稼働日数 |
+| household_members | number | 同居人数（消耗品費のサイクル計算に使用、デフォルト1） |
 | created_at | timestamp | 作成日時 |
 
 ---
@@ -60,7 +62,35 @@
 
 ---
 
-### 3. recurring_rules（繰り返しルール）
+### 3. consumables（消耗品費）
+
+定期的に必ず購入する消耗品・日用品を品目単位で管理するテーブル。
+`profiles.household_members` と連携して実効消費サイクルを計算する。
+
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | uuid | 消耗品ID |
+| user_id | uuid | ユーザーID |
+| name | text | 品目名（例：トイレットペーパー、歯ブラシ） |
+| category | text | カテゴリ（衛生・清潔 / トイレ・洗剤 / サプリ・医療 / 食品 / その他） |
+| amount | number | 単価（円） |
+| quantity | number | 1回の購入個数（デフォルト1） |
+| cycle_days | number | 基準消費サイクル（日数、例：60 = 2ヶ月おき） |
+| members_scale | boolean | 同居人数に比例してサイクルを短縮するか（true=比例する） |
+| last_purchased | date | 最終購入日（次回予定日の計算基準） |
+| notes | text | メモ |
+| created_at | timestamp | 作成日時 |
+
+**計算ロジック**
+```
+実効サイクル日数 = members_scale ? cycle_days ÷ household_members : cycle_days
+次回購入予定日   = last_purchased + 実効サイクル日数
+月額換算コスト   = (amount × quantity) ÷ (実効サイクル日数 ÷ 30)
+```
+
+---
+
+### 4. recurring_rules（繰り返しルール）
 
 「毎週月曜に食費3,000円」のような繰り返しパターンを登録するテーブル。
 
@@ -89,7 +119,7 @@ yearly   毎年
 
 ---
 
-### 4. transactions（収支記録）
+### 5. transactions（収支記録）
 
 実際に記録された収支の一覧。過去の記録はすべてここに入る。
 
@@ -98,7 +128,7 @@ yearly   毎年
 | id | uuid | 記録ID |
 | user_id | uuid | ユーザーID |
 | type | text | `income`（収入）/ `expense`（支出） |
-| expense_kind | text | `routine`（ルーチン費）/ `one_time`（臨時費）/ null（収入の場合） |
+| expense_kind | text | `consumable`（消耗品費）/ `one_time`（臨時出費）/ null（収入の場合） |
 | date | date | 日付 |
 | category | text | カテゴリ |
 | amount | number | 金額 |
@@ -108,7 +138,7 @@ yearly   毎年
 
 ---
 
-### 5. wishlist_items（欲しいものリスト）
+### 6. wishlist_items（欲しいものリスト）
 
 | カラム名 | 型 | 説明 |
 |---|---|---|
@@ -123,7 +153,7 @@ yearly   毎年
 
 ---
 
-### 6. savings_goals（貯金目標）
+### 7. savings_goals（貯金目標）
 
 欲しいものに対して「いつまでに・毎月いくら貯める」を管理するテーブル。
 
@@ -147,7 +177,7 @@ yearly   毎年
 
 ---
 
-### 7. monthly_adjustments（貯金の手動調整）
+### 8. monthly_adjustments（貯金の手動調整）
 
 自動計算された余剰に対して、実態に合わせた差分を記録する。
 
@@ -176,7 +206,7 @@ SupabaseにはRLS（行レベルセキュリティ）という仕組みがある
 
 ---
 
-### 8. shopping_lists（買い物リスト）
+### 9. shopping_lists（買い物リスト）
 
 買い物セッション単位で管理するテーブル。
 
@@ -193,7 +223,7 @@ SupabaseにはRLS（行レベルセキュリティ）という仕組みがある
 
 ---
 
-### 9. shopping_items（買い物アイテム）
+### 10. shopping_items（買い物アイテム）
 
 shopping_listsに紐づく個々のアイテム。
 
@@ -223,7 +253,7 @@ shopping_listsに紐づく個々のアイテム。
 
 ---
 
-### 10. work_schedule（勤務カレンダー）
+### 11. work_schedule（勤務カレンダー）
 
 日ごとの勤務状況を記録。カレンダー表示と収入計算の両方に使う。  
 時給・勤務時間もここで記録するため、過去の実績が変更後の設定に影響されない。
@@ -242,7 +272,7 @@ shopping_listsに紐づく個々のアイテム。
 
 ---
 
-### 11. income_records（月次収入サマリー）
+### 12. income_records（月次収入サマリー）
 
 月次で収入の予測と実績を比較するためのサマリーテーブル。  
 work_scheduleの集計でも出せるが、給与振込額と計算値のズレを記録するためにも使う。
@@ -269,6 +299,8 @@ auth.users
     ├── profiles（1対1）
     │
     ├── fixed_expenses（1対多）
+    │
+    ├── consumables（1対多）← 消耗品費・次回購入予定日の計算にprofiles.household_membersを参照
     │
     ├── recurring_rules（1対多）
     │       │
