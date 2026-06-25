@@ -102,3 +102,8 @@ export const STATUS_LABELS = {
   cancelled: { label: '解約済み', color: 'text-slate-400 bg-slate-100' },
   unsubscribed: { label: '未契約', color: 'text-blue-500 bg-blue-50' },
 } as const
+
+export const HOUSEHOLD_MEMBERS_MIN = 1
+export const HOUSEHOLD_MEMBERS_MAX = 10
+export const CONSUMABLE_URGENT_THRESHOLD_DAYS = 7
+export const SAVE_SUCCESS_DISPLAY_MS = 1500

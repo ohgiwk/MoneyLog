@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { HOUSEHOLD_MEMBERS_MIN, HOUSEHOLD_MEMBERS_MAX, SAVE_SUCCESS_DISPLAY_MS } from '../constants'
 import { profileService } from '../lib/services/profileService'
 
 interface Props {
@@ -23,7 +24,7 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
     await profileService.update(userId, { household_members: value })
     setSaving(false)
     setSaved(true)
-    setTimeout(() => setSaved(false), 1500)
+    setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
   }
 
   return (
@@ -53,7 +54,7 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
-                    const v = Math.max(1, householdMembers - 1)
+                    const v = Math.max(HOUSEHOLD_MEMBERS_MIN, householdMembers - 1)
                     setHouseholdMembers(v)
                     saveHouseholdMembers(v)
                   }}
@@ -66,7 +67,7 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
                 </span>
                 <button
                   onClick={() => {
-                    const v = Math.min(10, householdMembers + 1)
+                    const v = Math.min(HOUSEHOLD_MEMBERS_MAX, householdMembers + 1)
                     setHouseholdMembers(v)
                     saveHouseholdMembers(v)
                   }}

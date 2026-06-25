@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import { formatYen } from '../utils'
@@ -44,15 +44,23 @@ export default function FixedExpenseList({
     reload()
   }
 
-  const categoryOrder = fixedCategories.map((c) => c.name)
-  const sortByCategory = (a: FixedExpense, b: FixedExpense) => {
-    const ai = categoryOrder.indexOf(a.category)
-    const bi = categoryOrder.indexOf(b.category)
-    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
-  }
-  const filtered = fixedExpenses.filter((f) => f.status === filter).sort(sortByCategory)
-  const activeExpenses = fixedExpenses.filter(
-    (f) => f.status === 'active' || f.status === 'reviewing'
+  const categoryOrderMap = useMemo(
+    () => new Map(fixedCategories.map((c, i) => [c.name, i])),
+    [fixedCategories]
+  )
+  const filtered = useMemo(
+    () =>
+      fixedExpenses
+        .filter((f) => f.status === filter)
+        .sort(
+          (a, b) =>
+            (categoryOrderMap.get(a.category) ?? 999) - (categoryOrderMap.get(b.category) ?? 999)
+        ),
+    [fixedExpenses, filter, categoryOrderMap]
+  )
+  const activeExpenses = useMemo(
+    () => fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing'),
+    [fixedExpenses]
   )
   const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)

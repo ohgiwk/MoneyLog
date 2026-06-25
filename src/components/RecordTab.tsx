@@ -6,6 +6,7 @@ import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense } from '../lib/database.types'
 import { todayStr } from '../utils'
+import { useForm } from '../hooks/useForm'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
@@ -17,6 +18,14 @@ const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'fixed', label: '固定費' },
   { key: 'consumables', label: '消耗品費' },
 ]
+
+interface OneTimeFormValues {
+  type: 'expense' | 'income'
+  date: string
+  category: string
+  amount: string
+  memo: string
+}
 
 interface Props {
   userId: string
@@ -38,23 +47,22 @@ export default function RecordTab({
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
-
-  // 臨時出費フォーム state
-  const [type, setType] = useState<'expense' | 'income'>('expense')
-  const [date, setDate] = useState(todayStr())
-  const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
-  const [amount, setAmount] = useState('')
-  const [memo, setMemo] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
 
-  const formCategories = type === 'expense' ? expenseCategories : incomeCategories
+  const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
+    useForm<OneTimeFormValues>({
+      type: 'expense',
+      date: todayStr(),
+      category: expenseCategories[0]?.name ?? '',
+      amount: '',
+      memo: '',
+    })
+
+  const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
 
   function handleTypeChange(newType: 'expense' | 'income') {
     const cats = newType === 'expense' ? expenseCategories : incomeCategories
-    setType(newType)
-    setCategory(cats[0]?.name ?? '')
+    setValues({ ...values, type: newType, category: cats[0]?.name ?? '' })
   }
 
   useEffect(() => {
@@ -96,31 +104,32 @@ export default function RecordTab({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    const amt = parseFloat(amount)
+    const amt = parseFloat(values.amount)
     if (!amt || amt <= 0) {
       setAmountError('正しい金額を入力してください')
       return
     }
     setAmountError(null)
-    setSubmitError(null)
-    setSubmitting(true)
+    setError(null)
+    setIsSubmitting(true)
     try {
       await transactionService.insert({
         user_id: userId,
-        type,
-        expense_kind: type === 'expense' ? 'one_time' : null,
-        date,
-        category,
+        type: values.type,
+        expense_kind: values.type === 'expense' ? 'one_time' : null,
+        date: values.date,
+        category: values.category,
         amount: amt,
-        memo: memo.trim() || null,
+        memo: values.memo.trim() || null,
         recurring_rule_id: null,
       })
-      setAmount('')
-      setMemo('')
+      reset()
+      setValue('date', todayStr())
+      setValue('category', expenseCategories[0]?.name ?? '')
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : '記録に失敗しました')
+      setError(err instanceof Error ? err.message : '記録に失敗しました')
     } finally {
-      setSubmitting(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -151,7 +160,7 @@ export default function RecordTab({
                 onClick={() => handleTypeChange('expense')}
                 className={
                   'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-                  (type === 'expense' ? 'bg-rose-500 text-white shadow' : 'text-slate-500')
+                  (values.type === 'expense' ? 'bg-rose-500 text-white shadow' : 'text-slate-500')
                 }
               >
                 支出
@@ -161,7 +170,7 @@ export default function RecordTab({
                 onClick={() => handleTypeChange('income')}
                 className={
                   'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-                  (type === 'income' ? 'bg-emerald-500 text-white shadow' : 'text-slate-500')
+                  (values.type === 'income' ? 'bg-emerald-500 text-white shadow' : 'text-slate-500')
                 }
               >
                 収入
@@ -173,8 +182,8 @@ export default function RecordTab({
               <label className="text-xs text-slate-400">日付</label>
               <input
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                value={values.date}
+                onChange={(e) => setValue('date', e.target.value)}
                 className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
               />
             </div>
@@ -187,10 +196,10 @@ export default function RecordTab({
                   <button
                     key={c.name}
                     type="button"
-                    onClick={() => setCategory(c.name)}
+                    onClick={() => setValue('category', c.name)}
                     className={
                       'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
-                      (category === c.name
+                      (values.category === c.name
                         ? 'border-emerald-400 bg-emerald-50'
                         : 'border-slate-100 bg-slate-50')
                     }
@@ -211,9 +220,9 @@ export default function RecordTab({
                 type="number"
                 inputMode="numeric"
                 placeholder="0"
-                value={amount}
+                value={values.amount}
                 onChange={(e) => {
-                  setAmount(e.target.value)
+                  setValue('amount', e.target.value)
                   if (amountError) setAmountError(null)
                 }}
                 className={`w-full mt-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
@@ -227,25 +236,25 @@ export default function RecordTab({
               <input
                 type="text"
                 placeholder="例: スーパーで買い物"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
+                value={values.memo}
+                onChange={(e) => setValue('memo', e.target.value)}
                 className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
               />
             </div>
 
-            {submitError && <p className="text-xs text-rose-500">{submitError}</p>}
+            {error && <p className="text-xs text-rose-500">{error}</p>}
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={isSubmitting}
               className={
                 'w-full py-3 rounded-xl text-white font-semibold shadow disabled:opacity-50 ' +
-                (type === 'expense'
+                (values.type === 'expense'
                   ? 'bg-rose-500 active:bg-rose-600'
                   : 'bg-emerald-500 active:bg-emerald-600')
               }
             >
-              {submitting ? '記録中...' : '記録する'}
+              {isSubmitting ? '記録中...' : '記録する'}
             </button>
           </form>
         )}

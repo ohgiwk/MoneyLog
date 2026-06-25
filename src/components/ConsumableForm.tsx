@@ -1,8 +1,19 @@
-import { useState } from 'react'
 import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
+import { useForm } from '../hooks/useForm'
+
+interface FormValues {
+  name: string
+  category: string
+  amount: string
+  quantity: string
+  cycleDays: string
+  membersScale: boolean
+  lastPurchased: string
+  notes: string
+}
 
 interface Props {
   userId: string
@@ -12,44 +23,43 @@ interface Props {
 }
 
 export default function ConsumableForm({ userId, consumable, householdMembers, onClose }: Props) {
-  const [name, setName] = useState(consumable?.name ?? '')
-  const [category, setCategory] = useState(consumable?.category ?? CONSUMABLE_CATEGORIES[0].name)
-  const [amount, setAmount] = useState(consumable?.amount.toString() ?? '')
-  const [quantity, setQuantity] = useState(consumable?.quantity.toString() ?? '1')
-  const [cycleDays, setCycleDays] = useState(consumable?.cycle_days.toString() ?? '30')
-  const [membersScale, setMembersScale] = useState(consumable?.members_scale ?? false)
-  const [lastPurchased, setLastPurchased] = useState(
-    consumable?.last_purchased ?? new Date().toISOString().slice(0, 10)
-  )
-  const [notes, setNotes] = useState(consumable?.notes ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
+    name: consumable?.name ?? '',
+    category: consumable?.category ?? CONSUMABLE_CATEGORIES[0].name,
+    amount: consumable?.amount.toString() ?? '',
+    quantity: consumable?.quantity.toString() ?? '1',
+    cycleDays: consumable?.cycle_days.toString() ?? '30',
+    membersScale: consumable?.members_scale ?? false,
+    lastPurchased: consumable?.last_purchased ?? new Date().toISOString().slice(0, 10),
+    notes: consumable?.notes ?? '',
+  })
 
-  const previewCycle = membersScale
-    ? Math.ceil(Number(cycleDays) / householdMembers)
-    : Number(cycleDays)
+  const previewEffectiveCycle = effectiveCycleDays(
+    { members_scale: values.membersScale, cycle_days: Number(values.cycleDays) } as Consumable,
+    householdMembers
+  )
   const previewMonthly =
-    Number(amount) > 0 && Number(cycleDays) > 0
-      ? Math.round((Number(amount) * Number(quantity)) / (previewCycle / 30))
+    Number(values.amount) > 0 && Number(values.cycleDays) > 0
+      ? Math.round((Number(values.amount) * Number(values.quantity)) / (previewEffectiveCycle / 30))
       : 0
 
   async function save() {
-    const amt = parseFloat(amount)
-    const qty = parseInt(quantity)
-    const days = parseInt(cycleDays)
-    if (!name || isNaN(amt) || amt <= 0 || isNaN(days) || days <= 0) return
-    setSaving(true)
+    const amt = parseFloat(values.amount)
+    const qty = parseInt(values.quantity)
+    const days = parseInt(values.cycleDays)
+    if (!values.name || isNaN(amt) || amt <= 0 || isNaN(days) || days <= 0) return
+    setIsSubmitting(true)
     setError(null)
     try {
       const payload = {
-        name,
-        category,
+        name: values.name,
+        category: values.category,
         amount: amt,
         quantity: qty || 1,
         cycle_days: days,
-        members_scale: membersScale,
-        last_purchased: lastPurchased,
-        notes: notes || null,
+        members_scale: values.membersScale,
+        last_purchased: values.lastPurchased,
+        notes: values.notes || null,
       }
       if (consumable) {
         await consumableService.update(consumable.id, payload)
@@ -60,7 +70,7 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
     } finally {
-      setSaving(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -74,12 +84,6 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
       setError(err instanceof Error ? err.message : '削除に失敗しました')
     }
   }
-
-  // effectiveCycleDays を直接計算（プレビュー用のオブジェクトで呼び出す）
-  const previewEffectiveCycle = effectiveCycleDays(
-    { members_scale: membersScale, cycle_days: Number(cycleDays) } as Consumable,
-    householdMembers
-  )
 
   return (
     <div className="space-y-4">
@@ -105,8 +109,8 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
         <div>
           <label className="text-xs text-slate-400">名前</label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={values.name}
+            onChange={(e) => setValue('name', e.target.value)}
             placeholder="例: トイレットペーパー"
             className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
           />
@@ -119,10 +123,10 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
               <button
                 key={c.name}
                 type="button"
-                onClick={() => setCategory(c.name)}
+                onClick={() => setValue('category', c.name)}
                 className={
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
-                  (category === c.name
+                  (values.category === c.name
                     ? 'border-emerald-400 bg-emerald-50'
                     : 'border-slate-100 bg-slate-50')
                 }
@@ -142,8 +146,8 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
             <input
               type="number"
               inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={values.amount}
+              onChange={(e) => setValue('amount', e.target.value)}
               placeholder="0"
               className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
             />
@@ -153,8 +157,8 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
             <input
               type="number"
               inputMode="numeric"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              value={values.quantity}
+              onChange={(e) => setValue('quantity', e.target.value)}
               min="1"
               className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
             />
@@ -168,10 +172,10 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
               <button
                 key={p.days}
                 type="button"
-                onClick={() => setCycleDays(p.days.toString())}
+                onClick={() => setValue('cycleDays', p.days.toString())}
                 className={
                   'px-3 py-1 rounded-lg text-xs font-medium border ' +
-                  (cycleDays === p.days.toString()
+                  (values.cycleDays === p.days.toString()
                     ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
                     : 'border-slate-200 text-slate-500')
                 }
@@ -184,8 +188,8 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
             <input
               type="number"
               inputMode="numeric"
-              value={cycleDays}
-              onChange={(e) => setCycleDays(e.target.value)}
+              value={values.cycleDays}
+              onChange={(e) => setValue('cycleDays', e.target.value)}
               min="1"
               className="w-24 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
             />
@@ -198,21 +202,21 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
           <div className="mt-1 flex items-center gap-3">
             <button
               type="button"
-              onClick={() => setMembersScale(!membersScale)}
+              onClick={() => setValue('membersScale', !values.membersScale)}
               className={
                 'relative w-10 h-6 rounded-full transition-colors ' +
-                (membersScale ? 'bg-emerald-500' : 'bg-slate-200')
+                (values.membersScale ? 'bg-emerald-500' : 'bg-slate-200')
               }
             >
               <span
                 className={
                   'absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ' +
-                  (membersScale ? 'translate-x-5' : 'translate-x-1')
+                  (values.membersScale ? 'translate-x-5' : 'translate-x-1')
                 }
               />
             </button>
             <span className="text-sm text-slate-600">
-              {membersScale
+              {values.membersScale
                 ? `有効（${householdMembers}人 → 実効${previewEffectiveCycle}日おき）`
                 : '無効（人数によらず固定）'}
             </span>
@@ -223,15 +227,15 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
           <label className="text-xs text-slate-400">最終購入日</label>
           <input
             type="date"
-            value={lastPurchased}
-            onChange={(e) => setLastPurchased(e.target.value)}
+            value={values.lastPurchased}
+            onChange={(e) => setValue('lastPurchased', e.target.value)}
             className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
           />
         </div>
 
         {previewMonthly > 0 && (
           <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500 space-y-0.5">
-            <div>実効サイクル: {previewCycle}日おき</div>
+            <div>実効サイクル: {previewEffectiveCycle}日おき</div>
             <div className="font-semibold text-slate-700">
               月額換算: {formatYen(previewMonthly)}
             </div>
@@ -241,8 +245,8 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
         <div>
           <label className="text-xs text-slate-400">メモ</label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={values.notes}
+            onChange={(e) => setValue('notes', e.target.value)}
             rows={2}
             className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
           />
@@ -259,10 +263,10 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
           )}
           <button
             onClick={save}
-            disabled={saving}
+            disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold disabled:opacity-50"
           >
-            {saving ? '保存中...' : '保存'}
+            {isSubmitting ? '保存中...' : '保存'}
           </button>
         </div>
       </div>

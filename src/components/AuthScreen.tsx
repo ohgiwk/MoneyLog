@@ -30,20 +30,25 @@ export default function AuthScreen() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-          <div className="flex rounded-xl bg-slate-100 p-1">
+          {/* モード切り替え */}
+          <div className="flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="認証モード">
             <button
+              role="tab"
+              aria-selected={mode === 'signin'}
               onClick={() => setMode('signin')}
               className={
-                'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
+                'flex-1 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300 ' +
                 (mode === 'signin' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
               }
             >
               ログイン
             </button>
             <button
+              role="tab"
+              aria-selected={mode === 'signup'}
               onClick={() => setMode('signup')}
               className={
-                'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
+                'flex-1 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-emerald-300 ' +
                 (mode === 'signup' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
               }
             >
@@ -52,27 +57,41 @@ export default function AuthScreen() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              placeholder="メールアドレス"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              required
-            />
-            <input
-              type="password"
-              placeholder="パスワード"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              required
-            />
+            <div>
+              <label htmlFor="email" className="sr-only">
+                メールアドレス
+              </label>
+              <input
+                id="email"
+                type="email"
+                placeholder="メールアドレス"
+                aria-label="メールアドレス"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                パスワード
+              </label>
+              <input
+                id="password"
+                type="password"
+                placeholder="パスワード"
+                aria-label="パスワード"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                required
+              />
+            </div>
             {error && <p className="text-xs text-rose-500">{error}</p>}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-1"
             >
               {loading ? '...' : mode === 'signin' ? 'ログイン' : 'アカウントを作成'}
             </button>
@@ -86,9 +105,9 @@ export default function AuthScreen() {
 
           <button
             onClick={() => signInWithGoogle()}
-            className="w-full py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center gap-2 active:bg-slate-50"
+            className="w-full py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center gap-2 active:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-300"
           >
-            <span>G</span> Googleでログイン
+            <span aria-hidden="true">G</span> Googleでログイン
           </button>
         </div>
       </div>

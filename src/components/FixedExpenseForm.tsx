@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   STATUS_LABELS,
   SUBSCRIPTION_PRESETS,
@@ -7,6 +6,17 @@ import {
 } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
+import { useForm } from '../hooks/useForm'
+
+interface FormValues {
+  name: string
+  category: string
+  subSubcategory: string
+  amount: string
+  cycle: FixedExpense['cycle']
+  status: FixedExpense['status']
+  notes: string
+}
 
 interface Props {
   userId?: string
@@ -16,47 +26,51 @@ interface Props {
 }
 
 export default function FixedExpenseForm({ userId, expense, fixedCategories, onClose }: Props) {
-  const [name, setName] = useState(expense?.name ?? '')
-  const [category, setCategory] = useState(expense?.category ?? fixedCategories[0]?.name ?? '')
-  const [subSubcategory, setSubSubcategory] = useState<string>(() => {
+  const initialSubSubcategory = (() => {
     if (expense?.category === 'サブスク') {
-      const found = SUBSCRIPTION_PRESETS.find((p) => p.name === expense?.name)
-      return found?.subcategory ?? SUBSCRIPTION_SUBCATEGORIES[0].name
+      return (
+        SUBSCRIPTION_PRESETS.find((p) => p.name === expense?.name)?.subcategory ??
+        SUBSCRIPTION_SUBCATEGORIES[0].name
+      )
     }
     return SUBSCRIPTION_SUBCATEGORIES[0].name
+  })()
+
+  const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
+    name: expense?.name ?? '',
+    category: expense?.category ?? fixedCategories[0]?.name ?? '',
+    subSubcategory: initialSubSubcategory,
+    amount: expense?.amount != null ? expense.amount.toString() : '',
+    cycle: expense?.cycle ?? 'monthly',
+    status: expense?.status ?? 'active',
+    notes: expense?.notes ?? '',
   })
-  const [amount, setAmount] = useState(expense?.amount != null ? expense.amount.toString() : '')
-  const [cycle, setCycle] = useState<FixedExpense['cycle']>(expense?.cycle ?? 'monthly')
-  const [status, setStatus] = useState<FixedExpense['status']>(expense?.status ?? 'active')
-  const [notes, setNotes] = useState(expense?.notes ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function save() {
-    const amt = parseFloat(amount)
-    if (!name || isNaN(amt) || amt < 0) return
-    setSaving(true)
+    const amt = parseFloat(values.amount)
+    if (!values.name || isNaN(amt) || amt < 0) return
+    setIsSubmitting(true)
     setError(null)
     try {
       if (expense) {
         await fixedExpenseService.update(expense.id, {
-          name,
-          category,
+          name: values.name,
+          category: values.category,
           amount: amt,
-          cycle,
-          status,
-          notes: notes || null,
+          cycle: values.cycle,
+          status: values.status,
+          notes: values.notes || null,
         })
       } else {
         await fixedExpenseService.insert({
           user_id: userId!,
-          name,
-          category,
+          name: values.name,
+          category: values.category,
           amount: amt,
           baseline_amount: amt,
-          cycle,
-          status,
-          notes: notes || null,
+          cycle: values.cycle,
+          status: values.status,
+          notes: values.notes || null,
           start_date: new Date().toISOString().slice(0, 10),
           billing_day: null,
         })
@@ -65,7 +79,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
     } finally {
-      setSaving(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -104,8 +118,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         <div>
           <label className="text-xs text-slate-400">名前</label>
           <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={values.name}
+            onChange={(e) => setValue('name', e.target.value)}
             placeholder="例: Netflix"
             className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
           />
@@ -118,10 +132,10 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               <button
                 key={c.name}
                 type="button"
-                onClick={() => setCategory(c.name)}
+                onClick={() => setValue('category', c.name)}
                 className={
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
-                  (category === c.name
+                  (values.category === c.name
                     ? 'border-emerald-400 bg-emerald-50'
                     : 'border-slate-100 bg-slate-50')
                 }
@@ -135,13 +149,13 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           </div>
         </div>
 
-        {category === 'サブスク' && (
+        {values.category === 'サブスク' && (
           <div className="space-y-2">
             <div>
               <label className="text-xs text-slate-400">サービスカテゴリ</label>
               <select
-                value={subSubcategory}
-                onChange={(e) => setSubSubcategory(e.target.value)}
+                value={values.subSubcategory}
+                onChange={(e) => setValue('subSubcategory', e.target.value)}
                 className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
               >
                 {SUBSCRIPTION_SUBCATEGORIES.map((s) => (
@@ -155,24 +169,27 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
               <select
                 className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
-                value={name}
+                value={values.name}
                 onChange={(e) => {
                   const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
                   if (preset) {
-                    setName(preset.name)
-                    setAmount(preset.amount.toString())
-                    setCycle(preset.cycle)
+                    setValue('name', preset.name)
+                    setValue('amount', preset.amount.toString())
+                    setValue('cycle', preset.cycle)
                   } else {
-                    setName(e.target.value)
+                    setValue('name', e.target.value)
                   }
                 }}
               >
                 <option value="">-- サービスを選択 --</option>
-                {SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === subSubcategory).map((p) => (
-                  <option key={p.name} value={p.name}>
-                    {p.name}（{p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}）
-                  </option>
-                ))}
+                {SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === values.subSubcategory).map(
+                  (p) => (
+                    <option key={p.name} value={p.name}>
+                      {p.name}（{p.amount.toLocaleString()}円/
+                      {p.cycle === 'monthly' ? '月' : '年'}）
+                    </option>
+                  )
+                )}
               </select>
             </div>
           </div>
@@ -184,8 +201,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             <input
               type="number"
               inputMode="numeric"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              value={values.amount}
+              onChange={(e) => setValue('amount', e.target.value)}
               placeholder="0"
               className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
             />
@@ -193,8 +210,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           <div>
             <label className="text-xs text-slate-400">サイクル</label>
             <select
-              value={cycle}
-              onChange={(e) => setCycle(e.target.value as FixedExpense['cycle'])}
+              value={values.cycle}
+              onChange={(e) => setValue('cycle', e.target.value as FixedExpense['cycle'])}
               className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
             >
               <option value="monthly">毎月</option>
@@ -210,10 +227,10 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               <button
                 key={s}
                 type="button"
-                onClick={() => setStatus(s)}
+                onClick={() => setValue('status', s)}
                 className={
                   'flex-1 py-1.5 rounded-lg text-xs font-semibold border ' +
-                  (status === s
+                  (values.status === s
                     ? `${STATUS_LABELS[s].color} border-current`
                     : 'border-slate-100 text-slate-400')
                 }
@@ -227,8 +244,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         <div>
           <label className="text-xs text-slate-400">メモ</label>
           <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            value={values.notes}
+            onChange={(e) => setValue('notes', e.target.value)}
             placeholder=""
             rows={3}
             className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
@@ -246,10 +263,10 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           )}
           <button
             onClick={save}
-            disabled={saving}
+            disabled={isSubmitting}
             className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold disabled:opacity-50"
           >
-            {saving ? '保存中...' : '保存'}
+            {isSubmitting ? '保存中...' : '保存'}
           </button>
         </div>
       </div>

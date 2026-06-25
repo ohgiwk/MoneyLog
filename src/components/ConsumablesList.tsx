@@ -1,10 +1,9 @@
 import { useState } from 'react'
+import { CONSUMABLE_URGENT_THRESHOLD_DAYS } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 import ConsumableRow from './ConsumableRow'
 import ConsumableForm from './ConsumableForm'
-
-const URGENT_THRESHOLD_DAYS = 7
 
 interface Props {
   userId: string
@@ -39,10 +38,10 @@ export default function ConsumablesList({
       nextPurchaseDate(b, householdMembers).getTime()
   )
   const urgent = sorted.filter(
-    (c) => daysUntil(nextPurchaseDate(c, householdMembers)) <= URGENT_THRESHOLD_DAYS
+    (c) => daysUntil(nextPurchaseDate(c, householdMembers)) <= CONSUMABLE_URGENT_THRESHOLD_DAYS
   )
   const rest = sorted.filter(
-    (c) => daysUntil(nextPurchaseDate(c, householdMembers)) > URGENT_THRESHOLD_DAYS
+    (c) => daysUntil(nextPurchaseDate(c, householdMembers)) > CONSUMABLE_URGENT_THRESHOLD_DAYS
   )
 
   const totalMonthly = consumables.reduce(
