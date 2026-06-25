@@ -68,89 +68,12 @@ export interface SubscriptionPreset {
   subcategory: string
 }
 
-export const SUBSCRIPTION_SUBCATEGORIES: { name: string; icon: string }[] = [
-  { name: '動画', icon: '🎬' },
-  { name: '音楽', icon: '🎵' },
-  { name: 'AI', icon: '🤖' },
-  { name: 'ゲーム', icon: '🎮' },
-  { name: 'ストレージ', icon: '☁️' },
-  { name: 'ビジネス', icon: '💼' },
-  { name: 'ニュース', icon: '📰' },
-  { name: 'その他', icon: '📦' },
-]
+import subcategoriesJson from './data/subscription-subcategories.json'
+import presetsJson from './data/subscription-presets.json'
 
-export const SUBSCRIPTION_PRESETS: SubscriptionPreset[] = [
-  // 動画
-  { name: 'Netflix (スタンダード)', amount: 1590, cycle: 'monthly', subcategory: '動画' },
-  { name: 'Netflix (プレミアム)', amount: 1980, cycle: 'monthly', subcategory: '動画' },
-  { name: 'Amazon Prime', amount: 600, cycle: 'monthly', yearlyAmount: 6000, subcategory: '動画' },
-  { name: 'Disney+', amount: 990, cycle: 'monthly', yearlyAmount: 9900, subcategory: '動画' },
-  { name: 'Hulu', amount: 1026, cycle: 'monthly', subcategory: '動画' },
-  { name: 'Apple TV+', amount: 900, cycle: 'monthly', yearlyAmount: 9000, subcategory: '動画' },
-  { name: 'U-NEXT', amount: 2189, cycle: 'monthly', subcategory: '動画' },
-  { name: 'DAZN', amount: 4200, cycle: 'monthly', yearlyAmount: 27000, subcategory: '動画' },
-  { name: 'NHKプラス', amount: 1100, cycle: 'monthly', subcategory: '動画' },
-  { name: 'Paravi', amount: 1017, cycle: 'monthly', subcategory: '動画' },
-  { name: 'FOD プレミアム', amount: 976, cycle: 'monthly', subcategory: '動画' },
-  { name: 'TVer プレミアム', amount: 550, cycle: 'monthly', subcategory: '動画' },
-  // 音楽
-  { name: 'Apple Music', amount: 1080, cycle: 'monthly', yearlyAmount: 10800, subcategory: '音楽' },
-  { name: 'Spotify プレミアム', amount: 980, cycle: 'monthly', yearlyAmount: 9800, subcategory: '音楽' },
-  { name: 'YouTube Premium', amount: 1280, cycle: 'monthly', subcategory: '音楽' },
-  { name: 'Amazon Music Unlimited', amount: 980, cycle: 'monthly', yearlyAmount: 9800, subcategory: '音楽' },
-  { name: 'LINE MUSIC', amount: 980, cycle: 'monthly', yearlyAmount: 9600, subcategory: '音楽' },
-  { name: 'AWA', amount: 960, cycle: 'monthly', yearlyAmount: 9600, subcategory: '音楽' },
-  { name: 'mora qualitas', amount: 1980, cycle: 'monthly', subcategory: '音楽' },
-  // AI
-  { name: 'ChatGPT Plus', amount: 3000, cycle: 'monthly', subcategory: 'AI' },
-  { name: 'ChatGPT Pro', amount: 30000, cycle: 'monthly', subcategory: 'AI' },
-  { name: 'Claude Pro', amount: 3000, cycle: 'monthly', subcategory: 'AI' },
-  { name: 'Claude Max (5x)', amount: 9000, cycle: 'monthly', subcategory: 'AI' },
-  { name: 'Gemini Advanced', amount: 2900, cycle: 'monthly', yearlyAmount: 29000, subcategory: 'AI' },
-  { name: 'Copilot Pro', amount: 3200, cycle: 'monthly', subcategory: 'AI' },
-  { name: 'Perplexity Pro', amount: 2500, cycle: 'monthly', yearlyAmount: 25200, subcategory: 'AI' },
-  { name: 'Notion AI', amount: 1000, cycle: 'monthly', subcategory: 'AI' },
-  // ゲーム
-  { name: 'Nintendo Switch Online', amount: 306, cycle: 'monthly', yearlyAmount: 2400, subcategory: 'ゲーム' },
-  { name: 'Nintendo Switch Online+', amount: 500, cycle: 'monthly', yearlyAmount: 4900, subcategory: 'ゲーム' },
-  { name: 'Xbox Game Pass', amount: 850, cycle: 'monthly', subcategory: 'ゲーム' },
-  { name: 'PlayStation Plus エッセンシャル', amount: 850, cycle: 'monthly', yearlyAmount: 6800, subcategory: 'ゲーム' },
-  { name: 'PlayStation Plus エクストラ', amount: 1300, cycle: 'monthly', yearlyAmount: 10800, subcategory: 'ゲーム' },
-  { name: 'PlayStation Plus プレミアム', amount: 1550, cycle: 'monthly', yearlyAmount: 13600, subcategory: 'ゲーム' },
-  { name: 'Apple Arcade', amount: 600, cycle: 'monthly', yearlyAmount: 6000, subcategory: 'ゲーム' },
-  { name: 'Google Play Pass', amount: 610, cycle: 'monthly', yearlyAmount: 3700, subcategory: 'ゲーム' },
-  // ストレージ
-  { name: 'iCloud+ 50GB', amount: 130, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'iCloud+ 200GB', amount: 400, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'iCloud+ 2TB', amount: 1300, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'Google One 100GB', amount: 250, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'Google One 200GB', amount: 380, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'Google One 2TB', amount: 1300, cycle: 'monthly', subcategory: 'ストレージ' },
-  { name: 'Dropbox Plus', amount: 1500, cycle: 'monthly', yearlyAmount: 14400, subcategory: 'ストレージ' },
-  { name: 'OneDrive 100GB', amount: 260, cycle: 'monthly', subcategory: 'ストレージ' },
-  // ビジネス
-  { name: 'Microsoft 365 Personal', amount: 1490, cycle: 'monthly', yearlyAmount: 14900, subcategory: 'ビジネス' },
-  { name: 'Adobe Creative Cloud', amount: 6480, cycle: 'monthly', yearlyAmount: 72336, subcategory: 'ビジネス' },
-  { name: 'Adobe Acrobat', amount: 1380, cycle: 'monthly', subcategory: 'ビジネス' },
-  { name: 'Notion Plus', amount: 1600, cycle: 'monthly', yearlyAmount: 16000, subcategory: 'ビジネス' },
-  { name: 'Slack Pro', amount: 925, cycle: 'monthly', subcategory: 'ビジネス' },
-  { name: 'Zoom Pro', amount: 2125, cycle: 'monthly', subcategory: 'ビジネス' },
-  { name: 'Canva Pro', amount: 1500, cycle: 'monthly', yearlyAmount: 12000, subcategory: 'ビジネス' },
-  { name: 'GitHub Copilot', amount: 1280, cycle: 'monthly', yearlyAmount: 10000, subcategory: 'ビジネス' },
-  // ニュース
-  { name: '日経電子版', amount: 4277, cycle: 'monthly', yearlyAmount: 40800, subcategory: 'ニュース' },
-  { name: '朝日新聞デジタル', amount: 1980, cycle: 'monthly', subcategory: 'ニュース' },
-  { name: '読売新聞オンライン', amount: 2100, cycle: 'monthly', subcategory: 'ニュース' },
-  { name: 'NewsPicks', amount: 1700, cycle: 'monthly', yearlyAmount: 17000, subcategory: 'ニュース' },
-  { name: 'Kindle Unlimited', amount: 980, cycle: 'monthly', yearlyAmount: 9800, subcategory: 'ニュース' },
-  { name: 'dマガジン', amount: 580, cycle: 'monthly', subcategory: 'ニュース' },
-  // その他
-  { name: 'NHK受信料', amount: 1100, cycle: 'monthly', subcategory: 'その他' },
-  { name: 'Amazon Prime (年払い)', amount: 6000, cycle: 'yearly', subcategory: 'その他' },
-  { name: 'Duolingo Plus', amount: 1067, cycle: 'monthly', yearlyAmount: 7600, subcategory: 'その他' },
-  { name: 'Headspace', amount: 1300, cycle: 'monthly', yearlyAmount: 9800, subcategory: 'その他' },
-  { name: 'マネーフォワード ME プレミアム', amount: 500, cycle: 'monthly', yearlyAmount: 5300, subcategory: 'その他' },
-]
+export const SUBSCRIPTION_SUBCATEGORIES: { name: string; icon: string }[] = subcategoriesJson
+
+export const SUBSCRIPTION_PRESETS: SubscriptionPreset[] = presetsJson as SubscriptionPreset[]
 
 export const STATUS_LABELS = {
   active: { label: '契約中', color: 'text-emerald-600 bg-emerald-50' },
