@@ -242,13 +242,14 @@ function FixedExpenseList({
   }
   const filtered = fixedExpenses.filter((f) => f.status === filter).sort(sortByCategory)
   const activeExpenses = fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing')
-  const totalAmount = activeExpenses.reduce((s, f) => s + (f.amount ?? 0), 0)
+  const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+  const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
   const totalBaseline = activeExpenses
     .filter((f) => f.baseline_amount > 0)
-    .reduce((s, f) => s + f.baseline_amount, 0)
+    .reduce((s, f) => s + f.baseline_amount / (f.cycle === 'yearly' ? 12 : 1), 0)
   const totalCurrent = activeExpenses
     .filter((f) => f.baseline_amount > 0)
-    .reduce((s, f) => s + (f.amount ?? 0), 0)
+    .reduce((s, f) => s + toMonthly(f), 0)
   const totalSaved = totalBaseline - totalCurrent
 
   if (editing !== null) {
@@ -345,14 +346,26 @@ function FixedExpenseList({
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                    {f.cycle === 'yearly' && (
+                      <div className="text-xs text-indigo-400 font-medium">年払い</div>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     <div
                       className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
                     >
-                      {f.amount == null ? '未入力' : formatYen(f.amount)}
+                      {f.amount == null
+                        ? '未入力'
+                        : f.cycle === 'yearly'
+                          ? `${formatYen(f.amount)}/年`
+                          : formatYen(f.amount)}
                     </div>
-                    {f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
+                    {f.cycle === 'yearly' && f.amount != null && (
+                      <div className="text-xs text-slate-400">
+                        月換算 {formatYen(Math.round(f.amount / 12))}
+                      </div>
+                    )}
+                    {f.cycle !== 'yearly' && f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
                       <div className="text-xs text-emerald-500">
                         -{formatYen(f.baseline_amount - f.amount)}
                       </div>
@@ -566,8 +579,6 @@ function FixedExpenseForm({
             >
               <option value="monthly">毎月</option>
               <option value="yearly">毎年</option>
-              <option value="weekly">毎週</option>
-              <option value="daily">毎日</option>
             </select>
           </div>
         </div>
