@@ -314,42 +314,61 @@ function FixedExpenseList({
       </div>
 
       {/* 固定費一覧 */}
-      <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-50">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="text-sm text-slate-400 text-center py-6">
             該当する固定費がありません
           </div>
         ) : (
-          filtered.map((f) => (
-            <div
-              key={f.id}
-              className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer"
-              onClick={() => openEditing(f)}
-            >
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
-                <div className="text-xs text-slate-400">{f.category}</div>
-              </div>
-              <div className="text-right shrink-0">
-                <div
-                  className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
-                >
-                  {f.amount == null ? '未入力' : formatYen(f.amount)}
-                </div>
-                {f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
-                  <div className="text-xs text-emerald-500">
-                    -{formatYen(f.baseline_amount - f.amount)}
+          (() => {
+            const rows: import('react').ReactNode[] = []
+            let prevCategory = ''
+            filtered.forEach((f, i) => {
+              if (f.category !== prevCategory) {
+                const cat = fixedCategories.find((c) => c.name === f.category)
+                rows.push(
+                  <div
+                    key={`header-${f.category}`}
+                    className={`flex items-center gap-2 px-4 py-1.5 bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
+                  >
+                    {cat && <span className="text-sm">{cat.icon}</span>}
+                    <span className="text-xs font-semibold text-slate-400">{f.category}</span>
                   </div>
-                )}
-              </div>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
-              >
-                {STATUS_LABELS[f.status].label}
-              </span>
-              <span className="text-slate-300 text-sm">›</span>
-            </div>
-          ))
+                )
+                prevCategory = f.category
+              }
+              rows.push(
+                <div
+                  key={f.id}
+                  className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer border-t border-slate-50"
+                  onClick={() => openEditing(f)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div
+                      className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
+                    >
+                      {f.amount == null ? '未入力' : formatYen(f.amount)}
+                    </div>
+                    {f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
+                      <div className="text-xs text-emerald-500">
+                        -{formatYen(f.baseline_amount - f.amount)}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
+                  >
+                    {STATUS_LABELS[f.status].label}
+                  </span>
+                  <span className="text-slate-300 text-sm">›</span>
+                </div>
+              )
+            })
+            return rows
+          })()
         )}
       </div>
 
