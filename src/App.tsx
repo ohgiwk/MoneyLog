@@ -39,6 +39,7 @@ export default function App() {
   if (screen === 'settings') {
     return (
       <SettingsScreen
+        userId={user.id}
         onCategoryEdit={() => setScreen('category-edit')}
         onBack={() => setScreen('main')}
       />

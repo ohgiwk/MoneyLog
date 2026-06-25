@@ -16,7 +16,7 @@ interface Props {
 export default function RecordTab({ userId, month, setMonth, expenseCategories, incomeCategories }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [type, setType] = useState<'expense' | 'income'>('expense')
-  const [expenseKind, setExpenseKind] = useState<'routine' | 'one_time'>('routine')
+  const [expenseKind, setExpenseKind] = useState<'consumable' | 'one_time'>('consumable')
   const [date, setDate] = useState(todayStr())
   const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
   const [amount, setAmount] = useState('')
@@ -115,13 +115,13 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
             <div className="flex rounded-xl bg-slate-100 p-1">
               <button
                 type="button"
-                onClick={() => setExpenseKind('routine')}
+                onClick={() => setExpenseKind('consumable')}
                 className={
                   'flex-1 py-1.5 rounded-lg text-xs font-semibold transition ' +
-                  (expenseKind === 'routine' ? 'bg-white shadow text-slate-700' : 'text-slate-400')
+                  (expenseKind === 'consumable' ? 'bg-white shadow text-slate-700' : 'text-slate-400')
                 }
               >
-                ルーチン費
+                消耗品費
               </button>
               <button
                 type="button"
@@ -131,7 +131,7 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
                   (expenseKind === 'one_time' ? 'bg-white shadow text-slate-700' : 'text-slate-400')
                 }
               >
-                臨時費
+                臨時出費
               </button>
             </div>
           )}
@@ -245,7 +245,7 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
                                 <span className="text-sm text-slate-700">{t.category}</span>
                                 {t.expense_kind === 'one_time' && (
                                   <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">
-                                    臨時
+                                    臨時出費
                                   </span>
                                 )}
                               </div>

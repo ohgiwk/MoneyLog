@@ -1,9 +1,31 @@
+import { useEffect, useState } from 'react'
+import { profileService } from '../lib/services/profileService'
+
 interface Props {
+  userId: string
   onCategoryEdit: () => void
   onBack: () => void
 }
 
-export default function SettingsScreen({ onCategoryEdit, onBack }: Props) {
+export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props) {
+  const [householdMembers, setHouseholdMembers] = useState(1)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    profileService.fetchById(userId).then((p) => {
+      if (p) setHouseholdMembers(p.household_members ?? 1)
+    })
+  }, [userId])
+
+  async function saveHouseholdMembers(value: number) {
+    setSaving(true)
+    await profileService.update(userId, { household_members: value })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
+  }
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
@@ -15,6 +37,52 @@ export default function SettingsScreen({ onCategoryEdit, onBack }: Props) {
         </div>
       </div>
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+        {/* 消耗品費の設定 */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">消耗品費</span>
+          </div>
+          <div className="px-4 py-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-slate-700">同居人数</div>
+                <div className="text-xs text-slate-400">消耗品の消費サイクル計算に使用</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const v = Math.max(1, householdMembers - 1)
+                    setHouseholdMembers(v)
+                    saveHouseholdMembers(v)
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
+                >
+                  −
+                </button>
+                <span className="text-lg font-semibold text-slate-700 w-6 text-center">
+                  {householdMembers}
+                </span>
+                <button
+                  onClick={() => {
+                    const v = Math.min(10, householdMembers + 1)
+                    setHouseholdMembers(v)
+                    saveHouseholdMembers(v)
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
+                >
+                  ＋
+                </button>
+              </div>
+            </div>
+            {(saving || saved) && (
+              <div className="text-xs text-emerald-500 text-right">
+                {saving ? '保存中...' : '保存しました'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* カスタマイズ */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">カスタマイズ</span>

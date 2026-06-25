@@ -79,6 +79,23 @@ export const SUBSCRIPTION_SUBCATEGORIES: { name: string; icon: string }[] = subc
 
 export const SUBSCRIPTION_PRESETS: SubscriptionPreset[] = presetsJson as SubscriptionPreset[]
 
+export const CONSUMABLE_CATEGORIES: CategoryInfo[] = [
+  { name: '衛生・清潔', icon: '🪥', color: '#0ea5e9' },
+  { name: 'トイレ・洗剤', icon: '🧻', color: '#06b6d4' },
+  { name: 'サプリ・医療', icon: '💊', color: '#10b981' },
+  { name: '食品・調味料', icon: '🍙', color: '#f97316' },
+  { name: 'その他消耗品', icon: '📦', color: '#64748b' },
+]
+
+export const CONSUMABLE_CYCLE_PRESETS = [
+  { label: '1週間', days: 7 },
+  { label: '2週間', days: 14 },
+  { label: '1ヶ月', days: 30 },
+  { label: '2ヶ月', days: 60 },
+  { label: '3ヶ月', days: 90 },
+  { label: '半年', days: 180 },
+]
+
 export const STATUS_LABELS = {
   active: { label: '契約中', color: 'text-emerald-600 bg-emerald-50' },
   reviewing: { label: '見直し中', color: 'text-amber-600 bg-amber-50' },

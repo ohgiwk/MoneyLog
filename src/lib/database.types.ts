@@ -10,10 +10,28 @@ export interface Database {
           monthly_income: number | null
           hourly_wage: number | null
           expected_work_days: number | null
+          household_members: number
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at'>
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+      }
+      consumables: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          category: string
+          amount: number
+          quantity: number
+          cycle_days: number
+          members_scale: boolean
+          last_purchased: string
+          notes: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['consumables']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['consumables']['Insert']>
       }
       fixed_expenses: {
         Row: {
@@ -56,7 +74,7 @@ export interface Database {
           id: string
           user_id: string
           type: 'income' | 'expense'
-          expense_kind: 'routine' | 'one_time' | null
+          expense_kind: 'routine' | 'consumable' | 'one_time' | null
           date: string
           category: string
           amount: number
@@ -186,3 +204,4 @@ export type WishlistItem = Database['public']['Tables']['wishlist_items']['Row']
 export type SavingsGoal = Database['public']['Tables']['savings_goals']['Row']
 export type WorkSchedule = Database['public']['Tables']['work_schedule']['Row']
 export type IncomeRecord = Database['public']['Tables']['income_records']['Row']
+export type Consumable = Database['public']['Tables']['consumables']['Row']

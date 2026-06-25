@@ -167,6 +167,33 @@ create table public.work_schedule (
 alter table public.work_schedule enable row level security;
 create policy "own work_schedule" on public.work_schedule for all using (auth.uid() = user_id);
 
+-- consumables（消耗品費）
+create table public.consumables (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  name text not null,
+  category text not null,
+  amount numeric not null,
+  quantity int not null default 1,
+  cycle_days int not null,
+  members_scale boolean not null default false,
+  last_purchased date not null,
+  notes text,
+  created_at timestamptz not null default now()
+);
+alter table public.consumables enable row level security;
+create policy "own consumables" on public.consumables for all using (auth.uid() = user_id);
+
+-- profiles に同居人数カラムを追加
+alter table public.profiles add column if not exists household_members int not null default 1;
+
+-- transactions の expense_kind に 'consumable' を追加
+alter table public.transactions
+  drop constraint if exists transactions_expense_kind_check;
+alter table public.transactions
+  add constraint transactions_expense_kind_check
+  check (expense_kind in ('routine', 'consumable', 'one_time'));
+
 -- income_records
 create table public.income_records (
   id uuid primary key default gen_random_uuid(),
