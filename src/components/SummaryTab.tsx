@@ -606,11 +606,12 @@ function FixedExpenseForm({
 
         <div>
           <label className="text-xs text-slate-400">メモ</label>
-          <input
+          <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder=""
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            rows={3}
+            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
           />
         </div>
 
