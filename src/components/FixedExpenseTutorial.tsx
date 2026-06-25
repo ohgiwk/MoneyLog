@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEFAULT_FIXED_EXPENSES, SUBSCRIPTION_PRESETS } from '../constants'
+import { DEFAULT_FIXED_EXPENSES, SUBSCRIPTION_PRESETS, SUBSCRIPTION_SUBCATEGORIES } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 
@@ -103,6 +103,8 @@ interface SubscriptionStepProps {
 }
 
 function SubscriptionStep({ selected, onChange }: SubscriptionStepProps) {
+  const [activeTab, setActiveTab] = useState(SUBSCRIPTION_SUBCATEGORIES[0].name)
+
   function toggle(name: string) {
     const next = new Set(selected)
     if (next.has(name)) next.delete(name)
@@ -110,35 +112,70 @@ function SubscriptionStep({ selected, onChange }: SubscriptionStepProps) {
     onChange(next)
   }
 
+  const presets = SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === activeTab)
+
   return (
-    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-      {SUBSCRIPTION_PRESETS.map((p) => {
-        const checked = selected.has(p.name)
-        return (
-          <button
-            key={p.name}
-            type="button"
-            onClick={() => toggle(p.name)}
-            className={
-              'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition ' +
-              (checked ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white')
-            }
-          >
-            <span
+    <div>
+      {/* タブ */}
+      <div className="flex gap-1 overflow-x-auto pb-2 mb-3 scrollbar-none">
+        {SUBSCRIPTION_SUBCATEGORIES.map((sub) => {
+          const hasSelected = SUBSCRIPTION_PRESETS.some(
+            (p) => p.subcategory === sub.name && selected.has(p.name)
+          )
+          return (
+            <button
+              key={sub.name}
+              type="button"
+              onClick={() => setActiveTab(sub.name)}
               className={
-                'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
-                (checked ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')
+                'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition ' +
+                (activeTab === sub.name
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-slate-100 text-slate-500')
               }
             >
-              {checked && <span className="text-white text-xs font-bold">✓</span>}
-            </span>
-            <span className="flex-1 text-sm text-slate-700">{p.name}</span>
-            <span className="text-xs text-slate-400 shrink-0">
-              {p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}
-            </span>
-          </button>
-        )
-      })}
+              <span>{sub.icon}</span>
+              <span>{sub.name}</span>
+              {hasSelected && (
+                <span className={
+                  'w-1.5 h-1.5 rounded-full ' +
+                  (activeTab === sub.name ? 'bg-white' : 'bg-emerald-400')
+                } />
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {/* サービス一覧 */}
+      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+        {presets.map((p) => {
+          const checked = selected.has(p.name)
+          return (
+            <button
+              key={p.name}
+              type="button"
+              onClick={() => toggle(p.name)}
+              className={
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition ' +
+                (checked ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white')
+              }
+            >
+              <span
+                className={
+                  'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
+                  (checked ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')
+                }
+              >
+                {checked && <span className="text-white text-xs font-bold">✓</span>}
+              </span>
+              <span className="flex-1 text-sm text-slate-700">{p.name}</span>
+              <span className="text-xs text-slate-400 shrink-0">
+                {p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}
+              </span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { STATUS_LABELS, SUBSCRIPTION_PRESETS, type CategoryInfo } from '../constants'
+import { STATUS_LABELS, SUBSCRIPTION_PRESETS, SUBSCRIPTION_SUBCATEGORIES, type CategoryInfo } from '../constants'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense, Transaction } from '../lib/database.types'
@@ -402,6 +402,13 @@ function FixedExpenseForm({
 }) {
   const [name, setName] = useState(expense?.name ?? '')
   const [category, setCategory] = useState(expense?.category ?? fixedCategories[0]?.name ?? '')
+  const [subSubcategory, setSubSubcategory] = useState<string>(() => {
+    if (expense?.category === 'サブスク') {
+      const found = SUBSCRIPTION_PRESETS.find((p) => p.name === expense?.name)
+      return found?.subcategory ?? SUBSCRIPTION_SUBCATEGORIES[0].name
+    }
+    return SUBSCRIPTION_SUBCATEGORIES[0].name
+  })
   const [amount, setAmount] = useState(expense?.amount != null ? expense.amount.toString() : '')
   const [cycle, setCycle] = useState<FixedExpense['cycle']>(expense?.cycle ?? 'monthly')
   const [status, setStatus] = useState<FixedExpense['status']>(expense?.status ?? 'active')
@@ -496,27 +503,45 @@ function FixedExpenseForm({
         </div>
 
         {category === 'サブスク' && (
-          <div>
-            <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
-            <select
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
-              defaultValue=""
-              onChange={(e) => {
-                const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
-                if (preset) {
-                  setName(preset.name)
-                  setAmount(preset.amount.toString())
-                  setCycle(preset.cycle)
-                }
-              }}
-            >
-              <option value="" disabled>-- サービスを選択 --</option>
-              {SUBSCRIPTION_PRESETS.map((p) => (
-                <option key={p.name} value={p.name}>
-                  {p.name}（{p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}）
-                </option>
-              ))}
-            </select>
+          <div className="space-y-2">
+            <div>
+              <label className="text-xs text-slate-400">サービスカテゴリ</label>
+              <select
+                value={subSubcategory}
+                onChange={(e) => setSubSubcategory(e.target.value)}
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
+              >
+                {SUBSCRIPTION_SUBCATEGORIES.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.icon} {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
+              <select
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
+                value={name}
+                onChange={(e) => {
+                  const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
+                  if (preset) {
+                    setName(preset.name)
+                    setAmount(preset.amount.toString())
+                    setCycle(preset.cycle)
+                  } else {
+                    setName(e.target.value)
+                  }
+                }}
+              >
+                <option value="">-- サービスを選択 --</option>
+                {SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === subSubcategory).map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {p.name}（{p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}）
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
