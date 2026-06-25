@@ -99,18 +99,13 @@ function MultiStep({ items, onChange }: MultiStepProps) {
 
 interface SubscriptionStepProps {
   selected: Set<string>
-  onChange: (selected: Set<string>) => void
+  cycleOverrides: Map<string, 'monthly' | 'yearly'>
+  onToggle: (name: string) => void
+  onCycleChange: (name: string, cycle: 'monthly' | 'yearly') => void
 }
 
-function SubscriptionStep({ selected, onChange }: SubscriptionStepProps) {
+function SubscriptionStep({ selected, cycleOverrides, onToggle, onCycleChange }: SubscriptionStepProps) {
   const [activeTab, setActiveTab] = useState(SUBSCRIPTION_SUBCATEGORIES[0].name)
-
-  function toggle(name: string) {
-    const next = new Set(selected)
-    if (next.has(name)) next.delete(name)
-    else next.add(name)
-    onChange(next)
-  }
 
   const presets = SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === activeTab)
 
@@ -150,29 +145,58 @@ function SubscriptionStep({ selected, onChange }: SubscriptionStepProps) {
       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
         {presets.map((p) => {
           const checked = selected.has(p.name)
+          const cycle = cycleOverrides.get(p.name) ?? p.cycle
           return (
-            <button
+            <div
               key={p.name}
-              type="button"
-              onClick={() => toggle(p.name)}
               className={
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition ' +
+                'flex items-center gap-2 px-3 py-2.5 rounded-xl border transition ' +
                 (checked ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white')
               }
             >
-              <span
-                className={
-                  'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
-                  (checked ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')
-                }
+              <button
+                type="button"
+                onClick={() => onToggle(p.name)}
+                className="flex items-center gap-2 flex-1 min-w-0 text-left"
               >
-                {checked && <span className="text-white text-xs font-bold">✓</span>}
+                <span
+                  className={
+                    'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
+                    (checked ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')
+                  }
+                >
+                  {checked && <span className="text-white text-xs font-bold">✓</span>}
+                </span>
+                <span className="flex-1 text-sm text-slate-700 truncate">{p.name}</span>
+              </button>
+              {/* 月/年トグル（年額プランがある場合のみ表示） */}
+              {(p.yearlyAmount != null || p.cycle === 'yearly') && (
+                <div className="flex rounded-lg overflow-hidden border border-slate-200 shrink-0 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => onCycleChange(p.name, 'monthly')}
+                    className={
+                      'px-2 py-1 transition ' +
+                      (cycle === 'monthly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
+                    }
+                  >月</button>
+                  <button
+                    type="button"
+                    onClick={() => onCycleChange(p.name, 'yearly')}
+                    className={
+                      'px-2 py-1 transition border-l border-slate-200 ' +
+                      (cycle === 'yearly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
+                    }
+                  >年</button>
+                </div>
+              )}
+              <span className="text-xs text-slate-400 shrink-0 w-20 text-right">
+                {cycle === 'yearly'
+                  ? (p.yearlyAmount ?? p.amount).toLocaleString()
+                  : p.amount.toLocaleString()
+                }円/{cycle === 'monthly' ? '月' : '年'}
               </span>
-              <span className="flex-1 text-sm text-slate-700">{p.name}</span>
-              <span className="text-xs text-slate-400 shrink-0">
-                {p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}
-              </span>
-            </button>
+            </div>
           )
         })}
       </div>
@@ -195,7 +219,21 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
   const [selectedSubs, setSelectedSubs] = useState<Set<string>>(() =>
     buildSelectedSubs(fixedExpenses)
   )
+  const [cycleOverrides, setCycleOverrides] = useState<Map<string, 'monthly' | 'yearly'>>(new Map)
   const [saving, setSaving] = useState(false)
+
+  function toggleSub(name: string) {
+    setSelectedSubs((prev) => {
+      const next = new Set(prev)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
+  }
+
+  function setCycleOverride(name: string, cycle: 'monthly' | 'yearly') {
+    setCycleOverrides((prev) => new Map(prev).set(name, cycle))
+  }
 
   const step = STEPS[stepIndex]
   const isLast = stepIndex === STEPS.length - 1
@@ -249,13 +287,15 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
     SUBSCRIPTION_PRESETS.filter(
       (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name),
     ).forEach((p) => {
+      const cycle = cycleOverrides.get(p.name) ?? p.cycle
+      const amount = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount
       inserts.push({
         user_id: userId,
         name: p.name,
         category: 'サブスク',
-        amount: p.amount,
-        baseline_amount: p.amount,
-        cycle: p.cycle,
+        amount,
+        baseline_amount: amount,
+        cycle,
         status: 'active',
         start_date: today,
         billing_day: null,
@@ -307,7 +347,12 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
           />
         )}
         {step.category === 'subscription' && (
-          <SubscriptionStep selected={selectedSubs} onChange={setSelectedSubs} />
+          <SubscriptionStep
+            selected={selectedSubs}
+            cycleOverrides={cycleOverrides}
+            onToggle={toggleSub}
+            onCycleChange={setCycleOverride}
+          />
         )}
 
         {/* ボタン */}
