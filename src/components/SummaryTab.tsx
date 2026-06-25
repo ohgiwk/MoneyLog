@@ -12,7 +12,7 @@ import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen, monthKey } from '../utils'
+import { categoryInfo, formatYen, monthKey, monthLabel } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ProgressBar from './ui/ProgressBar'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
@@ -67,6 +67,10 @@ export default function SummaryTab({ userId, month, setMonth, fixedCategories }:
     const data = await transactionService.fetchByMonth(userId, month)
     setTransactions(data)
   }
+  async function deleteTx(id: string) {
+    await transactionService.delete(id)
+    setTransactions((prev) => prev.filter((t) => t.id !== id))
+  }
   async function fetchFixedExpenses() {
     const data = await fixedExpenseService.fetchByUser(userId)
     setFixedExpenses(data)
@@ -111,7 +115,7 @@ export default function SummaryTab({ userId, month, setMonth, fixedCategories }:
 
       <div className="p-4 space-y-4">
         {sub === 'overview' && (
-          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} />
+          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} onDeleteTx={deleteTx} />
         )}
         {sub === 'fixed' && (
           <FixedExpenseList
@@ -142,10 +146,12 @@ function Overview({
   transactions,
   month,
   fixedExpenses,
+  onDeleteTx,
 }: {
   transactions: Transaction[]
   month: string
   fixedExpenses: FixedExpense[]
+  onDeleteTx: (id: string) => void
 }) {
   const monthTx = transactions.filter((t) => monthKey(t.date) === month)
   const income = monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
@@ -171,6 +177,16 @@ function Overview({
         map[t.category] = (map[t.category] || 0) + t.amount
       })
     return Object.entries(map).sort((a, b) => b[1] - a[1])
+  }, [monthTx])
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, Transaction[]>()
+    for (const t of monthTx) {
+      const arr = map.get(t.date) ?? []
+      arr.push(t)
+      map.set(t.date, arr)
+    }
+    return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1))
   }, [monthTx])
 
   return (
@@ -229,6 +245,74 @@ function Overview({
             })}
           </div>
         )}
+      </div>
+
+      {/* 記録一覧 */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="text-sm font-semibold text-slate-700 mb-3">{monthLabel(month)}の記録</div>
+        {grouped.length === 0 && (
+          <div className="text-sm text-slate-400 py-2">記録がありません</div>
+        )}
+        <div className="space-y-4">
+          {grouped.map(([date, txs]) => {
+            const dayExpense = txs
+              .filter((t) => t.type === 'expense')
+              .reduce((s, t) => s + t.amount, 0)
+            return (
+              <div key={date}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-semibold text-slate-500">{date}</span>
+                  {dayExpense > 0 && (
+                    <span className="text-xs text-rose-400">{formatYen(dayExpense)}</span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  {txs.map((t) => {
+                    const info = categoryInfo(t.category)
+                    return (
+                      <div
+                        key={t.id}
+                        className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{info.icon}</span>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm text-slate-700">{t.category}</span>
+                              {t.expense_kind === 'one_time' && (
+                                <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">
+                                  臨時出費
+                                </span>
+                              )}
+                            </div>
+                            {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={
+                              'text-sm font-semibold ' +
+                              (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
+                            }
+                          >
+                            {t.type === 'income' ? '+' : '-'}
+                            {formatYen(t.amount)}
+                          </span>
+                          <button
+                            onClick={() => onDeleteTx(t.id)}
+                            className="text-slate-200 active:text-rose-400 text-sm px-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </>
   )

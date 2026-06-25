@@ -1,22 +1,16 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { CategoryInfo } from '../constants'
 import { transactionService } from '../lib/services/transactionService'
-import type { Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen, monthKey, monthLabel, todayStr } from '../utils'
-import MonthSwitcher from './ui/MonthSwitcher'
+import { todayStr } from '../utils'
 
 interface Props {
   userId: string
-  month: string
-  setMonth: (m: string) => void
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
 }
 
-export default function RecordTab({ userId, month, setMonth, expenseCategories, incomeCategories }: Props) {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+export default function RecordTab({ userId, expenseCategories, incomeCategories }: Props) {
   const [type, setType] = useState<'expense' | 'income'>('expense')
-  const [expenseKind, setExpenseKind] = useState<'consumable' | 'one_time'>('consumable')
   const [date, setDate] = useState(todayStr())
   const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
   const [amount, setAmount] = useState('')
@@ -29,15 +23,6 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
     setCategory(categories[0]?.name ?? '')
   }, [type, expenseCategories, incomeCategories])
 
-  useEffect(() => {
-    fetchTransactions()
-  }, [month])
-
-  async function fetchTransactions() {
-    const data = await transactionService.fetchByMonth(userId, month)
-    setTransactions(data)
-  }
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const amt = parseFloat(amount)
@@ -46,7 +31,7 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
     await transactionService.insert({
       user_id: userId,
       type,
-      expense_kind: type === 'expense' ? expenseKind : null,
+      expense_kind: type === 'expense' ? 'one_time' : null,
       date,
       category,
       amount: amt,
@@ -55,34 +40,11 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
     })
     setAmount('')
     setMemo('')
-    await fetchTransactions()
     setSubmitting(false)
   }
 
-  async function deleteTx(id: string) {
-    await transactionService.delete(id)
-    setTransactions((prev) => prev.filter((t) => t.id !== id))
-  }
-
-  const monthTx = useMemo(
-    () => transactions.filter((t) => monthKey(t.date) === month),
-    [transactions, month]
-  )
-
-  // 日付でグループ化
-  const grouped = useMemo(() => {
-    const map = new Map<string, Transaction[]>()
-    for (const t of monthTx) {
-      const arr = map.get(t.date) ?? []
-      arr.push(t)
-      map.set(t.date, arr)
-    }
-    return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1))
-  }, [monthTx])
-
   return (
     <div>
-      <MonthSwitcher month={month} setMonth={setMonth} />
       <div className="p-4 space-y-4">
         {/* 入力フォーム */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
@@ -109,32 +71,6 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
               収入
             </button>
           </div>
-
-          {/* 支出種別 */}
-          {type === 'expense' && (
-            <div className="flex rounded-xl bg-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => setExpenseKind('consumable')}
-                className={
-                  'flex-1 py-1.5 rounded-lg text-xs font-semibold transition ' +
-                  (expenseKind === 'consumable' ? 'bg-white shadow text-slate-700' : 'text-slate-400')
-                }
-              >
-                消耗品費
-              </button>
-              <button
-                type="button"
-                onClick={() => setExpenseKind('one_time')}
-                className={
-                  'flex-1 py-1.5 rounded-lg text-xs font-semibold transition ' +
-                  (expenseKind === 'one_time' ? 'bg-white shadow text-slate-700' : 'text-slate-400')
-                }
-              >
-                臨時出費
-              </button>
-            </div>
-          )}
 
           {/* 日付 */}
           <div>
@@ -210,74 +146,6 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
             記録する
           </button>
         </form>
-
-        {/* 記録一覧 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <div className="text-sm font-semibold text-slate-700 mb-3">{monthLabel(month)}の記録</div>
-          {grouped.length === 0 && (
-            <div className="text-sm text-slate-400 py-2">記録がありません</div>
-          )}
-          <div className="space-y-4">
-            {grouped.map(([date, txs]) => {
-              const dayExpense = txs
-                .filter((t) => t.type === 'expense')
-                .reduce((s, t) => s + t.amount, 0)
-              return (
-                <div key={date}>
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-semibold text-slate-500">{date}</span>
-                    {dayExpense > 0 && (
-                      <span className="text-xs text-rose-400">{formatYen(dayExpense)}</span>
-                    )}
-                  </div>
-                  <div className="space-y-1.5">
-                    {txs.map((t) => {
-                      const info = categoryInfo(t.category)
-                      return (
-                        <div
-                          key={t.id}
-                          className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-base">{info.icon}</span>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-sm text-slate-700">{t.category}</span>
-                                {t.expense_kind === 'one_time' && (
-                                  <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">
-                                    臨時出費
-                                  </span>
-                                )}
-                              </div>
-                              {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={
-                                'text-sm font-semibold ' +
-                                (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
-                              }
-                            >
-                              {t.type === 'income' ? '+' : '-'}
-                              {formatYen(t.amount)}
-                            </span>
-                            <button
-                              onClick={() => deleteTx(t.id)}
-                              className="text-slate-200 active:text-rose-400 text-sm px-1"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
       </div>
     </div>
   )

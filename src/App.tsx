@@ -104,8 +104,6 @@ export default function App() {
         {tab === 'record' && (
           <RecordTab
             userId={user.id}
-            month={month}
-            setMonth={setMonth}
             expenseCategories={categories.expenseCategories}
             incomeCategories={categories.incomeCategories}
           />
