@@ -3,58 +3,64 @@ import { DEFAULT_FIXED_EXPENSES, SUBSCRIPTION_PRESETS, SUBSCRIPTION_SUBCATEGORIE
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 
-// DEFAULT_FIXED_EXPENSES をカテゴリ順にグループ化してステップを作る
-const CATEGORY_ORDER = ['住居費', '光熱費', '通信費', '保険', 'その他固定費']
-
 const CATEGORY_META: Record<string, { icon: string; description: string }> = {
   住居費: { icon: '🏠', description: '家賃・管理費などを入力してください' },
   光熱費: { icon: '⚡', description: '電気・ガス・水道の月額を入力してください' },
   通信費: { icon: '📱', description: 'スマホ・インターネットの月額を入力してください' },
   保険: { icon: '🛡️', description: '生命保険・医療保険などを入力してください' },
+  自動車: { icon: '🚗', description: '駐車場・自動車保険・ローンを入力してください' },
   その他固定費: { icon: '📦', description: 'その他の固定費を入力してください' },
 }
 
-type StepCategory = (typeof CATEGORY_ORDER)[number] | 'subscription'
+// 住居費と光熱費は同一ステップでまとめて表示する
+type StepKey = '住居費+光熱費' | '通信費' | '保険' | '自動車' | 'その他固定費' | 'subscription'
 
 interface MultiItem {
   name: string
   amount: string
   cycle: 'monthly' | 'yearly'
+  category: string
 }
 
 interface Step {
-  category: StepCategory
+  key: StepKey
   icon: string
   title: string
   description: string
 }
 
 const STEPS: Step[] = [
-  ...CATEGORY_ORDER.map((cat) => ({
-    category: cat as StepCategory,
-    icon: CATEGORY_META[cat].icon,
-    title: cat,
-    description: CATEGORY_META[cat].description,
-  })),
-  {
-    category: 'subscription' as StepCategory,
-    icon: '🎬',
-    title: 'サブスクリプション',
-    description: '契約中のサービスを選んでください（複数選択可）',
-  },
+  { key: '住居費+光熱費', icon: '🏠', title: '住居費・光熱費', description: '家賃・電気・ガス・水道の月額を入力してください' },
+  { key: '通信費', icon: '📱', title: '通信費', description: 'スマホ・インターネットの月額を入力してください' },
+  { key: '保険', icon: '🛡️', title: '保険', description: '生命保険・医療保険などを入力してください' },
+  { key: '自動車', icon: '🚗', title: '自動車', description: '駐車場・自動車保険・ローンを入力してください' },
+  { key: 'その他固定費', icon: '📦', title: 'その他固定費', description: 'その他の固定費を入力してください' },
+  { key: 'subscription', icon: '🎬', title: 'サブスクリプション', description: '契約中のサービスを選んでください（複数選択可）' },
 ]
 
-// 既存 fixedExpenses から項目を事前入力した MultiItem[] を作る
-function buildItems(category: string, fixedExpenses: FixedExpense[]): MultiItem[] {
-  const defaults = DEFAULT_FIXED_EXPENSES.filter((d) => d.category === category)
-  return defaults.map((d) => {
-    const existing = fixedExpenses.find((f) => f.name === d.name && f.category === d.category)
-    return {
-      name: d.name,
-      cycle: d.cycle,
-      amount: existing?.amount != null ? existing.amount.toString() : '',
-    }
-  })
+// StepKey に対応するカテゴリ一覧（住居費+光熱費 は2カテゴリ）
+const STEP_CATEGORIES: Record<string, string[]> = {
+  '住居費+光熱費': ['住居費', '光熱費'],
+  通信費: ['通信費'],
+  保険: ['保険'],
+  自動車: ['自動車'],
+  その他固定費: ['その他固定費'],
+}
+
+// ステップに対応するカテゴリ群から既存データを事前入力した MultiItem[] を作る
+function buildItemsForStep(stepKey: StepKey, fixedExpenses: FixedExpense[]): MultiItem[] {
+  const categories = STEP_CATEGORIES[stepKey] ?? []
+  return categories.flatMap((cat) =>
+    DEFAULT_FIXED_EXPENSES.filter((d) => d.category === cat).map((d) => {
+      const existing = fixedExpenses.find((f) => f.name === d.name && f.category === d.category)
+      return {
+        name: d.name,
+        category: cat,
+        cycle: d.cycle,
+        amount: existing?.amount != null ? existing.amount.toString() : '',
+      }
+    })
+  )
 }
 
 // 既存サブスク（カテゴリ=サブスク）の名前セットを作る
@@ -67,32 +73,72 @@ function buildSelectedSubs(fixedExpenses: FixedExpense[]): Set<string> {
 
 interface MultiStepProps {
   items: MultiItem[]
+  showCategoryHeaders: boolean
   onChange: (items: MultiItem[]) => void
 }
 
-function MultiStep({ items, onChange }: MultiStepProps) {
+function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepProps) {
+  // カテゴリごとにグループ化して表示
+  const categories = showCategoryHeaders
+    ? [...new Set(items.map((it) => it.category))]
+    : null
+
   return (
-    <div className="space-y-3">
-      {items.map((item, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <span className="text-sm text-slate-600 w-28 shrink-0">{item.name}</span>
-          <div className="flex-1 relative">
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="0"
-              value={item.amount}
-              onChange={(e) => {
-                const next = [...items]
-                next[i] = { ...item, amount: e.target.value }
-                onChange(next)
-              }}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+      {categories
+        ? categories.map((cat) => (
+            <div key={cat}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  {CATEGORY_META[cat]?.icon} {cat}
+                </span>
+                <div className="flex-1 h-px bg-slate-100" />
+              </div>
+              {items
+                .map((item, i) => ({ item, i }))
+                .filter(({ item }) => item.category === cat)
+                .map(({ item, i }) => (
+                  <div key={i} className="flex items-center gap-3 mb-3">
+                    <span className="text-sm text-slate-600 w-28 shrink-0">{item.name}</span>
+                    <div className="flex-1 relative">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={item.amount}
+                        onChange={(e) => {
+                          const next = [...items]
+                          next[i] = { ...item, amount: e.target.value }
+                          onChange(next)
+                        }}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ))
+        : items.map((item, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <span className="text-sm text-slate-600 w-28 shrink-0">{item.name}</span>
+              <div className="flex-1 relative">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={item.amount}
+                  onChange={(e) => {
+                    const next = [...items]
+                    next[i] = { ...item, amount: e.target.value }
+                    onChange(next)
+                  }}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
+              </div>
+            </div>
+          ))}
     </div>
   )
 }
@@ -211,10 +257,13 @@ interface Props {
   onComplete: () => void
 }
 
+// subscription 以外のステップキー一覧
+const DATA_STEP_KEYS = STEPS.filter((s) => s.key !== 'subscription').map((s) => s.key)
+
 export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, onComplete }: Props) {
   const [stepIndex, setStepIndex] = useState(0)
   const [multiItems, setMultiItems] = useState<MultiItem[][]>(() =>
-    CATEGORY_ORDER.map((cat) => buildItems(cat, fixedExpenses))
+    DATA_STEP_KEYS.map((key) => buildItemsForStep(key as StepKey, fixedExpenses))
   )
   const [selectedSubs, setSelectedSubs] = useState<Set<string>>(() =>
     buildSelectedSubs(fixedExpenses)
@@ -239,8 +288,11 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
   const isLast = stepIndex === STEPS.length - 1
   const today = new Date().toISOString().slice(0, 10)
 
+  // 現在のステップが data ステップなら対応インデックスを返す（subscription は -1）
+  const dataStepIndex = DATA_STEP_KEYS.indexOf(step.key)
+
   function updateMultiItems(items: MultiItem[]) {
-    setMultiItems((prev) => prev.map((it, i) => (i === stepIndex ? items : it)))
+    setMultiItems((prev) => prev.map((it, i) => (i === dataStepIndex ? items : it)))
   }
 
   async function handleNext() {
@@ -254,12 +306,12 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
     const inserts: InsertRow[] = []
     const updates: { id: string; amount: number; status: FixedExpense['status'] }[] = []
 
-    // multi ステップの保存（save時に最新の fixedExpenses で既存チェック）
-    CATEGORY_ORDER.forEach((cat, i) => {
-      multiItems[i].forEach((item) => {
+    // multi ステップの保存 — item.category を使うので正確なカテゴリで保存される
+    multiItems.forEach((items) => {
+      items.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (isNaN(amt) || amt < 0) return
-        const existing = fixedExpenses.find((f) => f.name === item.name && f.category === cat)
+        const existing = fixedExpenses.find((f) => f.name === item.name && f.category === item.category)
         const status: FixedExpense['status'] = amt === 0 ? 'unsubscribed' : 'active'
         if (existing) {
           updates.push({ id: existing.id, amount: amt, status })
@@ -267,13 +319,14 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
           inserts.push({
             user_id: userId,
             name: item.name,
-            category: cat,
+            category: item.category,
             amount: amt,
             baseline_amount: amt,
             cycle: item.cycle,
             status,
             start_date: today,
             billing_day: null,
+            notes: null,
           })
         }
       })
@@ -299,6 +352,7 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
         status: 'active',
         start_date: today,
         billing_day: null,
+        notes: null,
       })
     })
 
@@ -340,13 +394,14 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
         </div>
 
         {/* コンテンツ */}
-        {step.category !== 'subscription' && (
+        {step.key !== 'subscription' && dataStepIndex >= 0 && (
           <MultiStep
-            items={multiItems[CATEGORY_ORDER.indexOf(step.category as string)]}
+            items={multiItems[dataStepIndex]}
+            showCategoryHeaders={step.key === '住居費+光熱費'}
             onChange={updateMultiItems}
           />
         )}
-        {step.category === 'subscription' && (
+        {step.key === 'subscription' && (
           <SubscriptionStep
             selected={selectedSubs}
             cycleOverrides={cycleOverrides}

@@ -57,6 +57,9 @@ export const DEFAULT_FIXED_EXPENSES: DefaultFixedExpense[] = [
   { name: 'インターネット', category: '通信費', cycle: 'monthly' },
   { name: '生命保険', category: '保険', cycle: 'monthly' },
   { name: '医療保険', category: '保険', cycle: 'monthly' },
+  { name: '駐車場代', category: '自動車', cycle: 'monthly' },
+  { name: '自動車保険', category: '自動車', cycle: 'monthly' },
+  { name: '自動車ローン', category: '自動車', cycle: 'monthly' },
   { name: 'NHK受信料', category: 'その他固定費', cycle: 'monthly' },
 ]
 
