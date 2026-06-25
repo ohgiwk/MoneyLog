@@ -25,7 +25,7 @@ export interface Database {
           baseline_amount: number
           cycle: 'daily' | 'weekly' | 'monthly' | 'yearly'
           billing_day: number | null
-          status: 'active' | 'reviewing' | 'cancelled'
+          status: 'active' | 'reviewing' | 'cancelled' | 'unsubscribed'
           start_date: string
           notes: string | null
           created_at: string

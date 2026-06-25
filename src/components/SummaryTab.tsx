@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { DEFAULT_FIXED_EXPENSES, STATUS_LABELS, type CategoryInfo } from '../constants'
+import { STATUS_LABELS, SUBSCRIPTION_PRESETS, type CategoryInfo } from '../constants'
 import { supabase } from '../lib/supabase'
 import type { FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ProgressBar from './ui/ProgressBar'
+import FixedExpenseTutorial from './FixedExpenseTutorial'
 
 type SubPage = 'overview' | 'fixed' | 'goals'
 
@@ -117,7 +118,7 @@ function Overview({
   const totalExpense = routineExpense + oneTimeExpense
   const balance = income - totalExpense
 
-  const activeFixed = fixedExpenses.filter((f) => f.status !== 'cancelled')
+  const activeFixed = fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing')
   const totalFixed = activeFixed.reduce((s, f) => s + (f.amount ?? 0), 0)
   const totalBaseline = activeFixed.reduce((s, f) => s + f.baseline_amount, 0)
   const totalSaved = totalBaseline - totalFixed
@@ -229,8 +230,9 @@ function FixedExpenseList({
   reload: () => void
   onEditingChange: (editing: boolean) => void
 }) {
-  const [filter, setFilter] = useState<'active' | 'reviewing' | 'cancelled'>('active')
+  const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
+  const [tutorialOpen, setTutorialOpen] = useState(false)
 
   function openEditing(v: FixedExpense | 'new') {
     setEditing(v)
@@ -241,35 +243,15 @@ function FixedExpenseList({
     onEditingChange(false)
     reload()
   }
-  const [seeding, setSeeding] = useState(false)
 
-  // 初回のみデフォルト固定費を自動挿入
-  useEffect(() => {
-    if (fixedExpenses.length === 0 && !seeding) {
-      setSeeding(true)
-      const today = new Date().toISOString().slice(0, 10)
-      const rows = DEFAULT_FIXED_EXPENSES.map((d) => ({
-        user_id: userId,
-        name: d.name,
-        category: d.category,
-        amount: null,
-        baseline_amount: 0,
-        cycle: d.cycle,
-        status: 'active' as const,
-        start_date: today,
-      }))
-      supabase
-        .from('fixed_expenses')
-        .insert(rows)
-        .then(() => {
-          reload()
-          setSeeding(false)
-        })
-    }
-  }, [fixedExpenses.length])
-
-  const filtered = fixedExpenses.filter((f) => f.status === filter)
-  const activeExpenses = fixedExpenses.filter((f) => f.status !== 'cancelled')
+  const categoryOrder = fixedCategories.map((c) => c.name)
+  const sortByCategory = (a: FixedExpense, b: FixedExpense) => {
+    const ai = categoryOrder.indexOf(a.category)
+    const bi = categoryOrder.indexOf(b.category)
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi)
+  }
+  const filtered = fixedExpenses.filter((f) => f.status === filter).sort(sortByCategory)
+  const activeExpenses = fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing')
   const totalAmount = activeExpenses.reduce((s, f) => s + (f.amount ?? 0), 0)
   const totalBaseline = activeExpenses
     .filter((f) => f.baseline_amount > 0)
@@ -292,6 +274,15 @@ function FixedExpenseList({
 
   return (
     <>
+      {tutorialOpen && (
+        <FixedExpenseTutorial
+          userId={userId}
+          fixedExpenses={fixedExpenses}
+          onClose={() => setTutorialOpen(false)}
+          onComplete={() => { setTutorialOpen(false); reload() }}
+        />
+      )}
+
       {/* 節約サマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="text-sm font-semibold text-slate-700 mb-3">節約サマリー</div>
@@ -318,7 +309,7 @@ function FixedExpenseList({
 
       {/* フィルター */}
       <div className="flex rounded-xl bg-slate-100 p-1">
-        {(['active', 'reviewing', 'cancelled'] as const).map((s) => (
+        {(['active', 'reviewing', 'unsubscribed', 'cancelled'] as const).map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
@@ -333,55 +324,57 @@ function FixedExpenseList({
       </div>
 
       {/* 固定費一覧 */}
-      {seeding ? (
-        <div className="text-sm text-slate-400 text-center py-6">読み込み中...</div>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-50">
-          {filtered.length === 0 ? (
-            <div className="text-sm text-slate-400 text-center py-6">
-              該当する固定費がありません
-            </div>
-          ) : (
-            filtered.map((f) => (
-              <div
-                key={f.id}
-                className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer"
-                onClick={() => openEditing(f)}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
-                  <div className="text-xs text-slate-400">{f.category}</div>
-                </div>
-                <div className="text-right shrink-0">
-                  <div
-                    className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
-                  >
-                    {f.amount == null ? '未入力' : formatYen(f.amount)}
-                  </div>
-                  {f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
-                    <div className="text-xs text-emerald-500">
-                      -{formatYen(f.baseline_amount - f.amount)}
-                    </div>
-                  )}
-                </div>
-                <span
-                  className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
-                >
-                  {STATUS_LABELS[f.status].label}
-                </span>
-                <span className="text-slate-300 text-sm">›</span>
+      <div className="bg-white rounded-2xl shadow-sm divide-y divide-slate-50">
+        {filtered.length === 0 ? (
+          <div className="text-sm text-slate-400 text-center py-6">
+            該当する固定費がありません
+          </div>
+        ) : (
+          filtered.map((f) => (
+            <div
+              key={f.id}
+              className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer"
+              onClick={() => openEditing(f)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                <div className="text-xs text-slate-400">{f.category}</div>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              <div className="text-right shrink-0">
+                <div
+                  className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
+                >
+                  {f.amount == null ? '未入力' : formatYen(f.amount)}
+                </div>
+                {f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
+                  <div className="text-xs text-emerald-500">
+                    -{formatYen(f.baseline_amount - f.amount)}
+                  </div>
+                )}
+              </div>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
+              >
+                {STATUS_LABELS[f.status].label}
+              </span>
+              <span className="text-slate-300 text-sm">›</span>
+            </div>
+          ))
+        )}
+      </div>
 
-      {/* 追加ボタン */}
+      {/* 追加・チュートリアルボタン */}
       <button
         onClick={() => openEditing('new')}
         className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm text-slate-400 font-semibold active:bg-slate-50"
       >
         + 固定費を追加
+      </button>
+      <button
+        onClick={() => setTutorialOpen(true)}
+        className="w-full py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-500 font-medium active:bg-slate-50 flex items-center justify-center gap-2"
+      >
+        <span>🧭</span> 初期設定ウィザードを起動
       </button>
     </>
   )
@@ -488,6 +481,31 @@ function FixedExpenseForm({
           </div>
         </div>
 
+        {category === 'サブスク' && (
+          <div>
+            <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
+            <select
+              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
+              defaultValue=""
+              onChange={(e) => {
+                const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
+                if (preset) {
+                  setName(preset.name)
+                  setAmount(preset.amount.toString())
+                  setCycle(preset.cycle)
+                }
+              }}
+            >
+              <option value="" disabled>-- サービスを選択 --</option>
+              {SUBSCRIPTION_PRESETS.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name}（{p.amount.toLocaleString()}円/{p.cycle === 'monthly' ? '月' : '年'}）
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-slate-400">金額</label>
@@ -518,7 +536,7 @@ function FixedExpenseForm({
         <div>
           <label className="text-xs text-slate-400">ステータス</label>
           <div className="flex gap-2 mt-1">
-            {(['active', 'reviewing', 'cancelled'] as const).map((s) => (
+            {(['active', 'reviewing', 'unsubscribed', 'cancelled'] as const).map((s) => (
               <button
                 key={s}
                 type="button"

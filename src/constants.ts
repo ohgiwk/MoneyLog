@@ -32,6 +32,7 @@ export const FIXED_EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: 'サブスク', icon: '🎬', color: '#ec4899' },
   { name: 'ローン', icon: '🏦', color: '#6366f1' },
   { name: '自動車', icon: '🚗', color: '#78716c' },
+  { name: '税金', icon: '🏛️', color: '#a16207' },
   { name: 'その他固定費', icon: '📦', color: '#64748b' },
 ]
 
@@ -59,8 +60,41 @@ export const DEFAULT_FIXED_EXPENSES: DefaultFixedExpense[] = [
   { name: 'NHK受信料', category: 'その他固定費', cycle: 'monthly' },
 ]
 
+export interface SubscriptionPreset {
+  name: string
+  amount: number
+  cycle: 'monthly' | 'yearly'
+}
+
+export const SUBSCRIPTION_PRESETS: SubscriptionPreset[] = [
+  { name: 'Netflix (スタンダード)', amount: 1590, cycle: 'monthly' },
+  { name: 'Netflix (プレミアム)', amount: 1980, cycle: 'monthly' },
+  { name: 'Amazon Prime', amount: 600, cycle: 'monthly' },
+  { name: 'Disney+', amount: 990, cycle: 'monthly' },
+  { name: 'Hulu', amount: 1026, cycle: 'monthly' },
+  { name: 'Apple TV+', amount: 900, cycle: 'monthly' },
+  { name: 'U-NEXT', amount: 2189, cycle: 'monthly' },
+  { name: 'Apple Music', amount: 1080, cycle: 'monthly' },
+  { name: 'Spotify プレミアム', amount: 980, cycle: 'monthly' },
+  { name: 'YouTube Premium', amount: 1280, cycle: 'monthly' },
+  { name: 'Amazon Music Unlimited', amount: 980, cycle: 'monthly' },
+  { name: 'iCloud+ 50GB', amount: 130, cycle: 'monthly' },
+  { name: 'iCloud+ 200GB', amount: 400, cycle: 'monthly' },
+  { name: 'iCloud+ 2TB', amount: 1300, cycle: 'monthly' },
+  { name: 'Google One 100GB', amount: 250, cycle: 'monthly' },
+  { name: 'Google One 200GB', amount: 380, cycle: 'monthly' },
+  { name: 'Microsoft 365 Personal', amount: 1490, cycle: 'monthly' },
+  { name: 'Adobe Creative Cloud', amount: 6480, cycle: 'monthly' },
+  { name: 'ChatGPT Plus', amount: 3000, cycle: 'monthly' },
+  { name: 'Claude Pro', amount: 3000, cycle: 'monthly' },
+  { name: 'NHKプラス', amount: 1100, cycle: 'monthly' },
+  { name: 'Nintendo Switch Online', amount: 306, cycle: 'monthly' },
+  { name: 'Xbox Game Pass', amount: 850, cycle: 'monthly' },
+]
+
 export const STATUS_LABELS = {
   active: { label: '契約中', color: 'text-emerald-600 bg-emerald-50' },
   reviewing: { label: '見直し中', color: 'text-amber-600 bg-amber-50' },
   cancelled: { label: '解約済み', color: 'text-slate-400 bg-slate-100' },
+  unsubscribed: { label: '未契約', color: 'text-blue-500 bg-blue-50' },
 } as const
