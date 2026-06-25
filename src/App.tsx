@@ -8,6 +8,7 @@ import RecordTab from './components/RecordTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
+import type { Transaction } from './lib/database.types'
 
 type TabKey = 'summary' | 'record' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit'
@@ -25,6 +26,19 @@ export default function App() {
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [summaryInitialSub, setSummaryInitialSub] = useState<'overview' | 'detail' | undefined>()
+
+  function handleEditTx(tx: Transaction) {
+    setEditingTx(tx)
+    setTab('record')
+  }
+
+  function handleEditSaved() {
+    setEditingTx(null)
+    setSummaryInitialSub('detail')
+    setTab('summary')
+  }
 
   if (loading) {
     return (
@@ -99,6 +113,9 @@ export default function App() {
             month={month}
             setMonth={setMonth}
             fixedCategories={categories.fixedCategories}
+            onEditTx={handleEditTx}
+            initialSub={summaryInitialSub}
+            onInitialSubConsumed={() => setSummaryInitialSub(undefined)}
           />
         )}
         {tab === 'record' && (
@@ -107,6 +124,9 @@ export default function App() {
             expenseCategories={categories.expenseCategories}
             incomeCategories={categories.incomeCategories}
             fixedCategories={categories.fixedCategories}
+            editingTx={editingTx}
+            onEditDone={() => setEditingTx(null)}
+            onEditSaved={handleEditSaved}
           />
         )}
         {tab === 'calendar' && (

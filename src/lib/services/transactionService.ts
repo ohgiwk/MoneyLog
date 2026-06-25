@@ -25,6 +25,11 @@ export const transactionService = {
     if (error) throw new Error(error.message)
   },
 
+  update: async (id: string, data: Partial<TransactionInsert>): Promise<void> => {
+    const { error } = await supabase.from('transactions').update(data).eq('id', id)
+    if (error) throw new Error(error.message)
+  },
+
   delete: async (id: string): Promise<void> => {
     const { error } = await supabase.from('transactions').delete().eq('id', id)
     if (error) throw new Error(error.message)

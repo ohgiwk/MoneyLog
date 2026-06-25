@@ -20,10 +20,20 @@ interface Props {
   month: string
   setMonth: (m: string) => void
   fixedCategories: CategoryInfo[]
+  onEditTx?: (tx: Transaction) => void
+  initialSub?: SubPage
+  onInitialSubConsumed?: () => void
 }
 
-export default function SummaryTab({ userId, month, setMonth }: Props) {
+export default function SummaryTab({ userId, month, setMonth, onEditTx, initialSub, onInitialSubConsumed }: Props) {
   const [sub, setSub] = useState<SubPage>('overview')
+
+  useEffect(() => {
+    if (initialSub) {
+      setSub(initialSub)
+      onInitialSubConsumed?.()
+    }
+  }, [initialSub]) // eslint-disable-line react-hooks/exhaustive-deps
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -45,15 +55,6 @@ export default function SummaryTab({ userId, month, setMonth }: Props) {
     void load()
   }, [month, userId])
 
-  async function deleteTx(id: string) {
-    try {
-      await transactionService.delete(id)
-      setTransactions((prev) => prev.filter((t) => t.id !== id))
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : '削除に失敗しました')
-    }
-  }
-
   return (
     <div>
       <MonthSwitcher month={month} setMonth={setMonth} />
@@ -71,10 +72,10 @@ export default function SummaryTab({ userId, month, setMonth }: Props) {
 
       <div className="p-4 space-y-4">
         {sub === 'overview' && (
-          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} />
+          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} onEditTx={onEditTx} />
         )}
         {sub === 'detail' && (
-          <DetailView transactions={transactions} month={month} onDeleteTx={deleteTx} />
+          <DetailView transactions={transactions} month={month} onEditTx={onEditTx} />
         )}
       </div>
     </div>
@@ -87,10 +88,12 @@ function Overview({
   transactions,
   month,
   fixedExpenses,
+  onEditTx,
 }: {
   transactions: Transaction[]
   month: string
   fixedExpenses: FixedExpense[]
+  onEditTx?: (tx: Transaction) => void
 }) {
   const monthTx = useMemo(
     () => transactions.filter((t) => monthKey(t.date) === month),
@@ -118,6 +121,8 @@ function Overview({
 
   const totalExpense = routineExpense + oneTimeExpense
   const balance = income - totalFixed - totalExpense
+
+  const recentTx = [...monthTx].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5)
 
   return (
     <>
@@ -154,6 +159,43 @@ function Overview({
           </div>
         </div>
       )}
+
+      {/* 最新5件の記録 */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <div className="text-sm font-semibold text-slate-700 mb-3">最近の記録</div>
+        {recentTx.length === 0 && (
+          <div className="text-sm text-slate-400 py-1">記録がありません</div>
+        )}
+        <div className="space-y-1.5">
+          {recentTx.map((t) => {
+            const info = categoryInfo(t.category)
+            return (
+              <button
+                key={t.id}
+                onClick={() => onEditTx?.(t)}
+                className="w-full flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 active:bg-slate-50 rounded-lg px-1 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">{info.icon}</span>
+                  <div>
+                    <div className="text-sm text-slate-700">{t.category}</div>
+                    <div className="text-xs text-slate-400">{t.date}</div>
+                  </div>
+                </div>
+                <span
+                  className={
+                    'text-sm font-semibold ' +
+                    (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
+                  }
+                >
+                  {t.type === 'income' ? '+' : '-'}
+                  {formatYen(t.amount)}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </>
   )
 }
@@ -163,30 +205,94 @@ function Overview({
 function DetailView({
   transactions,
   month,
-  onDeleteTx,
+  onEditTx,
 }: {
   transactions: Transaction[]
   month: string
-  onDeleteTx: (id: string) => void
+  onEditTx?: (tx: Transaction) => void
 }) {
+  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+
   const monthTx = useMemo(
     () => transactions.filter((t) => monthKey(t.date) === month),
     [transactions, month]
   )
 
+  const categories = useMemo(() => {
+    const set = new Set(monthTx.map((t) => t.category))
+    return [...set].sort()
+  }, [monthTx])
+
+  const filtered = useMemo(() => {
+    return monthTx.filter((t) => {
+      if (typeFilter !== 'all' && t.type !== typeFilter) return false
+      if (categoryFilter !== 'all' && t.category !== categoryFilter) return false
+      return true
+    })
+  }, [monthTx, typeFilter, categoryFilter])
+
   const grouped = useMemo(() => {
     const map = new Map<string, Transaction[]>()
-    for (const t of monthTx) {
+    for (const t of filtered) {
       const arr = map.get(t.date) ?? []
       arr.push(t)
       map.set(t.date, arr)
     }
     return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1))
-  }, [monthTx])
+  }, [filtered])
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm">
-      <div className="text-sm font-semibold text-slate-700 mb-3">{monthLabel(month)}の記録</div>
+      {/* 絞り込み */}
+      <div className="space-y-2 mb-3">
+        <div className="flex gap-1.5">
+          {(['all', 'expense', 'income'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setTypeFilter(v)}
+              className={
+                'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                (typeFilter === v
+                  ? 'bg-slate-700 text-white border-slate-700'
+                  : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+              }
+            >
+              {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
+            </button>
+          ))}
+        </div>
+        {categories.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={
+                'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                (categoryFilter === 'all'
+                  ? 'bg-slate-700 text-white border-slate-700'
+                  : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+              }
+            >
+              全カテゴリ
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={
+                  'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                  (categoryFilter === cat
+                    ? 'bg-slate-700 text-white border-slate-700'
+                    : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                }
+              >
+                {categoryInfo(cat).icon} {cat}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {grouped.length === 0 && <div className="text-sm text-slate-400 py-2">記録がありません</div>}
       <div className="space-y-4">
         {grouped.map(([date, txs]) => {
@@ -209,37 +315,27 @@ function DetailView({
                       key={t.id}
                       className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0"
                     >
-                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onEditTx?.(t)}
+                        className="flex items-center gap-2 flex-1 text-left active:opacity-60"
+                      >
                         <span className="text-base">{info.icon}</span>
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm text-slate-700">{t.category}</span>
-                            {t.expense_kind === 'one_time' && (
-                              <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-full">
-                                臨時出費
-                              </span>
-                            )}
                           </div>
                           {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            'text-sm font-semibold ' +
-                            (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
-                          }
-                        >
-                          {t.type === 'income' ? '+' : '-'}
-                          {formatYen(t.amount)}
-                        </span>
-                        <button
-                          onClick={() => onDeleteTx(t.id)}
-                          className="text-slate-300 active:text-rose-400 text-sm px-1"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      </button>
+                      <span
+                        className={
+                          'text-sm font-semibold ' +
+                          (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
+                        }
+                      >
+                        {t.type === 'income' ? '+' : '-'}
+                        {formatYen(t.amount)}
+                      </span>
                     </div>
                   )
                 })}

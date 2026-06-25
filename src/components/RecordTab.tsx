@@ -4,7 +4,7 @@ import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
-import type { Consumable, FixedExpense } from '../lib/database.types'
+import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { todayStr } from '../utils'
 import { useForm } from '../hooks/useForm'
 import { TabGroup } from './ui/TabGroup'
@@ -32,6 +32,9 @@ interface Props {
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   fixedCategories: CategoryInfo[]
+  editingTx?: Transaction | null
+  onEditDone?: () => void
+  onEditSaved?: () => void
 }
 
 export default function RecordTab({
@@ -39,6 +42,9 @@ export default function RecordTab({
   expenseCategories,
   incomeCategories,
   fixedCategories,
+  editingTx,
+  onEditDone,
+  onEditSaved,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>('one_time')
   const [fixedEditing, setFixedEditing] = useState(false)
@@ -59,6 +65,19 @@ export default function RecordTab({
     })
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
+
+  useEffect(() => {
+    if (editingTx) {
+      setValues({
+        type: editingTx.type as 'expense' | 'income',
+        date: editingTx.date,
+        category: editingTx.category,
+        amount: String(editingTx.amount),
+        memo: editingTx.memo ?? '',
+      })
+      setSub('one_time')
+    }
+  }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleTypeChange(newType: 'expense' | 'income') {
     const cats = newType === 'expense' ? expenseCategories : incomeCategories
@@ -102,6 +121,23 @@ export default function RecordTab({
     }
   }
 
+  async function handleDelete() {
+    if (!editingTx) return
+    setIsSubmitting(true)
+    try {
+      await transactionService.delete(editingTx.id)
+      onEditDone?.()
+      onEditSaved?.()
+      reset()
+      setValue('date', todayStr())
+      setValue('category', expenseCategories[0]?.name ?? '')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '削除に失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const amt = parseFloat(values.amount)
@@ -113,16 +149,29 @@ export default function RecordTab({
     setError(null)
     setIsSubmitting(true)
     try {
-      await transactionService.insert({
-        user_id: userId,
-        type: values.type,
-        expense_kind: values.type === 'expense' ? 'one_time' : null,
-        date: values.date,
-        category: values.category,
-        amount: amt,
-        memo: values.memo.trim() || null,
-        recurring_rule_id: null,
-      })
+      if (editingTx) {
+        await transactionService.update(editingTx.id, {
+          type: values.type,
+          expense_kind: values.type === 'expense' ? (editingTx.expense_kind ?? 'one_time') : null,
+          date: values.date,
+          category: values.category,
+          amount: amt,
+          memo: values.memo.trim() || null,
+        })
+        onEditDone?.()
+        onEditSaved?.()
+      } else {
+        await transactionService.insert({
+          user_id: userId,
+          type: values.type,
+          expense_kind: values.type === 'expense' ? 'one_time' : null,
+          date: values.date,
+          category: values.category,
+          amount: amt,
+          memo: values.memo.trim() || null,
+          recurring_rule_id: null,
+        })
+      }
       reset()
       setValue('date', todayStr())
       setValue('category', expenseCategories[0]?.name ?? '')
@@ -216,17 +265,20 @@ export default function RecordTab({
             {/* 金額 */}
             <div>
               <label className="text-xs text-slate-400">金額</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                placeholder="0"
-                value={values.amount}
-                onChange={(e) => {
-                  setValue('amount', e.target.value)
-                  if (amountError) setAmountError(null)
-                }}
-                className={`w-full mt-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
-              />
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={values.amount}
+                  onChange={(e) => {
+                    setValue('amount', e.target.value)
+                    if (amountError) setAmountError(null)
+                  }}
+                  className={`flex-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
+                />
+                <span className="text-sm text-slate-500 font-medium">円</span>
+              </div>
               {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
             </div>
 
@@ -254,8 +306,29 @@ export default function RecordTab({
                   : 'bg-emerald-500 active:bg-emerald-600')
               }
             >
-              {isSubmitting ? '記録中...' : '記録する'}
+              {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}
             </button>
+
+            {editingTx && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="w-[30%] py-3 rounded-xl text-rose-500 font-semibold border border-rose-200 active:bg-rose-50 disabled:opacity-50"
+                >
+                  削除
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { onEditDone?.(); onEditSaved?.(); reset(); setValue('date', todayStr()); setValue('category', expenseCategories[0]?.name ?? '') }}
+                  disabled={isSubmitting}
+                  className="w-[70%] py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50 disabled:opacity-50"
+                >
+                  キャンセル
+                </button>
+              </div>
+            )}
           </form>
         )}
 
