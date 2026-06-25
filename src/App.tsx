@@ -1,11 +1,16 @@
-import { useAuth } from './hooks/useAuth'
-import { todayStr } from './utils'
 import { useState } from 'react'
+import { useAuth } from './hooks/useAuth'
+import { useCategories } from './hooks/useCategories'
+import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import SummaryTab from './components/SummaryTab'
 import RecordTab from './components/RecordTab'
+import DrawerMenu from './components/DrawerMenu'
+import SettingsScreen from './components/SettingsScreen'
+import CategoryEditScreen from './components/CategoryEditScreen'
 
 type TabKey = 'summary' | 'record' | 'calendar'
+type Screen = 'main' | 'settings' | 'category-edit'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'サマリー', icon: '📊' },
@@ -15,8 +20,11 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 
 export default function App() {
   const { user, loading, signOut } = useAuth()
+  const categories = useCategories()
   const [tab, setTab] = useState<TabKey>('summary')
   const [month, setMonth] = useState(todayStr().slice(0, 7))
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [screen, setScreen] = useState<Screen>('main')
 
   if (loading) {
     return (
@@ -27,6 +35,29 @@ export default function App() {
   }
 
   if (!user) return <AuthScreen />
+
+  if (screen === 'settings') {
+    return (
+      <SettingsScreen
+        onCategoryEdit={() => setScreen('category-edit')}
+        onBack={() => setScreen('main')}
+      />
+    )
+  }
+
+  if (screen === 'category-edit') {
+    return (
+      <CategoryEditScreen
+        expenseCategories={categories.expenseCategories}
+        incomeCategories={categories.incomeCategories}
+        fixedCategories={categories.fixedCategories}
+        onUpdateExpense={categories.updateExpenseCategories}
+        onUpdateIncome={categories.updateIncomeCategories}
+        onUpdateFixed={categories.updateFixedCategories}
+        onBack={() => setScreen('settings')}
+      />
+    )
+  }
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
@@ -39,18 +70,45 @@ export default function App() {
             <span className="text-xs text-slate-400">MoneyLog</span>
           </div>
           <button
-            onClick={() => signOut()}
-            className="text-xs text-slate-400 active:text-slate-600"
+            onClick={() => setDrawerOpen(true)}
+            className="flex flex-col gap-1 p-2 active:opacity-60"
+            aria-label="メニューを開く"
           >
-            ログアウト
+            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
           </button>
         </div>
       </div>
 
+      {/* ドロワーメニュー */}
+      {drawerOpen && (
+        <DrawerMenu
+          onSettings={() => setScreen('settings')}
+          onSignOut={signOut}
+          onClose={() => setDrawerOpen(false)}
+        />
+      )}
+
       {/* コンテンツ */}
       <div className="flex-1 pb-20 overflow-y-auto">
-        {tab === 'summary' && <SummaryTab userId={user.id} month={month} setMonth={setMonth} />}
-        {tab === 'record' && <RecordTab userId={user.id} month={month} setMonth={setMonth} />}
+        {tab === 'summary' && (
+          <SummaryTab
+            userId={user.id}
+            month={month}
+            setMonth={setMonth}
+            fixedCategories={categories.fixedCategories}
+          />
+        )}
+        {tab === 'record' && (
+          <RecordTab
+            userId={user.id}
+            month={month}
+            setMonth={setMonth}
+            expenseCategories={categories.expenseCategories}
+            incomeCategories={categories.incomeCategories}
+          />
+        )}
         {tab === 'calendar' && (
           <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
             カレンダー機能は近日実装予定です

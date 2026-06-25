@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '../constants'
+import type { CategoryInfo } from '../constants'
 import { supabase } from '../lib/supabase'
 import type { Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey, monthLabel, todayStr } from '../utils'
@@ -9,23 +9,25 @@ interface Props {
   userId: string
   month: string
   setMonth: (m: string) => void
+  expenseCategories: CategoryInfo[]
+  incomeCategories: CategoryInfo[]
 }
 
-export default function RecordTab({ userId, month, setMonth }: Props) {
+export default function RecordTab({ userId, month, setMonth, expenseCategories, incomeCategories }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [type, setType] = useState<'expense' | 'income'>('expense')
   const [expenseKind, setExpenseKind] = useState<'routine' | 'one_time'>('routine')
   const [date, setDate] = useState(todayStr())
-  const [category, setCategory] = useState(EXPENSE_CATEGORIES[0].name)
+  const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
   const [amount, setAmount] = useState('')
   const [memo, setMemo] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const categories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES
+  const categories = type === 'expense' ? expenseCategories : incomeCategories
 
   useEffect(() => {
-    setCategory(categories[0].name)
-  }, [type])
+    setCategory(categories[0]?.name ?? '')
+  }, [type, expenseCategories, incomeCategories])
 
   useEffect(() => {
     fetchTransactions()

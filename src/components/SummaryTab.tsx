@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { DEFAULT_FIXED_EXPENSES, FIXED_EXPENSE_CATEGORIES, STATUS_LABELS } from '../constants'
+import { DEFAULT_FIXED_EXPENSES, STATUS_LABELS, type CategoryInfo } from '../constants'
 import { supabase } from '../lib/supabase'
 import type { FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey } from '../utils'
@@ -12,9 +12,10 @@ interface Props {
   userId: string
   month: string
   setMonth: (m: string) => void
+  fixedCategories: CategoryInfo[]
 }
 
-export default function SummaryTab({ userId, month, setMonth }: Props) {
+export default function SummaryTab({ userId, month, setMonth, fixedCategories }: Props) {
   const [sub, setSub] = useState<SubPage>('overview')
   const [fixedEditing, setFixedEditing] = useState(false)
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -42,7 +43,7 @@ export default function SummaryTab({ userId, month, setMonth }: Props) {
       .from('fixed_expenses')
       .select('*')
       .eq('user_id', userId)
-      .order('status', { ascending: true })
+      .order('created_at', { ascending: true })
     setFixedExpenses(data ?? [])
   }
 
@@ -81,6 +82,7 @@ export default function SummaryTab({ userId, month, setMonth }: Props) {
           <FixedExpenseList
             userId={userId}
             fixedExpenses={fixedExpenses}
+            fixedCategories={fixedCategories}
             reload={fetchFixedExpenses}
             onEditingChange={setFixedEditing}
           />
@@ -217,11 +219,13 @@ function Row({
 function FixedExpenseList({
   userId,
   fixedExpenses,
+  fixedCategories,
   reload,
   onEditingChange,
 }: {
   userId: string
   fixedExpenses: FixedExpense[]
+  fixedCategories: CategoryInfo[]
   reload: () => void
   onEditingChange: (editing: boolean) => void
 }) {
@@ -280,6 +284,7 @@ function FixedExpenseList({
       <FixedExpenseForm
         userId={userId}
         expense={editing === 'new' ? undefined : editing}
+        fixedCategories={fixedCategories}
         onClose={closeEditing}
       />
     )
@@ -385,14 +390,16 @@ function FixedExpenseList({
 function FixedExpenseForm({
   userId,
   expense,
+  fixedCategories,
   onClose,
 }: {
   userId?: string
   expense?: FixedExpense
+  fixedCategories: CategoryInfo[]
   onClose: () => void
 }) {
   const [name, setName] = useState(expense?.name ?? '')
-  const [category, setCategory] = useState(expense?.category ?? FIXED_EXPENSE_CATEGORIES[0].name)
+  const [category, setCategory] = useState(expense?.category ?? fixedCategories[0]?.name ?? '')
   const [amount, setAmount] = useState(expense?.amount != null ? expense.amount.toString() : '')
   const [cycle, setCycle] = useState<FixedExpense['cycle']>(expense?.cycle ?? 'monthly')
   const [status, setStatus] = useState<FixedExpense['status']>(expense?.status ?? 'active')
@@ -460,7 +467,7 @@ function FixedExpenseForm({
         <div>
           <label className="text-xs text-slate-400">カテゴリ</label>
           <div className="grid grid-cols-4 gap-2 mt-1">
-            {FIXED_EXPENSE_CATEGORIES.map((c) => (
+            {fixedCategories.map((c) => (
               <button
                 key={c.name}
                 type="button"
