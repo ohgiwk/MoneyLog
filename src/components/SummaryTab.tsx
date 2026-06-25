@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { STATUS_LABELS, SUBSCRIPTION_PRESETS, type CategoryInfo } from '../constants'
-import { supabase } from '../lib/supabase'
+import { transactionService } from '../lib/services/transactionService'
+import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
@@ -28,24 +29,13 @@ export default function SummaryTab({ userId, month, setMonth, fixedCategories }:
   }, [month])
 
   async function fetchTransactions() {
-    const from = `${month}-01`
-    const to = `${month}-31`
-    const { data } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('date', from)
-      .lte('date', to)
-    setTransactions(data ?? [])
+    const data = await transactionService.fetchByMonth(userId, month)
+    setTransactions(data)
   }
 
   async function fetchFixedExpenses() {
-    const { data } = await supabase
-      .from('fixed_expenses')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true })
-    setFixedExpenses(data ?? [])
+    const data = await fixedExpenseService.fetchByUser(userId)
+    setFixedExpenses(data)
   }
 
   return (
@@ -404,12 +394,16 @@ function FixedExpenseForm({
     if (!name || isNaN(amt) || amt < 0) return
     setSaving(true)
     if (expense) {
-      await supabase
-        .from('fixed_expenses')
-        .update({ name, category, amount: amt, cycle, status, notes: notes || null })
-        .eq('id', expense.id)
+      await fixedExpenseService.update(expense.id, {
+        name,
+        category,
+        amount: amt,
+        cycle,
+        status,
+        notes: notes || null,
+      })
     } else {
-      await supabase.from('fixed_expenses').insert({
+      await fixedExpenseService.insert({
         user_id: userId!,
         name,
         category,
@@ -419,6 +413,7 @@ function FixedExpenseForm({
         status,
         notes: notes || null,
         start_date: new Date().toISOString().slice(0, 10),
+        billing_day: null,
       })
     }
     setSaving(false)
@@ -427,7 +422,7 @@ function FixedExpenseForm({
 
   async function remove() {
     if (!expense) return
-    await supabase.from('fixed_expenses').delete().eq('id', expense.id)
+    await fixedExpenseService.delete(expense.id)
     onClose()
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CategoryInfo } from '../constants'
-import { supabase } from '../lib/supabase'
+import { transactionService } from '../lib/services/transactionService'
 import type { Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey, monthLabel, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
@@ -34,16 +34,8 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
   }, [month])
 
   async function fetchTransactions() {
-    const from = `${month}-01`
-    const to = `${month}-31`
-    const { data } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('date', from)
-      .lte('date', to)
-      .order('date', { ascending: false })
-    setTransactions(data ?? [])
+    const data = await transactionService.fetchByMonth(userId, month)
+    setTransactions(data)
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -51,7 +43,7 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
     const amt = parseFloat(amount)
     if (!amt || amt <= 0) return
     setSubmitting(true)
-    await supabase.from('transactions').insert({
+    await transactionService.insert({
       user_id: userId,
       type,
       expense_kind: type === 'expense' ? expenseKind : null,
@@ -68,7 +60,7 @@ export default function RecordTab({ userId, month, setMonth, expenseCategories, 
   }
 
   async function deleteTx(id: string) {
-    await supabase.from('transactions').delete().eq('id', id)
+    await transactionService.delete(id)
     setTransactions((prev) => prev.filter((t) => t.id !== id))
   }
 

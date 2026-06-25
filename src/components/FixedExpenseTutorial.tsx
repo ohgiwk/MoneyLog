@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DEFAULT_FIXED_EXPENSES, SUBSCRIPTION_PRESETS } from '../constants'
-import { supabase } from '../lib/supabase'
+import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 
 // DEFAULT_FIXED_EXPENSES をカテゴリ順にグループ化してステップを作る
@@ -175,18 +175,17 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
     }
 
     setSaving(true)
-    const inserts: object[] = []
-    const updates: { id: string; amount: number; status: string }[] = []
+    type InsertRow = Parameters<typeof fixedExpenseService.insertMany>[0][number]
+    const inserts: InsertRow[] = []
+    const updates: { id: string; amount: number; status: FixedExpense['status'] }[] = []
 
     // multi ステップの保存（save時に最新の fixedExpenses で既存チェック）
     CATEGORY_ORDER.forEach((cat, i) => {
       multiItems[i].forEach((item) => {
         const amt = parseFloat(item.amount)
         if (isNaN(amt) || amt < 0) return
-        const existing = fixedExpenses.find(
-          (f) => f.name === item.name && f.category === cat
-        )
-        const status = amt === 0 ? 'unsubscribed' : 'active'
+        const existing = fixedExpenses.find((f) => f.name === item.name && f.category === cat)
+        const status: FixedExpense['status'] = amt === 0 ? 'unsubscribed' : 'active'
         if (existing) {
           updates.push({ id: existing.id, amount: amt, status })
         } else {
@@ -199,20 +198,19 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
             cycle: item.cycle,
             status,
             start_date: today,
+            billing_day: null,
           })
         }
       })
     })
 
     // サブスクの保存 — DB から最新の登録済み名称を取得してから重複を除外
-    const { data: existingSubs } = await supabase
-      .from('fixed_expenses')
-      .select('name')
-      .eq('user_id', userId)
-      .eq('category', 'サブスク')
-    const existingSubNames = new Set((existingSubs ?? []).map((r) => r.name))
+    const existingSubs = await fixedExpenseService.fetchByUser(userId)
+    const existingSubNames = new Set(
+      existingSubs.filter((f) => f.category === 'サブスク').map((f) => f.name),
+    )
     SUBSCRIPTION_PRESETS.filter(
-      (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name)
+      (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name),
     ).forEach((p) => {
       inserts.push({
         user_id: userId,
@@ -223,18 +221,16 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
         cycle: p.cycle,
         status: 'active',
         start_date: today,
+        billing_day: null,
       })
     })
 
-    const results = await Promise.all([
-      inserts.length > 0 ? supabase.from('fixed_expenses').insert(inserts) : Promise.resolve(null),
+    await Promise.all([
+      fixedExpenseService.insertMany(inserts),
       ...updates.map(({ id, amount, status }) =>
-        supabase.from('fixed_expenses').update({ amount, status }).eq('id', id)
+        fixedExpenseService.update(id, { amount, status }),
       ),
     ])
-    results.forEach((r) => {
-      if (r && 'error' in r && r.error) console.error('[Tutorial] save error:', r.error)
-    })
 
     setSaving(false)
     onComplete()
