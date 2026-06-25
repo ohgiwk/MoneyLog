@@ -2,15 +2,54 @@ import { useState } from 'react'
 import type { CategoryInfo } from '../constants'
 
 const EMOJI_SUGGESTIONS = [
-  '🍙', '🍜', '🍺', '🎮', '🚃', '🏠', '📱', '👗', '📚', '🏥',
-  '💰', '💻', '🎁', '📦', '⚡', '🛡️', '🎬', '🏦', '🧻', '🎵',
-  '✈️', '🚗', '🐾', '🛒', '💄', '🍕', '☕', '🎨', '🏋️', '🌿',
+  '🍙',
+  '🍜',
+  '🍺',
+  '🎮',
+  '🚃',
+  '🏠',
+  '📱',
+  '👗',
+  '📚',
+  '🏥',
+  '💰',
+  '💻',
+  '🎁',
+  '📦',
+  '⚡',
+  '🛡️',
+  '🎬',
+  '🏦',
+  '🧻',
+  '🎵',
+  '✈️',
+  '🚗',
+  '🐾',
+  '🛒',
+  '💄',
+  '🍕',
+  '☕',
+  '🎨',
+  '🏋️',
+  '🌿',
 ]
 
 const COLOR_SUGGESTIONS = [
-  '#f97316', '#0ea5e9', '#6366f1', '#8b5cf6', '#06b6d4',
-  '#ec4899', '#ef4444', '#d946ef', '#3b82f6', '#64748b',
-  '#16a34a', '#0d9488', '#ca8a04', '#10b981', '#f59e0b',
+  '#f97316',
+  '#0ea5e9',
+  '#6366f1',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#ef4444',
+  '#d946ef',
+  '#3b82f6',
+  '#64748b',
+  '#16a34a',
+  '#0d9488',
+  '#ca8a04',
+  '#10b981',
+  '#f59e0b',
 ]
 
 type TabKey = 'expense' | 'income' | 'fixed'
@@ -41,7 +80,9 @@ function CategoryFormDialog({ initial, onSave, onClose }: DialogProps) {
       <div className="relative w-full max-w-md bg-white rounded-t-2xl p-5 space-y-4 pb-8">
         <div className="flex items-center justify-between">
           <span className="font-semibold text-slate-700">カテゴリ編集</span>
-          <button onClick={onClose} className="text-slate-400 active:text-slate-600 px-1 text-xl">✕</button>
+          <button onClick={onClose} className="text-slate-400 active:text-slate-600 px-1 text-xl">
+            ✕
+          </button>
         </div>
 
         <div>
@@ -65,7 +106,9 @@ function CategoryFormDialog({ initial, onSave, onClose }: DialogProps) {
                 onClick={() => setDraft((d) => ({ ...d, icon: e }))}
                 className={
                   'w-9 h-9 rounded-lg text-lg flex items-center justify-center border ' +
-                  (draft.icon === e ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white')
+                  (draft.icon === e
+                    ? 'border-emerald-400 bg-emerald-50'
+                    : 'border-slate-200 bg-white')
                 }
               >
                 {e}

@@ -40,7 +40,9 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
         {/* 消耗品費の設定 */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">消耗品費</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              消耗品費
+            </span>
           </div>
           <div className="px-4 py-4 space-y-2">
             <div className="flex items-center justify-between">
@@ -85,7 +87,9 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
         {/* カスタマイズ */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">カスタマイズ</span>
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              カスタマイズ
+            </span>
           </div>
           <button
             onClick={onCategoryEdit}

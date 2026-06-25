@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { DEFAULT_FIXED_EXPENSES, SUBSCRIPTION_PRESETS, SUBSCRIPTION_SUBCATEGORIES } from '../constants'
+import {
+  DEFAULT_FIXED_EXPENSES,
+  SUBSCRIPTION_PRESETS,
+  SUBSCRIPTION_SUBCATEGORIES,
+} from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 
@@ -30,12 +34,42 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { key: '住居費+光熱費', icon: '🏠', title: '住居費・光熱費', description: '家賃・電気・ガス・水道の月額を入力してください' },
-  { key: '通信費', icon: '📱', title: '通信費', description: 'スマホ・インターネットの月額を入力してください' },
-  { key: '保険', icon: '🛡️', title: '保険', description: '生命保険・医療保険などを入力してください' },
-  { key: '自動車', icon: '🚗', title: '自動車', description: '駐車場・自動車保険・ローンを入力してください' },
-  { key: 'その他固定費', icon: '📦', title: 'その他固定費', description: 'その他の固定費を入力してください' },
-  { key: 'subscription', icon: '🎬', title: 'サブスクリプション', description: '契約中のサービスを選んでください（複数選択可）' },
+  {
+    key: '住居費+光熱費',
+    icon: '🏠',
+    title: '住居費・光熱費',
+    description: '家賃・電気・ガス・水道の月額を入力してください',
+  },
+  {
+    key: '通信費',
+    icon: '📱',
+    title: '通信費',
+    description: 'スマホ・インターネットの月額を入力してください',
+  },
+  {
+    key: '保険',
+    icon: '🛡️',
+    title: '保険',
+    description: '生命保険・医療保険などを入力してください',
+  },
+  {
+    key: '自動車',
+    icon: '🚗',
+    title: '自動車',
+    description: '駐車場・自動車保険・ローンを入力してください',
+  },
+  {
+    key: 'その他固定費',
+    icon: '📦',
+    title: 'その他固定費',
+    description: 'その他の固定費を入力してください',
+  },
+  {
+    key: 'subscription',
+    icon: '🎬',
+    title: 'サブスクリプション',
+    description: '契約中のサービスを選んでください（複数選択可）',
+  },
 ]
 
 // StepKey に対応するカテゴリ一覧（住居費+光熱費 は2カテゴリ）
@@ -65,9 +99,7 @@ function buildItemsForStep(stepKey: StepKey, fixedExpenses: FixedExpense[]): Mul
 
 // 既存サブスク（カテゴリ=サブスク）の名前セットを作る
 function buildSelectedSubs(fixedExpenses: FixedExpense[]): Set<string> {
-  const names = fixedExpenses
-    .filter((f) => f.category === 'サブスク')
-    .map((f) => f.name)
+  const names = fixedExpenses.filter((f) => f.category === 'サブスク').map((f) => f.name)
   return new Set(names)
 }
 
@@ -79,9 +111,7 @@ interface MultiStepProps {
 
 function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepProps) {
   // カテゴリごとにグループ化して表示
-  const categories = showCategoryHeaders
-    ? [...new Set(items.map((it) => it.category))]
-    : null
+  const categories = showCategoryHeaders ? [...new Set(items.map((it) => it.category))] : null
 
   return (
     <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
@@ -113,7 +143,9 @@ function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepProps) {
                         }}
                         className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                        円
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -135,7 +167,9 @@ function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepProps) {
                   }}
                   className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                  円
+                </span>
               </div>
             </div>
           ))}
@@ -150,7 +184,12 @@ interface SubscriptionStepProps {
   onCycleChange: (name: string, cycle: 'monthly' | 'yearly') => void
 }
 
-function SubscriptionStep({ selected, cycleOverrides, onToggle, onCycleChange }: SubscriptionStepProps) {
+function SubscriptionStep({
+  selected,
+  cycleOverrides,
+  onToggle,
+  onCycleChange,
+}: SubscriptionStepProps) {
   const [activeTab, setActiveTab] = useState(SUBSCRIPTION_SUBCATEGORIES[0].name)
 
   const presets = SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === activeTab)
@@ -178,10 +217,12 @@ function SubscriptionStep({ selected, cycleOverrides, onToggle, onCycleChange }:
               <span>{sub.icon}</span>
               <span>{sub.name}</span>
               {hasSelected && (
-                <span className={
-                  'w-1.5 h-1.5 rounded-full ' +
-                  (activeTab === sub.name ? 'bg-white' : 'bg-emerald-400')
-                } />
+                <span
+                  className={
+                    'w-1.5 h-1.5 rounded-full ' +
+                    (activeTab === sub.name ? 'bg-white' : 'bg-emerald-400')
+                  }
+                />
               )}
             </button>
           )
@@ -225,7 +266,9 @@ function SubscriptionStep({ selected, cycleOverrides, onToggle, onCycleChange }:
                       'px-2 py-1 transition ' +
                       (cycle === 'monthly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
                     }
-                  >月</button>
+                  >
+                    月
+                  </button>
                   <button
                     type="button"
                     onClick={() => onCycleChange(p.name, 'yearly')}
@@ -233,14 +276,16 @@ function SubscriptionStep({ selected, cycleOverrides, onToggle, onCycleChange }:
                       'px-2 py-1 transition border-l border-slate-200 ' +
                       (cycle === 'yearly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
                     }
-                  >年</button>
+                  >
+                    年
+                  </button>
                 </div>
               )}
               <span className="text-xs text-slate-400 shrink-0 w-20 text-right">
                 {cycle === 'yearly'
                   ? (p.yearlyAmount ?? p.amount).toLocaleString()
-                  : p.amount.toLocaleString()
-                }円/{cycle === 'monthly' ? '月' : '年'}
+                  : p.amount.toLocaleString()}
+                円/{cycle === 'monthly' ? '月' : '年'}
               </span>
             </div>
           )
@@ -260,7 +305,12 @@ interface Props {
 // subscription 以外のステップキー一覧
 const DATA_STEP_KEYS = STEPS.filter((s) => s.key !== 'subscription').map((s) => s.key)
 
-export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, onComplete }: Props) {
+export default function FixedExpenseTutorial({
+  userId,
+  fixedExpenses,
+  onClose,
+  onComplete,
+}: Props) {
   const [stepIndex, setStepIndex] = useState(0)
   const [multiItems, setMultiItems] = useState<MultiItem[][]>(() =>
     DATA_STEP_KEYS.map((key) => buildItemsForStep(key as StepKey, fixedExpenses))
@@ -268,7 +318,7 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
   const [selectedSubs, setSelectedSubs] = useState<Set<string>>(() =>
     buildSelectedSubs(fixedExpenses)
   )
-  const [cycleOverrides, setCycleOverrides] = useState<Map<string, 'monthly' | 'yearly'>>(new Map)
+  const [cycleOverrides, setCycleOverrides] = useState<Map<string, 'monthly' | 'yearly'>>(new Map())
   const [saving, setSaving] = useState(false)
 
   function toggleSub(name: string) {
@@ -311,7 +361,9 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
       items.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (isNaN(amt) || amt < 0) return
-        const existing = fixedExpenses.find((f) => f.name === item.name && f.category === item.category)
+        const existing = fixedExpenses.find(
+          (f) => f.name === item.name && f.category === item.category
+        )
         const status: FixedExpense['status'] = amt === 0 ? 'unsubscribed' : 'active'
         if (existing) {
           updates.push({ id: existing.id, amount: amt, status })
@@ -335,10 +387,10 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
     // サブスクの保存 — DB から最新の登録済み名称を取得してから重複を除外
     const existingSubs = await fixedExpenseService.fetchByUser(userId)
     const existingSubNames = new Set(
-      existingSubs.filter((f) => f.category === 'サブスク').map((f) => f.name),
+      existingSubs.filter((f) => f.category === 'サブスク').map((f) => f.name)
     )
     SUBSCRIPTION_PRESETS.filter(
-      (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name),
+      (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name)
     ).forEach((p) => {
       const cycle = cycleOverrides.get(p.name) ?? p.cycle
       const amount = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount
@@ -359,7 +411,7 @@ export default function FixedExpenseTutorial({ userId, fixedExpenses, onClose, o
     await Promise.all([
       fixedExpenseService.insertMany(inserts),
       ...updates.map(({ id, amount, status }) =>
-        fixedExpenseService.update(id, { amount, status }),
+        fixedExpenseService.update(id, { amount, status })
       ),
     ])
 

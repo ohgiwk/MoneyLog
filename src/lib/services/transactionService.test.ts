@@ -30,9 +30,7 @@ beforeEach(() => {
 
 describe('transactionService.fetchByMonth', () => {
   it('userId と month に対応するトランザクションを返す', async () => {
-    const mockData = [
-      { id: '1', user_id: 'u1', date: '2024-03-10', amount: 1000, type: 'expense' },
-    ]
+    const mockData = [{ id: '1', user_id: 'u1', date: '2024-03-10', amount: 1000, type: 'expense' }]
     const chain = mockChain(mockData)
     vi.mocked(supabase.from).mockReturnValue(chain as ReturnType<typeof supabase.from>)
 
