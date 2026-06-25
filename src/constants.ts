@@ -26,13 +26,13 @@ export const INCOME_CATEGORIES: CategoryInfo[] = [
 
 export const FIXED_EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: '住居費', icon: '🏠', color: '#8b5cf6' },
-  { name: '通信費', icon: '📱', color: '#06b6d4' },
   { name: '光熱費', icon: '⚡', color: '#f59e0b' },
+  { name: '通信費', icon: '📱', color: '#06b6d4' },
+  { name: '税金', icon: '🏛️', color: '#a16207' },
   { name: '保険', icon: '🛡️', color: '#10b981' },
-  { name: 'サブスク', icon: '🎬', color: '#ec4899' },
   { name: 'ローン', icon: '🏦', color: '#6366f1' },
   { name: '自動車', icon: '🚗', color: '#78716c' },
-  { name: '税金', icon: '🏛️', color: '#a16207' },
+  { name: 'サブスク', icon: '🎬', color: '#ec4899' },
   { name: 'その他固定費', icon: '📦', color: '#64748b' },
 ]
 
