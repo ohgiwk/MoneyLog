@@ -33,6 +33,7 @@ export const FIXED_EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: 'ローン', icon: '🏦', color: '#6366f1' },
   { name: '自動車', icon: '🚗', color: '#78716c' },
   { name: 'サブスク', icon: '🎬', color: '#ec4899' },
+  { name: '寄付金', icon: '🎗️', color: '#f43f5e' },
   { name: 'その他固定費', icon: '📦', color: '#64748b' },
 ]
 
