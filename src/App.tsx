@@ -13,7 +13,7 @@ type TabKey = 'summary' | 'record' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: 'summary', label: 'サマリー', icon: '📊' },
+  { key: 'summary', label: 'ホーム', icon: '🏠' },
   { key: 'record', label: '記録', icon: '✏️' },
   { key: 'calendar', label: 'カレンダー', icon: '📅' },
 ]
