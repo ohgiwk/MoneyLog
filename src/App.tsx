@@ -106,6 +106,7 @@ export default function App() {
             userId={user.id}
             expenseCategories={categories.expenseCategories}
             incomeCategories={categories.incomeCategories}
+            fixedCategories={categories.fixedCategories}
           />
         )}
         {tab === 'calendar' && (
