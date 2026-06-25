@@ -1,22 +1,22 @@
-import { type FormEvent, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { type FormEvent, useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
 
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth()
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    const fn = mode === "signin" ? signInWithEmail : signUpWithEmail;
-    const { error } = await fn(email, password);
-    if (error) setError(error.message);
-    setLoading(false);
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
+    const fn = mode === 'signin' ? signInWithEmail : signUpWithEmail
+    const { error } = await fn(email, password)
+    if (error) setError(error.message)
+    setLoading(false)
   }
 
   return (
@@ -32,16 +32,20 @@ export default function AuthScreen() {
         <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
           <div className="flex rounded-xl bg-slate-100 p-1">
             <button
-              onClick={() => setMode("signin")}
-              className={"flex-1 py-2 rounded-lg text-sm font-semibold transition " +
-                (mode === "signin" ? "bg-white shadow text-slate-800" : "text-slate-400")}
+              onClick={() => setMode('signin')}
+              className={
+                'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
+                (mode === 'signin' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
+              }
             >
               ログイン
             </button>
             <button
-              onClick={() => setMode("signup")}
-              className={"flex-1 py-2 rounded-lg text-sm font-semibold transition " +
-                (mode === "signup" ? "bg-white shadow text-slate-800" : "text-slate-400")}
+              onClick={() => setMode('signup')}
+              className={
+                'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
+                (mode === 'signup' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
+              }
             >
               新規登録
             </button>
@@ -70,7 +74,7 @@ export default function AuthScreen() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm disabled:opacity-50"
             >
-              {loading ? "..." : mode === "signin" ? "ログイン" : "アカウントを作成"}
+              {loading ? '...' : mode === 'signin' ? 'ログイン' : 'アカウントを作成'}
             </button>
           </form>
 
@@ -89,5 +93,5 @@ export default function AuthScreen() {
         </div>
       </div>
     </div>
-  );
+  )
 }

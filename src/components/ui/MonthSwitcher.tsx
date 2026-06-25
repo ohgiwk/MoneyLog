@@ -1,8 +1,8 @@
-import { monthLabel, shiftMonth } from "../../utils";
+import { monthLabel, shiftMonth } from '../../utils'
 
 interface Props {
-  month: string;
-  setMonth: (m: string) => void;
+  month: string
+  setMonth: (m: string) => void
 }
 
 export default function MonthSwitcher({ month, setMonth }: Props) {
@@ -22,5 +22,5 @@ export default function MonthSwitcher({ month, setMonth }: Props) {
         ›
       </button>
     </div>
-  );
+  )
 }
