@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   STATUS_LABELS,
   SUBSCRIPTION_PRESETS,
@@ -36,6 +37,9 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
     return SUBSCRIPTION_SUBCATEGORIES[0].name
   })()
 
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [amountError, setAmountError] = useState<string | null>(null)
+
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: expense?.name ?? '',
     category: expense?.category ?? fixedCategories[0]?.name ?? '',
@@ -48,7 +52,20 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
   async function save() {
     const amt = parseFloat(values.amount)
-    if (!values.name || isNaN(amt) || amt < 0) return
+    let hasError = false
+    if (!values.name.trim()) {
+      setNameError('名前を入力してください')
+      hasError = true
+    } else {
+      setNameError(null)
+    }
+    if (!values.amount || isNaN(amt) || amt < 0) {
+      setAmountError('正しい金額を入力してください')
+      hasError = true
+    } else {
+      setAmountError(null)
+    }
+    if (hasError) return
     setIsSubmitting(true)
     setError(null)
     try {
@@ -119,10 +136,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           <label className="text-xs text-slate-400">名前</label>
           <input
             value={values.name}
-            onChange={(e) => setValue('name', e.target.value)}
+            onChange={(e) => { setValue('name', e.target.value); if (nameError) setNameError(null) }}
             placeholder="例: Netflix"
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${nameError ? 'border-rose-300' : 'border-slate-200'}`}
           />
+          {nameError && <p className="text-xs text-rose-500 mt-1">{nameError}</p>}
         </div>
 
         <div>
@@ -202,10 +220,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               type="number"
               inputMode="numeric"
               value={values.amount}
-              onChange={(e) => setValue('amount', e.target.value)}
+              onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
               placeholder="0"
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
             />
+            {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
           </div>
           <div>
             <label className="text-xs text-slate-400">サイクル</label>
