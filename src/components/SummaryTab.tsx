@@ -242,10 +242,16 @@ function DetailView({
     return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1))
   }, [filtered])
 
+  const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
+  function formatDate(dateStr: string) {
+    const d = new Date(dateStr + 'T00:00:00')
+    return `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
+  }
+
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm">
+    <div className="space-y-3">
       {/* 絞り込み */}
-      <div className="space-y-2 mb-3">
+      <div className="bg-white rounded-2xl p-3 shadow-sm space-y-2">
         <div className="flex gap-1.5">
           {(['all', 'expense', 'income'] as const).map((v) => (
             <button
@@ -293,57 +299,58 @@ function DetailView({
         )}
       </div>
 
-      {grouped.length === 0 && <div className="text-sm text-slate-400 py-2">記録がありません</div>}
-      <div className="space-y-4">
-        {grouped.map(([date, txs]) => {
-          const dayExpense = txs
-            .filter((t) => t.type === 'expense')
-            .reduce((s, t) => s + t.amount, 0)
-          return (
-            <div key={date}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold text-slate-500">{date}</span>
-                {dayExpense > 0 && (
-                  <span className="text-xs text-rose-400">{formatYen(dayExpense)}</span>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                {txs.map((t) => {
-                  const info = categoryInfo(t.category)
-                  return (
-                    <div
-                      key={t.id}
-                      className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0"
-                    >
-                      <button
-                        onClick={() => onEditTx?.(t)}
-                        className="flex items-center gap-2 flex-1 text-left active:opacity-60"
-                      >
-                        <span className="text-base">{info.icon}</span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-sm text-slate-700">{t.category}</span>
-                          </div>
-                          {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
-                        </div>
-                      </button>
-                      <span
-                        className={
-                          'text-sm font-semibold ' +
-                          (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
-                        }
-                      >
-                        {t.type === 'income' ? '+' : '-'}
-                        {formatYen(t.amount)}
-                      </span>
-                    </div>
-                  )
-                })}
+      {grouped.length === 0 && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm text-sm text-slate-400">
+          記録がありません
+        </div>
+      )}
+
+      {grouped.map(([date, txs]) => {
+        const dayExpense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+        const dayIncome = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+        return (
+          <div key={date} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {/* 日付ヘッダー */}
+            <div className="flex justify-between items-center px-4 py-2.5 bg-slate-100 border-b border-slate-200">
+              <span className="text-xs font-semibold text-slate-600">{formatDate(date)}</span>
+              <div className="flex gap-2 text-xs">
+                {dayIncome > 0 && <span className="text-emerald-600">+{formatYen(dayIncome)}</span>}
+                {dayExpense > 0 && <span className="text-rose-400">-{formatYen(dayExpense)}</span>}
               </div>
             </div>
-          )
-        })}
-      </div>
+            {/* 明細 */}
+            <div className="px-4 divide-y divide-slate-50">
+              {txs.map((t) => {
+                const info = categoryInfo(t.category)
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => onEditTx?.(t)}
+                    className="w-full flex justify-between items-center py-3 text-left active:bg-slate-50"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-lg">{info.icon}</span>
+                      <div>
+                        <div className="text-sm text-slate-700">{t.category}</div>
+                        {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
+                      </div>
+                    </div>
+                    <span
+                      className={
+                        'text-sm font-semibold ' +
+                        (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')
+                      }
+                    >
+                      {t.type === 'income' ? '+' : '-'}
+                      {formatYen(t.amount)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
