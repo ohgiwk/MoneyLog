@@ -79,7 +79,7 @@ export default function App() {
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <UpdateNotification />
       {/* ヘッダー */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">💰</span>
@@ -108,7 +108,7 @@ export default function App() {
       )}
 
       {/* コンテンツ */}
-      <div className="flex-1 pb-20 overflow-y-auto">
+      <div className="flex-1 pt-[57px] pb-20 overflow-y-auto">
         {tab === 'summary' && (
           <SummaryTab
             userId={user.id}
@@ -139,7 +139,7 @@ export default function App() {
       </div>
 
       {/* ボトムナビ */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-slate-100 flex justify-around py-2 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-slate-100 flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
         {TABS.map((t) => (
           <button
             key={t.key}
