@@ -145,7 +145,6 @@ export default function App() {
             userId={user.id}
             month={month}
             setMonth={setMonth}
-            fixedCategories={categories.fixedCategories}
           />
         )}
         {tab === 'record' && (
@@ -157,7 +156,6 @@ export default function App() {
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
             onEditSaved={handleEditSaved}
-            onGoToList={() => setTab('summary')}
             onEditTx={handleEditTx}
             onDetail={() => setScreen('record-detail')}
           />

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { CategoryInfo } from '../constants'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
@@ -17,7 +16,6 @@ interface Props {
   userId: string
   month: string
   setMonth: (m: string) => void
-  fixedCategories: CategoryInfo[]
 }
 
 export default function SummaryTab({ userId, month, setMonth }: Props) {

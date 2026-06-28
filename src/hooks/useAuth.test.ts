@@ -35,7 +35,7 @@ beforeEach(() => {
 })
 
 describe('useAuth — 初期化', () => {
-  it('セッションがある場合 user と session がセットされる', async () => {
+  it('セッションがある場合 user がセットされる', async () => {
     const session = makeSession('u1')
     vi.mocked(authService.getSession).mockResolvedValue({
       data: { session },
@@ -46,7 +46,6 @@ describe('useAuth — 初期化', () => {
 
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.user?.id).toBe('u1')
-    expect(result.current.session).toEqual(session)
   })
 
   it('セッションがない場合 user は null、loading は false になる', async () => {

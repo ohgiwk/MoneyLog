@@ -36,7 +36,6 @@ interface Props {
   editingTx?: Transaction | null
   onEditDone?: () => void
   onEditSaved?: () => void
-  onGoToList?: () => void
   onEditTx?: (tx: Transaction) => void
   onDetail?: () => void
 }
