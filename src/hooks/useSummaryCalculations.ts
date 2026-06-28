@@ -94,6 +94,38 @@ export function useSummaryCalculations({
 
   const hasBudget = oneTimeBudgetTotal(budget) > 0 || weekOneTimeByCat.size > 0
 
+  // 今日の日付範囲
+  const dayRange = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10)
+    return { start: today, end: today }
+  }, [])
+
+  const dayOneTimeByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of transactions) {
+      if (t.date !== dayRange.start) continue
+      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return map
+  }, [transactions, dayRange])
+
+  // 今月の臨時費カテゴリ別 (月表示用)
+  const monthOneTimeByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of monthTx) {
+      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return map
+  }, [monthTx])
+
+  // 今月の日数
+  const daysInMonth = useMemo(() => {
+    const [y, m] = month.split('-').map(Number)
+    return new Date(y, m, 0).getDate()
+  }, [month])
+
   const oneTimeCategoryRows = useMemo(() => {
     const cats = new Set([
       ...Object.keys(budget.oneTimeByCategory).filter((c) => (budget.oneTimeByCategory[c] ?? 0) > 0),
@@ -104,8 +136,12 @@ export function useSummaryCalculations({
       icon: categoryInfo(cat).icon,
       spent: weekOneTimeByCat.get(cat) ?? 0,
       weekBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / 4.33),
+      daySpent: dayOneTimeByCat.get(cat) ?? 0,
+      dayBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / daysInMonth),
+      monthSpent: monthOneTimeByCat.get(cat) ?? 0,
+      monthBudget: budget.oneTimeByCategory[cat] ?? 0,
     }))
-  }, [budget.oneTimeByCategory, weekOneTimeByCat])
+  }, [budget.oneTimeByCategory, weekOneTimeByCat, dayOneTimeByCat, monthOneTimeByCat, daysInMonth])
 
   const oneTimeByCat = useMemo(() => {
     const map = new Map<string, number>()
@@ -144,6 +180,8 @@ export function useSummaryCalculations({
     totalSaved,
     balance,
     weekRange,
+    dayRange,
+    daysInMonth,
     hasBudget,
     oneTimeCategoryRows,
     oneTimeByCat,
