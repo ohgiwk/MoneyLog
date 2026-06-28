@@ -213,6 +213,8 @@ function DetailView({
 }) {
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const isFiltered = typeFilter !== 'all' || categoryFilter !== 'all'
 
   const monthTx = useMemo(
     () => transactions.filter((t) => monthKey(t.date) === month),
@@ -250,54 +252,73 @@ function DetailView({
 
   return (
     <div className="space-y-3">
-      {/* 絞り込み */}
-      <div className="bg-white rounded-2xl p-3 shadow-sm space-y-2">
-        <div className="flex gap-1.5">
-          {(['all', 'expense', 'income'] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setTypeFilter(v)}
-              className={
-                'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                (typeFilter === v
-                  ? 'bg-slate-700 text-white border-slate-700'
-                  : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-              }
-            >
-              {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
-            </button>
-          ))}
-        </div>
-        {categories.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              onClick={() => setCategoryFilter('all')}
-              className={
-                'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                (categoryFilter === 'all'
-                  ? 'bg-slate-700 text-white border-slate-700'
-                  : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-              }
-            >
-              全カテゴリ
-            </button>
-            {categories.map((cat) => (
+      {/* 絞り込みトグル */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setFilterOpen((v) => !v)}
+          className={
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ' +
+            (isFiltered
+              ? 'bg-slate-700 text-white border-slate-700'
+              : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+          }
+        >
+          <span>絞り込み</span>
+          {isFiltered && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />}
+          <span className="text-[10px]">{filterOpen ? '▲' : '▼'}</span>
+        </button>
+      </div>
+
+      {/* 絞り込みパネル */}
+      {filterOpen && (
+        <div className="bg-white rounded-2xl p-3 shadow-sm space-y-2">
+          <div className="flex gap-1.5">
+            {(['all', 'expense', 'income'] as const).map((v) => (
               <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
+                key={v}
+                onClick={() => setTypeFilter(v)}
                 className={
                   'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                  (categoryFilter === cat
+                  (typeFilter === v
                     ? 'bg-slate-700 text-white border-slate-700'
                     : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
                 }
               >
-                {categoryInfo(cat).icon} {cat}
+                {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
               </button>
             ))}
           </div>
-        )}
-      </div>
+          {categories.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={
+                  'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                  (categoryFilter === 'all'
+                    ? 'bg-slate-700 text-white border-slate-700'
+                    : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                }
+              >
+                全カテゴリ
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat)}
+                  className={
+                    'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                    (categoryFilter === cat
+                      ? 'bg-slate-700 text-white border-slate-700'
+                      : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                  }
+                >
+                  {categoryInfo(cat).icon} {cat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {grouped.length === 0 && (
         <div className="bg-white rounded-2xl p-4 shadow-sm text-sm text-slate-400">
