@@ -5,6 +5,7 @@ import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import SummaryTab from './components/SummaryTab'
 import RecordTab from './components/RecordTab'
+import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
@@ -133,9 +134,7 @@ export default function App() {
           />
         )}
         {tab === 'calendar' && (
-          <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
-            カレンダー機能は近日実装予定です
-          </div>
+          <CalendarTab userId={user.id} month={month} setMonth={setMonth} />
         )}
       </div>
 

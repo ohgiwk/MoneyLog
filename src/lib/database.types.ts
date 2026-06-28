@@ -159,6 +159,22 @@ export interface Database {
         >
         Update: Partial<Database['public']['Tables']['monthly_adjustments']['Insert']>
       }
+      calendar_events: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          title: string
+          start_time: string | null
+          end_time: string | null
+          day_type: 'work' | 'off' | 'holiday'
+          planned_expense: number
+          memo: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['calendar_events']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['calendar_events']['Insert']>
+      }
       work_schedule: {
         Row: {
           id: string
@@ -203,5 +219,6 @@ export type ShoppingItem = Database['public']['Tables']['shopping_items']['Row']
 export type WishlistItem = Database['public']['Tables']['wishlist_items']['Row']
 export type SavingsGoal = Database['public']['Tables']['savings_goals']['Row']
 export type WorkSchedule = Database['public']['Tables']['work_schedule']['Row']
+export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
 export type IncomeRecord = Database['public']['Tables']['income_records']['Row']
 export type Consumable = Database['public']['Tables']['consumables']['Row']
