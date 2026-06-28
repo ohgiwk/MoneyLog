@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default function ConsumableForm({ userId, consumable, preset, householdMembers, onClose }: Props) {
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: consumable?.name ?? preset?.name ?? '',
     category: consumable?.category ?? preset?.category ?? CONSUMABLE_CATEGORIES[0].name,
@@ -48,7 +50,15 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     const amt = parseFloat(values.amount)
     const qty = parseInt(values.quantity)
     const days = parseInt(values.cycleDays)
-    if (!values.name || isNaN(amt) || amt <= 0 || isNaN(days) || days <= 0) return
+    const errors: Partial<Record<keyof FormValues, string>> = {}
+    if (!values.name) errors.name = '名前を入力してください'
+    if (!values.amount || isNaN(amt) || amt <= 0) errors.amount = '0より大きい金額を入力してください'
+    if (!values.cycleDays || isNaN(days) || days <= 0) errors.cycleDays = '1以上のサイクル日数を入力してください'
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
     setIsSubmitting(true)
     setError(null)
     try {
@@ -111,10 +121,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           <label className="text-xs text-slate-400">名前</label>
           <input
             value={values.name}
-            onChange={(e) => setValue('name', e.target.value)}
+            onChange={(e) => { setValue('name', e.target.value); setFieldErrors((p) => ({ ...p, name: undefined })) }}
             placeholder="例: トイレットペーパー"
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.name ? 'border-rose-400' : 'border-slate-200'}`}
           />
+          {fieldErrors.name && <p className="text-xs text-rose-500 mt-1">{fieldErrors.name}</p>}
         </div>
 
         <div>
@@ -148,10 +159,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               type="number"
               inputMode="numeric"
               value={values.amount}
-              onChange={(e) => setValue('amount', e.target.value)}
+              onChange={(e) => { setValue('amount', e.target.value); setFieldErrors((p) => ({ ...p, amount: undefined })) }}
               placeholder="0"
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.amount ? 'border-rose-400' : 'border-slate-200'}`}
             />
+            {fieldErrors.amount && <p className="text-xs text-rose-500 mt-1">{fieldErrors.amount}</p>}
           </div>
           <div>
             <label className="text-xs text-slate-400">購入個数</label>
@@ -190,12 +202,13 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               type="number"
               inputMode="numeric"
               value={values.cycleDays}
-              onChange={(e) => setValue('cycleDays', e.target.value)}
+              onChange={(e) => { setValue('cycleDays', e.target.value); setFieldErrors((p) => ({ ...p, cycleDays: undefined })) }}
               min="1"
-              className="w-24 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.cycleDays ? 'border-rose-400' : 'border-slate-200'}`}
             />
             <span className="text-sm text-slate-500">日おき</span>
           </div>
+          {fieldErrors.cycleDays && <p className="text-xs text-rose-500 mt-1">{fieldErrors.cycleDays}</p>}
         </div>
 
         <div>
