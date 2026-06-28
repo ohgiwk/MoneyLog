@@ -1,16 +1,13 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
-import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen, todayStr } from '../utils'
-import { useForm } from '../hooks/useForm'
 import { TabGroup } from './ui/TabGroup'
-import DatePicker from './ui/DatePicker'
 import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
+import OneTimeTransactionForm from './OneTimeTransactionForm'
 
 type RecordSubPage = 'one_time' | 'fixed' | 'consumables'
 
@@ -19,14 +16,6 @@ const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'fixed', label: '固定費' },
   { key: 'consumables', label: '消耗品費' },
 ]
-
-interface OneTimeFormValues {
-  type: 'expense' | 'income'
-  date: string
-  category: string
-  amount: string
-  memo: string
-}
 
 interface Props {
   userId: string
@@ -52,59 +41,28 @@ export default function RecordTab({
   onDetail,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>('one_time')
-  const [showSuccess, setShowSuccess] = useState(false)
   const [fixedEditing, setFixedEditing] = useState(false)
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
-  const [recentTx, setRecentTx] = useState<Transaction[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
-  const [amountError, setAmountError] = useState<string | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-
-  const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
-    useForm<OneTimeFormValues>({
-      type: 'expense',
-      date: todayStr(),
-      category: expenseCategories[0]?.name ?? '',
-      amount: '',
-      memo: '',
-    })
-
-  const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
 
   useEffect(() => {
-    if (editingTx) {
-      setValues({
-        type: editingTx.type as 'expense' | 'income',
-        date: editingTx.date,
-        category: editingTx.category,
-        amount: String(editingTx.amount),
-        memo: editingTx.memo ?? '',
-      })
-      setSub('one_time')
-    }
-  }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  function handleTypeChange(newType: 'expense' | 'income') {
-    const cats = newType === 'expense' ? expenseCategories : incomeCategories
-    setValues({ ...values, type: newType, category: cats[0]?.name ?? '' })
-  }
+    if (editingTx) setSub('one_time')
+  }, [editingTx])
 
   useEffect(() => {
     const load = async () => {
       setFetchError(null)
       try {
-        const [fixed, consumablesData, profile, recent] = await Promise.all([
+        const [fixed, consumablesData, profile] = await Promise.all([
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
-          transactionService.fetchRecent(userId, 5),
         ])
         setFixedExpenses(fixed)
         setConsumables(consumablesData)
-        setRecentTx(recent)
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
@@ -131,130 +89,10 @@ export default function RecordTab({
     }
   }
 
-  async function handleDelete() {
-    if (!editingTx) return
-    setIsSubmitting(true)
-    try {
-      await transactionService.delete(editingTx.id)
-      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
-      onEditDone?.()
-      onEditSaved?.()
-      reset()
-      setValue('date', todayStr())
-      setValue('category', expenseCategories[0]?.name ?? '')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    const amt = parseFloat(values.amount)
-    if (!amt || amt <= 0) {
-      setAmountError('正しい金額を入力してください')
-      return
-    }
-    setAmountError(null)
-    setError(null)
-    setIsSubmitting(true)
-    try {
-      if (editingTx) {
-        await transactionService.update(editingTx.id, {
-          type: values.type,
-          expense_kind: values.type === 'expense' ? (editingTx.expense_kind ?? 'one_time') : null,
-          date: values.date,
-          category: values.category,
-          amount: amt,
-          memo: values.memo.trim() || null,
-        })
-        onEditDone?.()
-        onEditSaved?.()
-      } else {
-        await transactionService.insert({
-          user_id: userId,
-          type: values.type,
-          expense_kind: values.type === 'expense' ? 'one_time' : null,
-          date: values.date,
-          category: values.category,
-          amount: amt,
-          memo: values.memo.trim() || null,
-          recurring_rule_id: null,
-        })
-        reset()
-        setValue('date', todayStr())
-        setValue('category', expenseCategories[0]?.name ?? '')
-        setShowSuccess(true)
-        transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
-        return
-      }
-      reset()
-      setValue('date', todayStr())
-      setValue('category', expenseCategories[0]?.name ?? '')
-      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '記録に失敗しました')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const isEditing = fixedEditing || consumableEditing
 
   return (
-    <>
-    {confirmDelete && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmDelete(false)} />
-        <div className="relative bg-white rounded-2xl shadow-xl mx-6 p-6 flex flex-col gap-4 w-full max-w-sm">
-          <p className="text-base font-semibold text-slate-700">この記録を削除しますか？</p>
-          <p className="text-sm text-slate-400">削除すると元に戻すことはできません。</p>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="flex-1 py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50"
-            >
-              キャンセル
-            </button>
-            <button
-              onClick={() => { setConfirmDelete(false); handleDelete() }}
-              className="flex-1 py-3 rounded-xl bg-rose-500 active:bg-rose-600 text-white font-semibold"
-            >
-              削除する
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {showSuccess && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/40" onClick={() => setShowSuccess(false)} />
-        <div className="relative bg-white rounded-2xl shadow-xl mx-6 p-6 flex flex-col items-center gap-4 w-full max-w-sm">
-          <div className="text-3xl">✅</div>
-          <p className="text-base font-semibold text-slate-700">記録しました！</p>
-          <div className="flex flex-col gap-2 w-full">
-            <button
-              type="button"
-              onClick={() => setShowSuccess(false)}
-              className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold active:bg-emerald-600"
-            >
-              続けて記録する
-            </button>
-            <button
-              type="button"
-              onClick={() => { setShowSuccess(false); onDetail?.() }}
-              className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold active:bg-slate-50"
-            >
-              一覧を見る
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
     <div>
-      {/* タブ切り替え */}
       {!isEditing && (
         <div className="px-4 pt-4">
           <TabGroup tabs={SUB_PAGE_TABS} active={sub} onChange={setSub} size="sm" />
@@ -269,169 +107,16 @@ export default function RecordTab({
 
       <div className="p-4 space-y-4">
         {sub === 'one_time' && (
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-            {/* 収支トグル */}
-            <div className="flex rounded-xl bg-slate-100 p-1">
-              <button
-                type="button"
-                onClick={() => handleTypeChange('expense')}
-                className={
-                  'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-                  (values.type === 'expense' ? 'bg-rose-500 text-white shadow' : 'text-slate-500')
-                }
-              >
-                支出
-              </button>
-              <button
-                type="button"
-                onClick={() => handleTypeChange('income')}
-                className={
-                  'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-                  (values.type === 'income' ? 'bg-emerald-500 text-white shadow' : 'text-slate-500')
-                }
-              >
-                収入
-              </button>
-            </div>
-
-            {/* 日付 */}
-            <div>
-              <DatePicker label="日付" value={values.date} onChange={(v) => setValue('date', v)} />
-            </div>
-
-            {/* カテゴリ */}
-            <div>
-              <label className="text-xs text-slate-400">カテゴリ</label>
-              <div className="grid grid-cols-5 gap-2 mt-1">
-                {formCategories.map((c) => (
-                  <button
-                    key={c.name}
-                    type="button"
-                    onClick={() => setValue('category', c.name)}
-                    className={
-                      'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
-                      (values.category === c.name
-                        ? 'border-emerald-400 bg-emerald-50'
-                        : 'border-slate-100 bg-slate-50')
-                    }
-                  >
-                    <span className="text-lg">{c.icon}</span>
-                    <span className="text-[10px] leading-tight text-slate-600 text-center">
-                      {c.name}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 金額 */}
-            <div>
-              <label className="text-xs text-slate-400">金額</label>
-              <div className="flex items-center gap-2 mt-1">
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={values.amount}
-                  onChange={(e) => {
-                    setValue('amount', e.target.value)
-                    if (amountError) setAmountError(null)
-                  }}
-                  className={`flex-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
-                />
-                <span className="text-sm text-slate-500 font-medium">円</span>
-              </div>
-              {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
-            </div>
-
-            {/* メモ */}
-            <div>
-              <label className="text-xs text-slate-400">メモ（任意）</label>
-              <input
-                type="text"
-                placeholder="例: スーパーで買い物"
-                value={values.memo}
-                onChange={(e) => setValue('memo', e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              />
-            </div>
-
-            {error && <p className="text-xs text-rose-500">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={
-                'w-full py-3 rounded-xl text-white font-semibold shadow disabled:opacity-50 ' +
-                (values.type === 'expense'
-                  ? 'bg-rose-500 active:bg-rose-600'
-                  : 'bg-emerald-500 active:bg-emerald-600')
-              }
-            >
-              {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}
-            </button>
-
-            {editingTx && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={isSubmitting}
-                  className="w-[30%] py-3 rounded-xl text-rose-500 font-semibold border border-rose-200 active:bg-rose-50 disabled:opacity-50"
-                >
-                  削除
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { onEditDone?.(); onEditSaved?.(); reset(); setValue('date', todayStr()); setValue('category', expenseCategories[0]?.name ?? '') }}
-                  disabled={isSubmitting}
-                  className="w-[70%] py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50 disabled:opacity-50"
-                >
-                  キャンセル
-                </button>
-              </div>
-            )}
-          </form>
-        )}
-
-        {sub === 'one_time' && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-semibold text-slate-700">最近の記録</div>
-              <button
-                onClick={onDetail}
-                className="text-xs text-slate-600 font-medium bg-slate-100 active:bg-slate-200 rounded-lg px-2.5 py-1"
-              >
-                詳細
-              </button>
-            </div>
-            {recentTx.length === 0 && (
-              <div className="text-sm text-slate-400 py-1">記録がありません</div>
-            )}
-            <div className="space-y-1.5">
-              {recentTx.map((t) => {
-                const info = categoryInfo(t.category)
-                return (
-                  <button
-                    key={t.id}
-                    onClick={() => onEditTx?.(t)}
-                    className="w-full flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 active:bg-slate-50 rounded-lg px-1 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">{info.icon}</span>
-                      <div>
-                        <div className="text-sm text-slate-700">{t.category}</div>
-                        <div className="text-xs text-slate-400">{t.date}</div>
-                      </div>
-                    </div>
-                    <span className={'text-sm font-semibold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')}>
-                      {t.type === 'income' ? '+' : '-'}{formatYen(t.amount)}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          <OneTimeTransactionForm
+            userId={userId}
+            expenseCategories={expenseCategories}
+            incomeCategories={incomeCategories}
+            editingTx={editingTx}
+            onEditDone={onEditDone}
+            onEditSaved={onEditSaved}
+            onEditTx={onEditTx}
+            onDetail={onDetail}
+          />
         )}
 
         {sub === 'fixed' && (
@@ -455,6 +140,5 @@ export default function RecordTab({
         )}
       </div>
     </div>
-    </>
   )
 }
