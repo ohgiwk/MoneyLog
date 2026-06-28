@@ -34,4 +34,16 @@ export const transactionService = {
     const { error } = await supabase.from('transactions').delete().eq('id', id)
     if (error) throw new Error(error.message)
   },
+
+  fetchRecent: async (userId: string, limit = 5): Promise<Transaction[]> => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) throw new Error(error.message)
+    return data ?? []
+  },
 }

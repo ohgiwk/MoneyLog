@@ -5,7 +5,7 @@ import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { todayStr } from '../utils'
+import { categoryInfo, formatYen, todayStr } from '../utils'
 import { useForm } from '../hooks/useForm'
 import { TabGroup } from './ui/TabGroup'
 import DatePicker from './ui/DatePicker'
@@ -37,6 +37,8 @@ interface Props {
   onEditDone?: () => void
   onEditSaved?: () => void
   onGoToList?: () => void
+  onEditTx?: (tx: Transaction) => void
+  onDetail?: () => void
 }
 
 export default function RecordTab({
@@ -48,6 +50,8 @@ export default function RecordTab({
   onEditDone,
   onEditSaved,
   onGoToList,
+  onEditTx,
+  onDetail,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>('one_time')
   const [showSuccess, setShowSuccess] = useState(false)
@@ -55,6 +59,7 @@ export default function RecordTab({
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
+  const [recentTx, setRecentTx] = useState<Transaction[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
@@ -92,13 +97,15 @@ export default function RecordTab({
     const load = async () => {
       setFetchError(null)
       try {
-        const [fixed, consumablesData, profile] = await Promise.all([
+        const [fixed, consumablesData, profile, recent] = await Promise.all([
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
+          transactionService.fetchRecent(userId, 5),
         ])
         setFixedExpenses(fixed)
         setConsumables(consumablesData)
+        setRecentTx(recent)
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
@@ -130,6 +137,7 @@ export default function RecordTab({
     setIsSubmitting(true)
     try {
       await transactionService.delete(editingTx.id)
+      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
       onEditDone?.()
       onEditSaved?.()
       reset()
@@ -179,11 +187,13 @@ export default function RecordTab({
         setValue('date', todayStr())
         setValue('category', expenseCategories[0]?.name ?? '')
         setShowSuccess(true)
+        transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
         return
       }
       reset()
       setValue('date', todayStr())
       setValue('category', expenseCategories[0]?.name ?? '')
+      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
     } catch (err) {
       setError(err instanceof Error ? err.message : '記録に失敗しました')
     } finally {
@@ -359,6 +369,46 @@ export default function RecordTab({
               </div>
             )}
           </form>
+        )}
+
+        {sub === 'one_time' && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-slate-700">最近の記録</div>
+              <button
+                onClick={onDetail}
+                className="text-xs text-slate-600 font-medium bg-slate-100 active:bg-slate-200 rounded-lg px-2.5 py-1"
+              >
+                詳細
+              </button>
+            </div>
+            {recentTx.length === 0 && (
+              <div className="text-sm text-slate-400 py-1">記録がありません</div>
+            )}
+            <div className="space-y-1.5">
+              {recentTx.map((t) => {
+                const info = categoryInfo(t.category)
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => onEditTx?.(t)}
+                    className="w-full flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 active:bg-slate-50 rounded-lg px-1 text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{info.icon}</span>
+                      <div>
+                        <div className="text-sm text-slate-700">{t.category}</div>
+                        <div className="text-xs text-slate-400">{t.date}</div>
+                      </div>
+                    </div>
+                    <span className={'text-sm font-semibold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')}>
+                      {t.type === 'income' ? '+' : '-'}{formatYen(t.amount)}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         )}
 
         {sub === 'fixed' && (

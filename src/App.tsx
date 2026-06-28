@@ -5,6 +5,7 @@ import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import SummaryTab from './components/SummaryTab'
 import RecordTab from './components/RecordTab'
+import RecordDetailScreen from './components/RecordDetailScreen'
 import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
@@ -14,7 +15,7 @@ import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'record-detail'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
@@ -30,17 +31,17 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
-  const [summaryInitialSub, setSummaryInitialSub] = useState<'overview' | 'detail' | undefined>()
 
   function handleEditTx(tx: Transaction) {
     setEditingTx(tx)
     setTab('record')
+    setScreen('main')
   }
 
   function handleEditSaved() {
     setEditingTx(null)
-    setSummaryInitialSub('detail')
     setTab('summary')
+    setScreen('record-detail')
   }
 
   if (loading) {
@@ -77,6 +78,18 @@ export default function App() {
         onUpdateIncome={categories.updateIncomeCategories}
         onUpdateFixed={categories.updateFixedCategories}
         onBack={() => setScreen('settings')}
+      />
+    )
+  }
+
+  if (screen === 'record-detail') {
+    return (
+      <RecordDetailScreen
+        userId={user.id}
+        month={month}
+        setMonth={setMonth}
+        onBack={() => setScreen('main')}
+        onEditTx={handleEditTx}
       />
     )
   }
@@ -122,9 +135,6 @@ export default function App() {
             month={month}
             setMonth={setMonth}
             fixedCategories={categories.fixedCategories}
-            onEditTx={handleEditTx}
-            initialSub={summaryInitialSub}
-            onInitialSubConsumed={() => setSummaryInitialSub(undefined)}
           />
         )}
         {tab === 'record' && (
@@ -137,6 +147,8 @@ export default function App() {
             onEditDone={() => setEditingTx(null)}
             onEditSaved={handleEditSaved}
             onGoToList={() => setTab('summary')}
+            onEditTx={handleEditTx}
+            onDetail={() => setScreen('record-detail')}
           />
         )}
         {tab === 'calendar' && (
