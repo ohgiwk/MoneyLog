@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
 import { todayStr } from './utils'
@@ -31,6 +31,17 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // タブ・画面遷移時にスクロールをトップに戻す
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, 0)
+  }, [tab, screen])
+
+  // フルスクリーンページへの遷移時は window もリセット
+  useEffect(() => {
+    if (screen !== 'main') window.scrollTo(0, 0)
+  }, [screen])
 
   function handleEditTx(tx: Transaction) {
     setEditingTx(tx)
@@ -128,7 +139,7 @@ export default function App() {
       )}
 
       {/* コンテンツ */}
-      <div className="flex-1 pt-[57px] pb-20 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 pt-[57px] pb-20 overflow-y-auto">
         {tab === 'summary' && (
           <SummaryTab
             userId={user.id}

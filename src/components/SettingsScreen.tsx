@@ -13,6 +13,8 @@ export default function SettingsScreen({ userId, onCategoryEdit, onBack }: Props
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   useEffect(() => {
     profileService.fetchById(userId).then((p) => {
       if (p) setHouseholdMembers(p.household_members ?? 1)

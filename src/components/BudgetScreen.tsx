@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { loadBudget, saveBudget, oneTimeBudgetTotal, type BudgetSettings } from '../lib/budgetStorage'
 import { formatYen } from '../utils'
@@ -9,6 +9,7 @@ interface Props {
 }
 
 export default function BudgetScreen({ userId, onBack }: Props) {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
   const [budget, setBudget] = useState<BudgetSettings>(() => loadBudget(userId))
   const [saved, setSaved] = useState(false)
 

@@ -16,6 +16,8 @@ export default function RecordDetailScreen({ userId, month, setMonth, onBack, on
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fetchError, setFetchError] = useState<string | null>(null)
 
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   useEffect(() => {
     const load = async () => {
       setFetchError(null)

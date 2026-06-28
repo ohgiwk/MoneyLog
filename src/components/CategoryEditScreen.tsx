@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
 
 const EMOJI_SUGGESTIONS = [
@@ -251,6 +251,7 @@ export default function CategoryEditScreen({
   onUpdateFixed,
   onBack,
 }: Props) {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
 
   return (
