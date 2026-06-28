@@ -420,9 +420,9 @@ export default function FixedExpenseTutorial({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white rounded-t-3xl px-5 pt-6 pb-8">
+      <div className="relative w-full max-w-md bg-white rounded-3xl px-5 pt-6 pb-8 mx-4">
         {/* プログレス */}
         <div className="flex gap-1.5 mb-5">
           {STEPS.map((_, i) => (
