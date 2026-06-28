@@ -243,7 +243,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
             type="date"
             value={values.lastPurchased}
             onChange={(e) => setValue('lastPurchased', e.target.value)}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="w-full min-w-0 max-w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
           />
         </div>
 
