@@ -87,6 +87,59 @@ export const CONSUMABLE_CATEGORIES: CategoryInfo[] = [
   { name: 'その他消耗品', icon: '📦', color: '#64748b' },
 ]
 
+export interface DefaultConsumable {
+  name: string
+  category: string
+  amount: number
+  quantity: number
+  cycle_days: number
+  members_scale: boolean
+}
+
+export const DEFAULT_CONSUMABLES: DefaultConsumable[] = [
+  // 衛生・清潔
+  { name: 'シャンプー', category: '衛生・清潔', amount: 500, quantity: 1, cycle_days: 60, members_scale: true },
+  { name: 'コンディショナー', category: '衛生・清潔', amount: 500, quantity: 1, cycle_days: 60, members_scale: true },
+  { name: 'ボディーソープ', category: '衛生・清潔', amount: 400, quantity: 1, cycle_days: 45, members_scale: true },
+  { name: '歯磨き粉', category: '衛生・清潔', amount: 200, quantity: 1, cycle_days: 60, members_scale: true },
+  { name: '洗顔料', category: '衛生・清潔', amount: 800, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: '化粧水', category: '衛生・清潔', amount: 2000, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: '乳液', category: '衛生・清潔', amount: 1500, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'ファンデーション', category: '衛生・清潔', amount: 3000, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'リップ・口紅', category: '衛生・清潔', amount: 1500, quantity: 1, cycle_days: 180, members_scale: false },
+  { name: 'マスカラ', category: '衛生・清潔', amount: 1500, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'アイシャドウ', category: '衛生・清潔', amount: 2000, quantity: 1, cycle_days: 180, members_scale: false },
+  { name: 'BBクリーム', category: '衛生・清潔', amount: 1500, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: '歯ブラシ', category: '衛生・清潔', amount: 200, quantity: 1, cycle_days: 30, members_scale: true },
+  // トイレ・洗剤
+  { name: 'トイレットペーパー', category: 'トイレ・洗剤', amount: 800, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: 'ティッシュペーパー', category: 'トイレ・洗剤', amount: 500, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: '洗濯洗剤', category: 'トイレ・洗剤', amount: 1000, quantity: 1, cycle_days: 45, members_scale: true },
+  { name: '柔軟剤', category: 'トイレ・洗剤', amount: 700, quantity: 1, cycle_days: 45, members_scale: true },
+  { name: '食器用洗剤', category: 'トイレ・洗剤', amount: 300, quantity: 1, cycle_days: 60, members_scale: true },
+  { name: 'トイレ用洗剤', category: 'トイレ・洗剤', amount: 300, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: '漂白剤', category: 'トイレ・洗剤', amount: 400, quantity: 1, cycle_days: 90, members_scale: false },
+  // サプリ・医療
+  { name: 'マルチビタミン', category: 'サプリ・医療', amount: 2000, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: '解熱鎮痛剤', category: 'サプリ・医療', amount: 600, quantity: 1, cycle_days: 180, members_scale: false },
+  { name: 'ばんそうこう', category: 'サプリ・医療', amount: 300, quantity: 1, cycle_days: 365, members_scale: false },
+  // 食品・調味料
+  { name: '醤油', category: '食品・調味料', amount: 300, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: '料理酒', category: '食品・調味料', amount: 400, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: '砂糖', category: '食品・調味料', amount: 200, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: '塩', category: '食品・調味料', amount: 100, quantity: 1, cycle_days: 180, members_scale: false },
+  { name: 'みりん', category: '食品・調味料', amount: 350, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'マヨネーズ', category: '食品・調味料', amount: 400, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: 'ケチャップ', category: '食品・調味料', amount: 300, quantity: 1, cycle_days: 60, members_scale: false },
+  // その他消耗品
+  { name: 'ゴミ袋', category: 'その他消耗品', amount: 500, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: 'キッチンペーパー', category: 'その他消耗品', amount: 300, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: 'ラップ', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: 'アルミホイル', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'スポンジ', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 30, members_scale: false },
+  { name: '乾電池', category: 'その他消耗品', amount: 500, quantity: 1, cycle_days: 180, members_scale: false },
+]
+
 export const CONSUMABLE_CYCLE_PRESETS = [
   { label: '1週間', days: 7 },
   { label: '2週間', days: 14 },

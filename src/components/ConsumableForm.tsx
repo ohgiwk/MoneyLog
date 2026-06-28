@@ -1,4 +1,4 @@
-import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS } from '../constants'
+import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
@@ -18,18 +18,19 @@ interface FormValues {
 interface Props {
   userId: string
   consumable?: Consumable
+  preset?: DefaultConsumable
   householdMembers: number
   onClose: () => void
 }
 
-export default function ConsumableForm({ userId, consumable, householdMembers, onClose }: Props) {
+export default function ConsumableForm({ userId, consumable, preset, householdMembers, onClose }: Props) {
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
-    name: consumable?.name ?? '',
-    category: consumable?.category ?? CONSUMABLE_CATEGORIES[0].name,
-    amount: consumable?.amount.toString() ?? '',
-    quantity: consumable?.quantity.toString() ?? '1',
-    cycleDays: consumable?.cycle_days.toString() ?? '30',
-    membersScale: consumable?.members_scale ?? false,
+    name: consumable?.name ?? preset?.name ?? '',
+    category: consumable?.category ?? preset?.category ?? CONSUMABLE_CATEGORIES[0].name,
+    amount: consumable?.amount.toString() ?? preset?.amount.toString() ?? '',
+    quantity: consumable?.quantity.toString() ?? preset?.quantity.toString() ?? '1',
+    cycleDays: consumable?.cycle_days.toString() ?? preset?.cycle_days.toString() ?? '30',
+    membersScale: consumable?.members_scale ?? preset?.members_scale ?? false,
     lastPurchased: consumable?.last_purchased ?? new Date().toISOString().slice(0, 10),
     notes: consumable?.notes ?? '',
   })
@@ -269,6 +270,12 @@ export default function ConsumableForm({ userId, consumable, householdMembers, o
             {isSubmitting ? '保存中...' : '保存'}
           </button>
         </div>
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-sm font-semibold active:bg-slate-50"
+        >
+          キャンセル
+        </button>
       </div>
     </div>
   )

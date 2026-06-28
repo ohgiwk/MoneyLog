@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CONSUMABLE_URGENT_THRESHOLD_DAYS } from '../constants'
+import { CONSUMABLE_URGENT_THRESHOLD_DAYS, CONSUMABLE_CATEGORIES, DEFAULT_CONSUMABLES, type DefaultConsumable } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 import ConsumableRow from './ConsumableRow'
@@ -13,6 +13,8 @@ interface Props {
   onEditingChange: (editing: boolean) => void
 }
 
+type EditingState = Consumable | null | 'new' | { preset: DefaultConsumable }
+
 export default function ConsumablesList({
   userId,
   consumables,
@@ -20,9 +22,10 @@ export default function ConsumablesList({
   reload,
   onEditingChange,
 }: Props) {
-  const [editing, setEditing] = useState<Consumable | null | 'new'>(null)
+  const [editing, setEditing] = useState<EditingState>(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
-  function openEditing(v: Consumable | 'new') {
+  function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
     setEditing(v)
     onEditingChange(true)
   }
@@ -44,16 +47,36 @@ export default function ConsumablesList({
     (c) => daysUntil(nextPurchaseDate(c, householdMembers)) > CONSUMABLE_URGENT_THRESHOLD_DAYS
   )
 
+  // カテゴリ別グループ化
+  const byCategory = CONSUMABLE_CATEGORIES.map((cat) => ({
+    cat,
+    items: rest.filter((c) => c.category === cat.name),
+  })).filter((g) => g.items.length > 0)
+
+  // その他（未知カテゴリ）
+  const knownCategoryNames = new Set(CONSUMABLE_CATEGORIES.map((c) => c.name))
+  const uncategorized = rest.filter((c) => !knownCategoryNames.has(c.category))
+
   const totalMonthly = consumables.reduce(
     (s, c) => s + monthlyConsumableCost(c, householdMembers),
     0
   )
 
+  // 未登録のデフォルト品目
+  const registeredNames = new Set(consumables.map((c) => c.name))
+  const unregisteredDefaults = DEFAULT_CONSUMABLES.filter((d) => !registeredNames.has(d.name))
+  const suggestionsByCategory = CONSUMABLE_CATEGORIES.map((cat) => ({
+    cat,
+    items: unregisteredDefaults.filter((d) => d.category === cat.name),
+  })).filter((g) => g.items.length > 0)
+
   if (editing !== null) {
+    const isPreset = typeof editing === 'object' && editing !== null && 'preset' in (editing as object)
     return (
       <ConsumableForm
         userId={userId}
-        consumable={editing === 'new' ? undefined : editing}
+        consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
+        preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
         householdMembers={householdMembers}
         onClose={closeEditing}
       />
@@ -93,14 +116,33 @@ export default function ConsumablesList({
         </div>
       )}
 
-      {/* すべての品目 */}
-      {rest.length > 0 && (
-        <div>
-          {urgent.length > 0 && (
-            <div className="text-xs font-semibold text-slate-400 mb-2">その他の品目</div>
-          )}
+      {/* カテゴリ別一覧 */}
+      {byCategory.map(({ cat, items }) => (
+        <div key={cat.name}>
+          <div className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+            <span>{cat.icon}</span>
+            <span>{cat.name}</span>
+          </div>
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {rest.map((c, i) => (
+            {items.map((c, i) => (
+              <ConsumableRow
+                key={c.id}
+                consumable={c}
+                householdMembers={householdMembers}
+                onClick={() => openEditing(c)}
+                border={i > 0}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {/* 未知カテゴリ */}
+      {uncategorized.length > 0 && (
+        <div>
+          <div className="text-xs font-semibold text-slate-400 mb-2">その他</div>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {uncategorized.map((c, i) => (
               <ConsumableRow
                 key={c.id}
                 consumable={c}
@@ -123,6 +165,44 @@ export default function ConsumablesList({
       >
         + 消耗品を追加
       </button>
+
+      {/* おすすめ品目 */}
+      {unregisteredDefaults.length > 0 && (
+        <div>
+          <button
+            onClick={() => setShowSuggestions((v) => !v)}
+            className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 py-1"
+          >
+            <span>おすすめ品目（未登録）</span>
+            <span>{showSuggestions ? '▲' : '▼'}</span>
+          </button>
+
+          {showSuggestions && (
+            <div className="space-y-3">
+              {suggestionsByCategory.map(({ cat, items }) => (
+                <div key={cat.name}>
+                  <div className="text-xs text-slate-400 mb-1.5 flex items-center gap-1">
+                    <span>{cat.icon}</span>
+                    <span>{cat.name}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((d) => (
+                      <button
+                        key={d.name}
+                        onClick={() => openEditing({ preset: d })}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-600 active:bg-slate-50 flex items-center gap-1"
+                      >
+                        <span>+</span>
+                        <span>{d.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </>
   )
 }
