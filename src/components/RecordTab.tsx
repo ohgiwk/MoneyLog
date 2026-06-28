@@ -36,6 +36,7 @@ interface Props {
   editingTx?: Transaction | null
   onEditDone?: () => void
   onEditSaved?: () => void
+  onGoToList?: () => void
 }
 
 export default function RecordTab({
@@ -46,8 +47,10 @@ export default function RecordTab({
   editingTx,
   onEditDone,
   onEditSaved,
+  onGoToList,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>('one_time')
+  const [showSuccess, setShowSuccess] = useState(false)
   const [fixedEditing, setFixedEditing] = useState(false)
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
@@ -172,6 +175,11 @@ export default function RecordTab({
           memo: values.memo.trim() || null,
           recurring_rule_id: null,
         })
+        reset()
+        setValue('date', todayStr())
+        setValue('category', expenseCategories[0]?.name ?? '')
+        setShowSuccess(true)
+        return
       }
       reset()
       setValue('date', todayStr())
@@ -186,6 +194,32 @@ export default function RecordTab({
   const isEditing = fixedEditing || consumableEditing
 
   return (
+    <>
+    {showSuccess && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/40" onClick={() => setShowSuccess(false)} />
+        <div className="relative bg-white rounded-2xl shadow-xl mx-6 p-6 flex flex-col items-center gap-4 w-full max-w-sm">
+          <div className="text-3xl">✅</div>
+          <p className="text-base font-semibold text-slate-700">記録しました！</p>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              type="button"
+              onClick={() => setShowSuccess(false)}
+              className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold active:bg-emerald-600"
+            >
+              続けて記録する
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowSuccess(false); onGoToList?.() }}
+              className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold active:bg-slate-50"
+            >
+              一覧を見る
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     <div>
       {/* タブ切り替え */}
       {!isEditing && (
@@ -348,5 +382,6 @@ export default function RecordTab({
         )}
       </div>
     </div>
+    </>
   )
 }

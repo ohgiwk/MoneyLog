@@ -129,6 +129,7 @@ export default function App() {
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
             onEditSaved={handleEditSaved}
+            onGoToList={() => setTab('summary')}
           />
         )}
         {tab === 'calendar' && (
