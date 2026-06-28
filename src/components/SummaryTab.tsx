@@ -133,6 +133,15 @@ function Overview({
 
   const recentTx = [...monthTx].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5)
 
+  const oneTimeByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of monthTx) {
+      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [monthTx])
+
   return (
     <>
       {/* 収支サマリー */}
@@ -165,6 +174,41 @@ function Overview({
           </div>
           <div className="text-xs text-slate-400">
             累計節約 {formatYen(Math.round(totalSaved * 12))}/年換算
+          </div>
+        </div>
+      )}
+
+      {/* 臨時出費カテゴリ別 */}
+      {oneTimeByCat.length > 0 && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="text-sm font-semibold text-slate-700">臨時出費の内訳</div>
+          {/* 横棒グラフ */}
+          <div className="space-y-2">
+            {oneTimeByCat.map(([cat, amt]) => {
+              const pct = oneTimeExpense > 0 ? (amt / oneTimeExpense) * 100 : 0
+              const info = categoryInfo(cat)
+              return (
+                <div key={cat}>
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-xs text-slate-600 flex items-center gap-1">
+                      <span>{info.icon}</span>{cat}
+                    </span>
+                    <span className="text-xs font-semibold text-rose-500">-{formatYen(amt)}</span>
+                  </div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-400 rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {/* 合計 */}
+          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+            <span className="text-xs text-slate-400">合計</span>
+            <span className="text-sm font-semibold text-rose-500">-{formatYen(oneTimeExpense)}</span>
           </div>
         </div>
       )}
