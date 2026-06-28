@@ -84,9 +84,9 @@ export default function DatePicker({ value, onChange, label }: Props) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-sm px-4 pt-5 pb-6">
+          <div className="relative bg-white rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
 
             {/* 月ナビゲーション */}
             <div className="flex items-center justify-between mb-4">
