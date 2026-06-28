@@ -1,10 +1,11 @@
 interface Props {
   onSettings: () => void
+  onBudget: () => void
   onSignOut: () => void
   onClose: () => void
 }
 
-export default function DrawerMenu({ onSettings, onSignOut, onClose }: Props) {
+export default function DrawerMenu({ onSettings, onBudget, onSignOut, onClose }: Props) {
   return (
     <>
       {/* オーバーレイ */}
@@ -22,6 +23,16 @@ export default function DrawerMenu({ onSettings, onSignOut, onClose }: Props) {
           </button>
         </div>
         <nav className="flex-1 py-2">
+          <button
+            onClick={() => {
+              onBudget()
+              onClose()
+            }}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+          >
+            <span className="text-lg">💰</span>
+            予算
+          </button>
           <button
             onClick={() => {
               onSettings()

@@ -6,6 +6,7 @@ import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, monthKey, monthlyConsumableCost } from '../utils'
+import { loadBudget, oneTimeBudgetTotal } from '../lib/budgetStorage'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import { Row } from './ui/Row'
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export default function SummaryTab({ userId, month, setMonth, onEditTx, initialSub, onInitialSubConsumed }: Props) {
+  const budget = useMemo(() => loadBudget(userId), [userId])
   const [sub, setSub] = useState<SubPage>('overview')
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function SummaryTab({ userId, month, setMonth, onEditTx, initialS
 
       <div className="p-4 space-y-4">
         {sub === 'overview' && (
-          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} consumables={consumables} householdMembers={householdMembers} onEditTx={onEditTx} />
+          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} consumables={consumables} householdMembers={householdMembers} onEditTx={onEditTx} budget={budget} />
         )}
         {sub === 'detail' && (
           <DetailView transactions={transactions} month={month} onEditTx={onEditTx} />
@@ -99,6 +101,7 @@ function Overview({
   consumables,
   householdMembers,
   onEditTx,
+  budget,
 }: {
   transactions: Transaction[]
   month: string
@@ -106,6 +109,7 @@ function Overview({
   consumables: Consumable[]
   householdMembers: number
   onEditTx?: (tx: Transaction) => void
+  budget: ReturnType<typeof loadBudget>
 }) {
   const monthTx = useMemo(
     () => transactions.filter((t) => monthKey(t.date) === month),
@@ -132,6 +136,48 @@ function Overview({
   const balance = income - totalFixed - totalExpense
 
   const recentTx = [...monthTx].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5)
+
+  // 今週（月曜始まり）の日付範囲
+  const weekRange = useMemo(() => {
+    const today = new Date()
+    const dow = (today.getDay() + 6) % 7 // 0=Mon
+    const mon = new Date(today)
+    mon.setDate(today.getDate() - dow)
+    const sun = new Date(mon)
+    sun.setDate(mon.getDate() + 6)
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+    return { start: fmt(mon), end: fmt(sun) }
+  }, [])
+
+  const thisWeekTx = useMemo(
+    () => transactions.filter((t) => t.date >= weekRange.start && t.date <= weekRange.end),
+    [transactions, weekRange]
+  )
+
+  // 臨時出費：カテゴリ別に今週の支出を集計
+  const weekOneTimeByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of thisWeekTx) {
+      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return map
+  }, [thisWeekTx])
+
+  const hasBudget = oneTimeBudgetTotal(budget) > 0 || weekOneTimeByCat.size > 0
+
+  // カテゴリ別週次予算（設定あるもの、または今週支出あるもの）
+  const oneTimeCategoryRows = useMemo(() => {
+    const cats = new Set([
+      ...Object.keys(budget.oneTimeByCategory).filter((c) => (budget.oneTimeByCategory[c] ?? 0) > 0),
+      ...[...weekOneTimeByCat.keys()],
+    ])
+    return [...cats].map((cat) => ({
+      cat,
+      spent: weekOneTimeByCat.get(cat) ?? 0,
+      weekBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / 4.33),
+    }))
+  }, [budget.oneTimeByCategory, weekOneTimeByCat])
 
   const oneTimeByCat = useMemo(() => {
     const map = new Map<string, number>()
@@ -163,6 +209,33 @@ function Overview({
           bold
         />
       </div>
+
+      {/* 今週の予算進捗 */}
+      {hasBudget && (
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="text-sm font-semibold text-slate-700">今週の予算進捗</div>
+          <div className="text-xs text-slate-400 -mt-1">
+            {weekRange.start.slice(5).replace('-', '/')} 〜 {weekRange.end.slice(5).replace('-', '/')}
+          </div>
+          {oneTimeCategoryRows.length > 0 && (
+            <>
+              {oneTimeCategoryRows.map(({ cat, spent, weekBudget }) => {
+                const info = categoryInfo(cat)
+                return (
+                  <BudgetProgress
+                    key={cat}
+                    label={cat}
+                    icon={info.icon}
+                    spent={spent}
+                    weekBudget={weekBudget}
+                    color="bg-amber-400"
+                  />
+                )
+              })}
+            </>
+          )}
+        </div>
+      )}
 
       {/* 節約進捗 */}
       {totalSaved > 0 && (
@@ -425,6 +498,53 @@ function DetailView({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// ─── Budget Progress Bar ──────────────────────────────────────
+
+function BudgetProgress({
+  label,
+  icon,
+  spent,
+  weekBudget,
+  color,
+}: {
+  label: string
+  icon: string
+  spent: number
+  weekBudget: number
+  color: string
+}) {
+  const pct = weekBudget > 0 ? Math.min((spent / weekBudget) * 100, 100) : 0
+  const over = spent > weekBudget && weekBudget > 0
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-xs text-slate-600 flex items-center gap-1">
+          <span>{icon}</span>
+          {label}
+        </span>
+        <span className="text-xs text-slate-500">
+          <span className={over ? 'text-rose-500 font-semibold' : 'font-medium'}>
+            {formatYen(spent)}
+          </span>
+          {' / '}
+          <span className="text-slate-400">{formatYen(weekBudget)}</span>
+        </span>
+      </div>
+      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${over ? 'bg-rose-400' : color}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      {over && (
+        <div className="text-xs text-rose-500 mt-0.5 text-right">
+          {formatYen(spent - weekBudget)} オーバー
+        </div>
+      )}
     </div>
   )
 }

@@ -9,11 +9,12 @@ import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
+import BudgetScreen from './components/BudgetScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
@@ -51,6 +52,10 @@ export default function App() {
   }
 
   if (!user) return <AuthScreen />
+
+  if (screen === 'budget') {
+    return <BudgetScreen userId={user.id} onBack={() => setScreen('main')} />
+  }
 
   if (screen === 'settings') {
     return (
@@ -103,6 +108,7 @@ export default function App() {
       {drawerOpen && (
         <DrawerMenu
           onSettings={() => setScreen('settings')}
+          onBudget={() => setScreen('budget')}
           onSignOut={signOut}
           onClose={() => setDrawerOpen(false)}
         />
