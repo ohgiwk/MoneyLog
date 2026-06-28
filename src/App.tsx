@@ -9,6 +9,7 @@ import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
 import type { Transaction } from './lib/database.types'
+import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit'
@@ -76,6 +77,7 @@ export default function App() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+      <UpdateNotification />
       {/* ヘッダー */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <div className="px-4 py-3 flex items-center justify-between">
