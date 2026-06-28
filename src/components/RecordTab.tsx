@@ -8,6 +8,7 @@ import type { Consumable, FixedExpense, Transaction } from '../lib/database.type
 import { todayStr } from '../utils'
 import { useForm } from '../hooks/useForm'
 import { TabGroup } from './ui/TabGroup'
+import DatePicker from './ui/DatePicker'
 import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
 
@@ -228,13 +229,7 @@ export default function RecordTab({
 
             {/* 日付 */}
             <div>
-              <label className="text-xs text-slate-400">日付</label>
-              <input
-                type="date"
-                value={values.date}
-                onChange={(e) => setValue('date', e.target.value)}
-                className="w-full min-w-0 max-w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-              />
+              <DatePicker label="日付" value={values.date} onChange={(v) => setValue('date', v)} />
             </div>
 
             {/* カテゴリ */}

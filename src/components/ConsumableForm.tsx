@@ -4,6 +4,7 @@ import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
 import { useForm } from '../hooks/useForm'
+import DatePicker from './ui/DatePicker'
 
 interface FormValues {
   name: string
@@ -238,13 +239,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">最終購入日</label>
-          <input
-            type="date"
-            value={values.lastPurchased}
-            onChange={(e) => setValue('lastPurchased', e.target.value)}
-            className="w-full min-w-0 max-w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
-          />
+          <DatePicker label="最終購入日" value={values.lastPurchased} onChange={(v) => setValue('lastPurchased', v)} />
         </div>
 
         {previewMonthly > 0 && (
