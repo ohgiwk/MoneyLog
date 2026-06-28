@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
-import type { FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen, monthKey } from '../utils'
+import { consumableService } from '../lib/services/consumableService'
+import { profileService } from '../lib/services/profileService'
+import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
+import { categoryInfo, formatYen, monthKey, monthlyConsumableCost } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import { Row } from './ui/Row'
@@ -36,18 +38,24 @@ export default function SummaryTab({ userId, month, setMonth, onEditTx, initialS
   }, [initialSub]) // eslint-disable-line react-hooks/exhaustive-deps
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
+  const [consumables, setConsumables] = useState<Consumable[]>([])
+  const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
       setFetchError(null)
       try {
-        const [txs, fixed] = await Promise.all([
+        const [txs, fixed, cons, profile] = await Promise.all([
           transactionService.fetchByMonth(userId, month),
           fixedExpenseService.fetchByUser(userId),
+          consumableService.fetchByUser(userId),
+          profileService.fetchById(userId),
         ])
         setTransactions(txs)
         setFixedExpenses(fixed)
+        setConsumables(cons)
+        if (profile) setHouseholdMembers(profile.household_members ?? 1)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       }
@@ -72,7 +80,7 @@ export default function SummaryTab({ userId, month, setMonth, onEditTx, initialS
 
       <div className="p-4 space-y-4">
         {sub === 'overview' && (
-          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} onEditTx={onEditTx} />
+          <Overview transactions={transactions} month={month} fixedExpenses={fixedExpenses} consumables={consumables} householdMembers={householdMembers} onEditTx={onEditTx} />
         )}
         {sub === 'detail' && (
           <DetailView transactions={transactions} month={month} onEditTx={onEditTx} />
@@ -88,11 +96,15 @@ function Overview({
   transactions,
   month,
   fixedExpenses,
+  consumables,
+  householdMembers,
   onEditTx,
 }: {
   transactions: Transaction[]
   month: string
   fixedExpenses: FixedExpense[]
+  consumables: Consumable[]
+  householdMembers: number
   onEditTx?: (tx: Transaction) => void
 }) {
   const monthTx = useMemo(
@@ -100,12 +112,9 @@ function Overview({
     [transactions, month]
   )
   const income = monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-  const routineExpense = monthTx
-    .filter(
-      (t) =>
-        t.type === 'expense' && (t.expense_kind === 'routine' || t.expense_kind === 'consumable')
-    )
-    .reduce((s, t) => s + t.amount, 0)
+  const consumableExpense = Math.round(
+    consumables.reduce((s, c) => s + monthlyConsumableCost(c, householdMembers), 0)
+  )
   const oneTimeExpense = monthTx
     .filter((t) => t.type === 'expense' && t.expense_kind === 'one_time')
     .reduce((s, t) => s + t.amount, 0)
@@ -119,7 +128,7 @@ function Overview({
   )
   const totalSaved = totalBaseline - totalFixed
 
-  const totalExpense = routineExpense + oneTimeExpense
+  const totalExpense = consumableExpense + oneTimeExpense
   const balance = income - totalFixed - totalExpense
 
   const recentTx = [...monthTx].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5)
@@ -135,7 +144,7 @@ function Overview({
           value={`-${formatYen(Math.round(totalFixed))}`}
           valueColor="text-slate-500"
         />
-        <Row label="消耗品費" value={`-${formatYen(routineExpense)}`} valueColor="text-rose-500" />
+        <Row label="消耗品費" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
         <Row label="臨時出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
         <div className="h-px bg-slate-100" />
         <Row
