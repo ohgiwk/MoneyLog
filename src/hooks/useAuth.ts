@@ -16,7 +16,7 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = authService.onAuthStateChange((_event, session) => {
+    } = authService.onAuthStateChange(async (_event, session) => {
       setSession(session)
       setUser(session?.user ?? null)
     })

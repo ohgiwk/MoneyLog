@@ -32,7 +32,7 @@ describe('transactionService.fetchByMonth', () => {
   it('userId と month に対応するトランザクションを返す', async () => {
     const mockData = [{ id: '1', user_id: 'u1', date: '2024-03-10', amount: 1000, type: 'expense' }]
     const chain = mockChain(mockData)
-    vi.mocked(supabase.from).mockReturnValue(chain as ReturnType<typeof supabase.from>)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
 
     const result = await transactionService.fetchByMonth('u1', '2024-03')
 
@@ -45,7 +45,7 @@ describe('transactionService.fetchByMonth', () => {
 
   it('データが null のとき空配列を返す', async () => {
     const chain = mockChain(null)
-    vi.mocked(supabase.from).mockReturnValue(chain as ReturnType<typeof supabase.from>)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
 
     const result = await transactionService.fetchByMonth('u1', '2024-03')
     expect(result).toEqual([])

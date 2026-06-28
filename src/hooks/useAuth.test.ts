@@ -91,7 +91,7 @@ describe('useAuth — 認証アクション', () => {
     vi.mocked(authService.signInWithPassword).mockResolvedValue({
       data: { user: null, session: null },
       error: null,
-    } as Awaited<ReturnType<typeof authService.signInWithPassword>>)
+    } as unknown as Awaited<ReturnType<typeof authService.signInWithPassword>>)
 
     const { result } = renderHook(() => useAuth())
     await waitFor(() => expect(result.current.loading).toBe(false))

@@ -21,7 +21,7 @@ describe('fixedExpenseService.fetchByUser', () => {
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: mockData, error: null }),
     }
-    vi.mocked(supabase.from).mockReturnValue(chain as ReturnType<typeof supabase.from>)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
 
     const result = await fixedExpenseService.fetchByUser('u1')
 
@@ -36,7 +36,7 @@ describe('fixedExpenseService.fetchByUser', () => {
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockResolvedValue({ data: null, error: null }),
     }
-    vi.mocked(supabase.from).mockReturnValue(chain as ReturnType<typeof supabase.from>)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
 
     const result = await fixedExpenseService.fetchByUser('u1')
     expect(result).toEqual([])
