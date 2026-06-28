@@ -12,6 +12,7 @@ import { TabGroup } from './ui/TabGroup'
 import { Row } from './ui/Row'
 
 type SubPage = 'overview' | 'detail'
+type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
 
 const SUB_PAGE_TABS: { key: SubPage; label: string }[] = [
   { key: 'overview', label: '概要' },
@@ -188,6 +189,28 @@ function Overview({
     return [...map.entries()].sort(([, a], [, b]) => b - a)
   }, [monthTx])
 
+  const fixedByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const f of activeFixed) {
+      const amt = toMonthly(f)
+      map.set(f.category, (map.get(f.category) ?? 0) + amt)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [activeFixed])
+
+  const consumableByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const c of consumables) {
+      const amt = monthlyConsumableCost(c, householdMembers)
+      map.set(c.category, (map.get(c.category) ?? 0) + amt)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [consumables, householdMembers])
+
+  const hasBreakdown = fixedByCat.length > 0 || consumableByCat.length > 0 || oneTimeByCat.length > 0
+
+  const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
+
   return (
     <>
       {/* 収支サマリー */}
@@ -251,38 +274,48 @@ function Overview({
         </div>
       )}
 
-      {/* 臨時出費カテゴリ別 */}
-      {oneTimeByCat.length > 0 && (
+      {/* カテゴリ別内訳（タブ切り替え） */}
+      {hasBreakdown && (
         <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-slate-700">臨時出費の内訳</div>
-          {/* 横棒グラフ */}
-          <div className="space-y-2">
-            {oneTimeByCat.map(([cat, amt]) => {
-              const pct = oneTimeExpense > 0 ? (amt / oneTimeExpense) * 100 : 0
-              const info = categoryInfo(cat)
-              return (
-                <div key={cat}>
-                  <div className="flex justify-between items-center mb-0.5">
-                    <span className="text-xs text-slate-600 flex items-center gap-1">
-                      <span>{info.icon}</span>{cat}
-                    </span>
-                    <span className="text-xs font-semibold text-rose-500">-{formatYen(amt)}</span>
-                  </div>
-                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-400 rounded-full transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          {/* 合計 */}
-          <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-            <span className="text-xs text-slate-400">合計</span>
-            <span className="text-sm font-semibold text-rose-500">-{formatYen(oneTimeExpense)}</span>
-          </div>
+          <div className="text-sm font-semibold text-slate-700">内訳</div>
+          {/* タブ */}
+          <TabGroup
+            tabs={[
+              { key: 'fixed', label: '固定費' },
+              { key: 'consumable', label: '消耗品費' },
+              { key: 'oneTime', label: '臨時出費' },
+            ] as { key: BreakdownTab; label: string }[]}
+            active={breakdownTab}
+            onChange={setBreakdownTab}
+            size="sm"
+          />
+          {/* 固定費内訳 */}
+          {breakdownTab === 'fixed' && (
+            <BreakdownBars
+              entries={fixedByCat}
+              total={Math.round(totalFixed)}
+              barColor="bg-slate-400"
+              valueColor="text-slate-600"
+            />
+          )}
+          {/* 消耗品費内訳 */}
+          {breakdownTab === 'consumable' && (
+            <BreakdownBars
+              entries={consumableByCat}
+              total={consumableExpense}
+              barColor="bg-blue-400"
+              valueColor="text-blue-600"
+            />
+          )}
+          {/* 臨時出費内訳 */}
+          {breakdownTab === 'oneTime' && (
+            <BreakdownBars
+              entries={oneTimeByCat}
+              total={oneTimeExpense}
+              barColor="bg-amber-400"
+              valueColor="text-amber-600"
+            />
+          )}
         </div>
       )}
 
@@ -545,6 +578,52 @@ function BudgetProgress({
           {formatYen(spent - weekBudget)} オーバー
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Breakdown Bars ───────────────────────────────────────────
+
+function BreakdownBars({
+  entries,
+  total,
+  barColor,
+  valueColor,
+}: {
+  entries: [string, number][]
+  total: number
+  barColor: string
+  valueColor: string
+}) {
+  if (entries.length === 0) {
+    return <div className="text-sm text-slate-400 py-1">データがありません</div>
+  }
+  return (
+    <div className="space-y-2">
+      {entries.map(([cat, amt]) => {
+        const pct = total > 0 ? (amt / total) * 100 : 0
+        const info = categoryInfo(cat)
+        return (
+          <div key={cat}>
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-xs text-slate-600 flex items-center gap-1">
+                <span>{info.icon}</span>{cat}
+              </span>
+              <span className={`text-xs font-semibold ${valueColor}`}>-{formatYen(Math.round(amt))}</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${barColor} rounded-full transition-all`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        )
+      })}
+      <div className="flex justify-between items-center pt-1 border-t border-slate-100">
+        <span className="text-xs text-slate-400">合計</span>
+        <span className={`text-sm font-semibold ${valueColor}`}>-{formatYen(Math.round(total))}</span>
+      </div>
     </div>
   )
 }
