@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import { formatYen } from '../utils'
-import { Row } from './ui/Row'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
@@ -99,25 +98,15 @@ export default function FixedExpenseList({
 
       {/* 節約サマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-3">節約サマリー</div>
-        <Row
-          label="固定費合計（月額）"
-          value={formatYen(totalAmount)}
-          valueColor="text-slate-700"
-        />
+        <div className="text-sm font-semibold text-slate-700 mb-1">固定費合計（月額換算）</div>
+        <div className="text-2xl font-bold text-slate-700">
+          {formatYen(totalAmount)}
+          <span className="text-sm font-normal text-slate-400">/月</span>
+        </div>
         {totalSaved > 0 && (
-          <>
-            <div className="mt-2" />
-            <Row
-              label="初回登録時との差"
-              value={`-${formatYen(totalSaved)}/月`}
-              valueColor="text-emerald-600"
-              bold
-            />
-            <div className="text-xs text-slate-400 mt-1">
-              年間換算 -{formatYen(totalSaved * 12)}
-            </div>
-          </>
+          <div className="text-xs text-emerald-600 font-semibold mt-1">
+            初回登録時より -{formatYen(totalSaved)}/月（年間 -{formatYen(totalSaved * 12)}）
+          </div>
         )}
       </div>
 

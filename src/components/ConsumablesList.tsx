@@ -87,7 +87,7 @@ export default function ConsumablesList({
     <>
       {/* 月額コストサマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">消耗品費（月額換算）</div>
+        <div className="text-sm font-semibold text-slate-700 mb-1">消耗品費合計（月額換算）</div>
         <div className="text-2xl font-bold text-slate-700">
           {formatYen(totalMonthly)}
           <span className="text-sm font-normal text-slate-400">/月</span>
