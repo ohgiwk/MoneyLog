@@ -6,6 +6,7 @@ import {
 } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
+import { getUsdJpyRate, setExpenseCurrencyMeta } from '../lib/exchangeRate'
 
 const CATEGORY_META: Record<string, { icon: string; description: string }> = {
   住居費: { icon: '🏠', description: '家賃・管理費などを入力してください' },
@@ -281,11 +282,14 @@ function SubscriptionStep({
                   </button>
                 </div>
               )}
-              <span className="text-xs text-slate-400 shrink-0 w-20 text-right">
-                {cycle === 'yearly'
-                  ? (p.yearlyAmount ?? p.amount).toLocaleString()
-                  : p.amount.toLocaleString()}
-                円/{cycle === 'monthly' ? '月' : '年'}
+              <span className="text-xs text-slate-400 shrink-0 w-24 text-right">
+                {p.currency === 'USD'
+                  ? cycle === 'yearly'
+                    ? `$${(p.usdYearlyAmount ?? p.usdAmount ?? 0).toLocaleString()}/年`
+                    : `$${(p.usdAmount ?? 0).toLocaleString()}/月`
+                  : cycle === 'yearly'
+                    ? `${(p.yearlyAmount ?? p.amount).toLocaleString()}円/年`
+                    : `${p.amount.toLocaleString()}円/月`}
               </span>
             </div>
           )
@@ -389,23 +393,43 @@ export default function FixedExpenseTutorial({
     const existingSubNames = new Set(
       existingSubs.filter((f) => f.category === 'サブスク').map((f) => f.name)
     )
+    const usdRate = getUsdJpyRate()
+    const usdSubsToInsert: typeof SUBSCRIPTION_PRESETS = []
     SUBSCRIPTION_PRESETS.filter(
       (p) => selectedSubs.has(p.name) && !existingSubNames.has(p.name)
     ).forEach((p) => {
       const cycle = cycleOverrides.get(p.name) ?? p.cycle
-      const amount = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount
-      inserts.push({
-        user_id: userId,
-        name: p.name,
-        category: 'サブスク',
-        amount,
-        baseline_amount: amount,
-        cycle,
-        status: 'active',
-        start_date: today,
-        billing_day: null,
-        notes: null,
-      })
+      if (p.currency === 'USD') {
+        usdSubsToInsert.push(p)
+        const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
+        const jpyAmount = Math.round(usdAmt * usdRate)
+        inserts.push({
+          user_id: userId,
+          name: p.name,
+          category: 'サブスク',
+          amount: jpyAmount,
+          baseline_amount: jpyAmount,
+          cycle,
+          status: 'active',
+          start_date: today,
+          billing_day: null,
+          notes: null,
+        })
+      } else {
+        const amount = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount
+        inserts.push({
+          user_id: userId,
+          name: p.name,
+          category: 'サブスク',
+          amount,
+          baseline_amount: amount,
+          cycle,
+          status: 'active',
+          start_date: today,
+          billing_day: null,
+          notes: null,
+        })
+      }
     })
 
     await Promise.all([
@@ -414,6 +438,19 @@ export default function FixedExpenseTutorial({
         fixedExpenseService.update(id, { amount, status })
       ),
     ])
+
+    // USD サブスクのメタデータを保存（insertMany後にIDを取得）
+    if (usdSubsToInsert.length > 0) {
+      const savedSubs = await fixedExpenseService.fetchByUser(userId)
+      usdSubsToInsert.forEach((p) => {
+        const cycle = cycleOverrides.get(p.name) ?? p.cycle
+        const saved = savedSubs.find((f) => f.name === p.name && f.category === 'サブスク')
+        if (saved) {
+          const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
+          setExpenseCurrencyMeta(saved.id, { currency: 'USD', usdAmount: usdAmt })
+        }
+      })
+    }
 
     setSaving(false)
     onComplete()

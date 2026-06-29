@@ -21,13 +21,13 @@
   { "name": "AWA", "amount": 960, "cycle": "monthly", "yearlyAmount": 9600, "subcategory": "音楽" },
   { "name": "mora qualitas", "amount": 1980, "cycle": "monthly", "subcategory": "音楽" },
 
-  { "name": "ChatGPT Plus", "amount": 3000, "cycle": "monthly", "subcategory": "AI" },
-  { "name": "ChatGPT Pro", "amount": 30000, "cycle": "monthly", "subcategory": "AI" },
-  { "name": "Claude Pro", "amount": 3000, "cycle": "monthly", "yearlyAmount": 32400, "subcategory": "AI" },
-  { "name": "Claude Max (5x)", "amount": 9000, "cycle": "monthly", "subcategory": "AI" },
+  { "name": "ChatGPT Plus", "amount": 3000, "currency": "USD", "usdAmount": 20, "cycle": "monthly", "subcategory": "AI" },
+  { "name": "ChatGPT Pro", "amount": 30000, "currency": "USD", "usdAmount": 200, "cycle": "monthly", "subcategory": "AI" },
+  { "name": "Claude Pro", "amount": 3000, "currency": "USD", "usdAmount": 20, "usdYearlyAmount": 216, "cycle": "monthly", "yearlyAmount": 32400, "subcategory": "AI" },
+  { "name": "Claude Max (5x)", "amount": 15000, "currency": "USD", "usdAmount": 100, "cycle": "monthly", "subcategory": "AI" },
   { "name": "Gemini Advanced", "amount": 2900, "cycle": "monthly", "yearlyAmount": 29000, "subcategory": "AI" },
   { "name": "Copilot Pro", "amount": 3200, "cycle": "monthly", "subcategory": "AI" },
-  { "name": "Perplexity Pro", "amount": 2500, "cycle": "monthly", "yearlyAmount": 25200, "subcategory": "AI" },
+  { "name": "Perplexity Pro", "amount": 3000, "currency": "USD", "usdAmount": 20, "usdYearlyAmount": 200, "cycle": "monthly", "yearlyAmount": 30000, "subcategory": "AI" },
   { "name": "Notion AI", "amount": 1000, "cycle": "monthly", "subcategory": "AI" },
 
   { "name": "Nintendo Switch Online", "amount": 306, "cycle": "monthly", "yearlyAmount": 2400, "subcategory": "ゲーム" },
@@ -55,7 +55,7 @@
   { "name": "Slack Pro", "amount": 925, "cycle": "monthly", "subcategory": "ビジネス" },
   { "name": "Zoom Pro", "amount": 2125, "cycle": "monthly", "subcategory": "ビジネス" },
   { "name": "Canva Pro", "amount": 1500, "cycle": "monthly", "yearlyAmount": 12000, "subcategory": "ビジネス" },
-  { "name": "GitHub Copilot", "amount": 1280, "cycle": "monthly", "yearlyAmount": 10000, "subcategory": "ビジネス" },
+  { "name": "GitHub Copilot", "amount": 1500, "currency": "USD", "usdAmount": 10, "usdYearlyAmount": 100, "cycle": "monthly", "yearlyAmount": 15000, "subcategory": "ビジネス" },
 
   { "name": "日経電子版", "amount": 4277, "cycle": "monthly", "yearlyAmount": 40800, "subcategory": "ニュース" },
   { "name": "朝日新聞デジタル", "amount": 1980, "cycle": "monthly", "subcategory": "ニュース" },

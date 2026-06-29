@@ -227,8 +227,15 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                   const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
                   if (preset) {
                     setValue('name', preset.name)
-                    setValue('amount', preset.amount.toString())
                     setValue('cycle', preset.cycle)
+                    if (preset.currency === 'USD') {
+                      setCurrency('USD')
+                      setUsdRate(getUsdJpyRate())
+                      setValue('amount', (preset.usdAmount ?? 0).toString())
+                    } else {
+                      setCurrency('JPY')
+                      setValue('amount', preset.amount.toString())
+                    }
                   } else {
                     setValue('name', e.target.value)
                   }
@@ -238,8 +245,9 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 {SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === values.subSubcategory).map(
                   (p) => (
                     <option key={p.name} value={p.name}>
-                      {p.name}（{p.amount.toLocaleString()}円/
-                      {p.cycle === 'monthly' ? '月' : '年'}）
+                      {p.currency === 'USD'
+                        ? `${p.name}（$${p.usdAmount}/${p.cycle === 'monthly' ? '月' : '年'}）`
+                        : `${p.name}（${p.amount.toLocaleString()}円/${p.cycle === 'monthly' ? '月' : '年'}）`}
                     </option>
                   )
                 )}

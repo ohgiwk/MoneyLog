@@ -70,6 +70,9 @@ export interface SubscriptionPreset {
   yearlyAmount?: number
   cycle: 'monthly' | 'yearly'
   subcategory: string
+  currency?: 'USD'
+  usdAmount?: number
+  usdYearlyAmount?: number
 }
 
 import subcategoriesJson from './data/subscription-subcategories.json'

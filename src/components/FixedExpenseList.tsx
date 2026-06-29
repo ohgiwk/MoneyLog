@@ -36,7 +36,7 @@ export default function FixedExpenseList({
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [tutorialOpen, setTutorialOpen] = useState(false)
-  const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing])
+  const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {
     setEditing(v)
