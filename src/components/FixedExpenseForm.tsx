@@ -14,6 +14,7 @@ import {
   setExpenseCurrencyMeta,
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface FormValues {
   name: string
@@ -45,6 +46,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
   const [nameError, setNameError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [currency, setCurrency] = useState<'JPY' | 'USD'>('JPY')
   const [usdRate, setUsdRate] = useState(getUsdJpyRate())
 
@@ -346,7 +348,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         <div className="flex gap-3 pt-2">
           {expense && (
             <button
-              onClick={remove}
+              onClick={() => setConfirmDelete(true)}
               className="px-4 py-2.5 rounded-xl border border-rose-200 text-rose-500 text-sm font-semibold"
             >
               削除
@@ -361,6 +363,14 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           </button>
         </div>
       </div>
+
+      {confirmDelete && expense && (
+        <ConfirmDialog
+          message={`「${expense.name}」を削除しますか？`}
+          onConfirm={remove}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   )
 }

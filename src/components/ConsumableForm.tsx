@@ -5,6 +5,7 @@ import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
 import { useForm } from '../hooks/useForm'
 import DatePicker from './ui/DatePicker'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface FormValues {
   name: string
@@ -85,6 +86,8 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
       setIsSubmitting(false)
     }
   }
+
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function remove() {
     if (!consumable) return
@@ -264,7 +267,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         <div className="flex gap-3 pt-2">
           {consumable && (
             <button
-              onClick={remove}
+              onClick={() => setConfirmDelete(true)}
               className="px-4 py-2.5 rounded-xl border border-rose-200 text-rose-500 text-sm font-semibold"
             >
               削除
@@ -285,6 +288,14 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           キャンセル
         </button>
       </div>
+
+      {confirmDelete && consumable && (
+        <ConfirmDialog
+          message={`「${consumable.name}」を削除しますか？`}
+          onConfirm={remove}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import type { CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import DatePicker from './ui/DatePicker'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface Props {
   userId: string
@@ -39,27 +40,12 @@ export default function OneTimeTransactionForm({
   return (
     <>
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setConfirmDelete(false)} />
-          <div className="relative bg-white rounded-2xl shadow-xl mx-6 p-6 flex flex-col gap-4 w-full max-w-sm">
-            <p className="text-base font-semibold text-slate-700">この記録を削除しますか？</p>
-            <p className="text-sm text-slate-400">削除すると元に戻すことはできません。</p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1 py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50"
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={() => { setConfirmDelete(false); handleDelete() }}
-                className="flex-1 py-3 rounded-xl bg-rose-500 active:bg-rose-600 text-white font-semibold"
-              >
-                削除する
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          message="この記録を削除しますか？"
+          confirmLabel="削除する"
+          onConfirm={() => { setConfirmDelete(false); handleDelete() }}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
 
       {showSuccess && (
