@@ -11,7 +11,6 @@ import type { ReactNode } from 'react'
 
 const STATUS_FILTER_TABS = [
   { key: 'active' as const, label: STATUS_LABELS.active.label },
-  { key: 'reviewing' as const, label: STATUS_LABELS.reviewing.label },
   { key: 'unsubscribed' as const, label: STATUS_LABELS.unsubscribed.label },
   { key: 'cancelled' as const, label: STATUS_LABELS.cancelled.label },
 ]
@@ -63,14 +62,19 @@ export default function FixedExpenseList({
     () => new Map(fixedCategories.map((c, i) => [c.name, i])),
     [fixedCategories]
   )
+  const sortByCategory = (list: FixedExpense[]) =>
+    [...list].sort(
+      (a, b) => (categoryOrderMap.get(a.category) ?? 999) - (categoryOrderMap.get(b.category) ?? 999)
+    )
+
   const filtered = useMemo(
     () =>
-      fixedExpenses
-        .filter((f) => f.status === filter)
-        .sort(
-          (a, b) =>
-            (categoryOrderMap.get(a.category) ?? 999) - (categoryOrderMap.get(b.category) ?? 999)
-        ),
+      filter === 'active'
+        ? [
+            ...sortByCategory(fixedExpenses.filter((f) => f.status === 'reviewing')),
+            ...sortByCategory(fixedExpenses.filter((f) => f.status === 'active')),
+          ]
+        : sortByCategory(fixedExpenses.filter((f) => f.status === filter)),
     [fixedExpenses, filter, categoryOrderMap]
   )
   const activeExpenses = useMemo(
@@ -78,14 +82,13 @@ export default function FixedExpenseList({
     [fixedExpenses]
   )
   const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+  const toMonthlyBaseline = (f: FixedExpense) => (f.baseline_amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
-  const totalBaseline = activeExpenses
-    .filter((f) => f.baseline_amount > 0)
-    .reduce((s, f) => s + f.baseline_amount / (f.cycle === 'yearly' ? 12 : 1), 0)
-  const totalCurrent = activeExpenses
-    .filter((f) => f.baseline_amount > 0)
-    .reduce((s, f) => s + toMonthly(f), 0)
-  const totalSaved = totalBaseline - totalCurrent
+  const cancelledExpenses = useMemo(
+    () => fixedExpenses.filter((f) => f.status === 'cancelled' && f.baseline_amount > 0),
+    [fixedExpenses]
+  )
+  const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
 
   if (editing !== null) {
     return (
@@ -130,22 +133,121 @@ export default function FixedExpenseList({
       <TabGroup tabs={STATUS_FILTER_TABS} active={filter} onChange={setFilter} size="sm" />
 
       {/* 固定費一覧 */}
-      {loading ? <Spinner /> : <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        {filtered.length === 0 ? (
+      {loading ? <Spinner /> : (filtered.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="text-sm text-slate-400 text-center py-6">該当する固定費がありません</div>
-        ) : (
-          (() => {
+        </div>
+      ) : filter === 'active' ? (
+        (() => {
+          const reviewingList = filtered.filter((f) => f.status === 'reviewing')
+          const activeList = filtered.filter((f) => f.status === 'active')
+          const renderGroup = (list: FixedExpense[]) => {
             const rows: ReactNode[] = []
             let prevCategory = ''
-            filtered.forEach((f, i) => {
+            list.forEach((f, i) => {
               if (f.category !== prevCategory) {
                 const cat = fixedCategories.find((c) => c.name === f.category)
                 rows.push(
                   <div
-                    key={`header-${f.category}`}
+                    key={`header-${f.category}-${f.status}`}
                     className={`flex items-center gap-2 px-4 py-1.5 bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
                   >
                     {cat && <span className="text-sm">{cat.icon}</span>}
+                    <span className="text-xs font-semibold text-slate-400">{f.category}</span>
+                  </div>
+                )
+                prevCategory = f.category
+              }
+              rows.push(
+                <div
+                  key={f.id}
+                  className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer border-t border-slate-50"
+                  onClick={() => openEditing(f)}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                    {f.cycle === 'yearly' && (
+                      <div className="text-xs text-indigo-400 font-medium">年払い</div>
+                    )}
+                    {f.status === 'reviewing' && f.amount != null && f.amount > 0 && (
+                      <div className="text-xs text-amber-600 font-medium">
+                        解約すれば年間 {formatYen(f.cycle === 'yearly' ? f.amount : f.amount * 12)} 削減
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    {(() => {
+                      const meta = currencyMeta[f.id]
+                      if (meta?.currency === 'USD') {
+                        return (
+                          <>
+                            <div className="text-sm font-semibold text-slate-700">
+                              ${meta.usdAmount.toLocaleString()}
+                              {f.cycle === 'yearly' ? '/年' : ''}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {f.cycle === 'yearly'
+                                ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
+                                : formatYen(f.amount ?? 0)}
+                            </div>
+                          </>
+                        )
+                      }
+                      return (
+                        <>
+                          <div className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {f.amount == null ? '未入力' : f.cycle === 'yearly' ? `${formatYen(f.amount)}/年` : formatYen(f.amount)}
+                          </div>
+                          {f.cycle === 'yearly' && f.amount != null && (
+                            <div className="text-xs text-slate-400">月換算 {formatYen(Math.round(f.amount / 12))}</div>
+                          )}
+                          {f.cycle !== 'yearly' && f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
+                            <div className="text-xs text-emerald-500">-{formatYen(f.baseline_amount - f.amount)}</div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
+                    {STATUS_LABELS[f.status].label}
+                  </span>
+                  <span className="text-slate-300 text-sm">›</span>
+                </div>
+              )
+            })
+            return rows
+          }
+          return (
+            <div className="space-y-3">
+              {reviewingList.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-amber-600 px-1 pb-1">見直し中</div>
+                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">{renderGroup(reviewingList)}</div>
+                </div>
+              )}
+              {activeList.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-slate-400 px-1 pb-1">契約中</div>
+                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">{renderGroup(activeList)}</div>
+                </div>
+              )}
+            </div>
+          )
+        })()
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {((() => {
+          const rows: ReactNode[] = []
+          let prevCategory = ''
+          filtered.forEach((f, i) => {
+            if (f.category !== prevCategory) {
+              const cat = fixedCategories.find((c) => c.name === f.category)
+              rows.push(
+                <div
+                  key={`header-${f.category}`}
+                  className={`flex items-center gap-2 px-4 py-1.5 bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
+                >
+                  {cat && <span className="text-sm">{cat.icon}</span>}
                     <span className="text-xs font-semibold text-slate-400">{f.category}</span>
                   </div>
                 )
@@ -221,7 +323,8 @@ export default function FixedExpenseList({
             return rows
           })()
         )}
-      </div>}
+        </div>
+      ))}
 
       <button
         onClick={() => setTutorialOpen(true)}

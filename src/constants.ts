@@ -8,12 +8,11 @@ export const EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: '食費', icon: '🍙', color: '#f97316' },
   { name: '日用品', icon: '🧻', color: '#0ea5e9' },
   { name: '交通費', icon: '🚃', color: '#6366f1' },
-  { name: '住居費', icon: '🏠', color: '#8b5cf6' },
-  { name: '通信費', icon: '📱', color: '#06b6d4' },
   { name: '娯楽', icon: '🎮', color: '#ec4899' },
   { name: '医療費', icon: '🏥', color: '#ef4444' },
   { name: '衣服・美容', icon: '👗', color: '#d946ef' },
-  { name: '教育', icon: '📚', color: '#3b82f6' },
+  { name: '自己投資', icon: '📚', color: '#3b82f6' },
+  { name: '子ども・育児', icon: '👶', color: '#f59e0b' },
   { name: 'その他', icon: '📦', color: '#64748b' },
 ]
 
@@ -33,6 +32,8 @@ export const FIXED_EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: 'ローン', icon: '🏦', color: '#6366f1' },
   { name: '自動車', icon: '🚗', color: '#78716c' },
   { name: 'サブスク', icon: '🎬', color: '#ec4899' },
+  { name: '子ども・育児', icon: '👶', color: '#f59e0b' },
+  { name: '自己投資', icon: '📚', color: '#3b82f6' },
   { name: '寄付金', icon: '🎗️', color: '#f43f5e' },
   { name: 'その他', icon: '📦', color: '#64748b' },
 ]
@@ -61,6 +62,11 @@ export const DEFAULT_FIXED_EXPENSES: DefaultFixedExpense[] = [
   { name: '駐車場代', category: '自動車', cycle: 'monthly' },
   { name: '自動車保険', category: '自動車', cycle: 'monthly' },
   { name: '自動車ローン', category: '自動車', cycle: 'monthly' },
+  { name: '保育園・幼稚園代', category: '子ども・育児', cycle: 'monthly' },
+  { name: '学校関連費', category: '子ども・育児', cycle: 'monthly' },
+  { name: '塾代', category: '子ども・育児', cycle: 'monthly' },
+  { name: '習い事', category: '子ども・育児', cycle: 'monthly' },
+  { name: '給食費', category: '子ども・育児', cycle: 'monthly' },
   { name: 'NHK受信料', category: 'その他', cycle: 'monthly' },
 ]
 
