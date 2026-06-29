@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   STATUS_LABELS,
   SUBSCRIPTION_PRESETS,
@@ -8,6 +8,12 @@ import {
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 import { useForm } from '../hooks/useForm'
+import {
+  getUsdJpyRate,
+  getExpenseCurrencyMeta,
+  setExpenseCurrencyMeta,
+  removeExpenseCurrencyMeta,
+} from '../lib/exchangeRate'
 
 interface FormValues {
   name: string
@@ -39,19 +45,36 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
   const [nameError, setNameError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
+  const [currency, setCurrency] = useState<'JPY' | 'USD'>('JPY')
+  const [usdRate, setUsdRate] = useState(getUsdJpyRate())
+
+  useEffect(() => {
+    if (expense?.id) {
+      const meta = getExpenseCurrencyMeta(expense.id)
+      if (meta?.currency === 'USD') {
+        setCurrency('USD')
+      }
+    }
+  }, [expense?.id])
 
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: expense?.name ?? '',
     category: expense?.category ?? fixedCategories[0]?.name ?? '',
     subSubcategory: initialSubSubcategory,
-    amount: expense?.amount != null ? expense.amount.toString() : '',
+    amount: (() => {
+      if (expense?.id) {
+        const meta = getExpenseCurrencyMeta(expense.id)
+        if (meta?.currency === 'USD') return meta.usdAmount.toString()
+      }
+      return expense?.amount != null ? expense.amount.toString() : ''
+    })(),
     cycle: expense?.cycle ?? 'monthly',
     status: expense?.status ?? 'active',
     notes: expense?.notes ?? '',
   })
 
   async function save() {
-    const amt = parseFloat(values.amount)
+    const inputAmt = parseFloat(values.amount)
     let hasError = false
     if (!values.name.trim()) {
       setNameError('名前を入力してください')
@@ -59,13 +82,16 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
     } else {
       setNameError(null)
     }
-    if (!values.amount || isNaN(amt) || amt < 0) {
+    if (!values.amount || isNaN(inputAmt) || inputAmt < 0) {
       setAmountError('正しい金額を入力してください')
       hasError = true
     } else {
       setAmountError(null)
     }
     if (hasError) return
+
+    const jpyAmount = currency === 'USD' ? Math.round(inputAmt * usdRate) : inputAmt
+
     setIsSubmitting(true)
     setError(null)
     try {
@@ -73,24 +99,32 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         await fixedExpenseService.update(expense.id, {
           name: values.name,
           category: values.category,
-          amount: amt,
+          amount: jpyAmount,
           cycle: values.cycle,
           status: values.status,
           notes: values.notes || null,
         })
+        if (currency === 'USD') {
+          setExpenseCurrencyMeta(expense.id, { currency: 'USD', usdAmount: inputAmt })
+        } else {
+          removeExpenseCurrencyMeta(expense.id)
+        }
       } else {
-        await fixedExpenseService.insert({
+        const inserted = await fixedExpenseService.insert({
           user_id: userId!,
           name: values.name,
           category: values.category,
-          amount: amt,
-          baseline_amount: amt,
+          amount: jpyAmount,
+          baseline_amount: jpyAmount,
           cycle: values.cycle,
           status: values.status,
           notes: values.notes || null,
           start_date: new Date().toISOString().slice(0, 10),
           billing_day: null,
         })
+        if (currency === 'USD' && inserted?.id) {
+          setExpenseCurrencyMeta(inserted.id, { currency: 'USD', usdAmount: inputAmt })
+        }
       }
       onClose()
     } catch (err) {
@@ -105,6 +139,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
     setError(null)
     try {
       await fixedExpenseService.delete(expense.id)
+      removeExpenseCurrencyMeta(expense.id)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : '削除に失敗しました')
@@ -215,15 +250,44 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-slate-400">金額</label>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={values.amount}
-              onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
-              placeholder="0"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs text-slate-400">金額</label>
+              <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+                {(['JPY', 'USD'] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setCurrency(c)
+                      setValue('amount', '')
+                      setUsdRate(getUsdJpyRate())
+                    }}
+                    className={`px-2 py-0.5 font-medium ${currency === c ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none select-none">
+                {currency === 'USD' ? '$' : '¥'}
+              </span>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={values.amount}
+                onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
+                placeholder="0"
+                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
+              />
+            </div>
+            {currency === 'USD' && values.amount && !isNaN(parseFloat(values.amount)) && (
+              <p className="text-xs text-slate-400 mt-1">
+                ≈ {Math.round(parseFloat(values.amount) * usdRate).toLocaleString()}円
+                （1USD={usdRate}円）
+              </p>
+            )}
             {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
           </div>
           <div>

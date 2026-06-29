@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import { formatYen } from '../utils'
+import { getAllCurrencyMeta } from '../lib/exchangeRate'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
@@ -35,6 +36,7 @@ export default function FixedExpenseList({
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [tutorialOpen, setTutorialOpen] = useState(false)
+  const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing])
 
   function openEditing(v: FixedExpense | 'new') {
     setEditing(v)
@@ -151,28 +153,50 @@ export default function FixedExpenseList({
                     )}
                   </div>
                   <div className="text-right shrink-0">
-                    <div
-                      className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
-                    >
-                      {f.amount == null
-                        ? '未入力'
-                        : f.cycle === 'yearly'
-                          ? `${formatYen(f.amount)}/年`
-                          : formatYen(f.amount)}
-                    </div>
-                    {f.cycle === 'yearly' && f.amount != null && (
-                      <div className="text-xs text-slate-400">
-                        月換算 {formatYen(Math.round(f.amount / 12))}
-                      </div>
-                    )}
-                    {f.cycle !== 'yearly' &&
-                      f.baseline_amount > 0 &&
-                      f.amount != null &&
-                      f.baseline_amount > f.amount && (
-                        <div className="text-xs text-emerald-500">
-                          -{formatYen(f.baseline_amount - f.amount)}
-                        </div>
-                      )}
+                    {(() => {
+                      const meta = currencyMeta[f.id]
+                      if (meta?.currency === 'USD') {
+                        return (
+                          <>
+                            <div className="text-sm font-semibold text-slate-700">
+                              ${meta.usdAmount.toLocaleString()}
+                              {f.cycle === 'yearly' ? '/年' : ''}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {f.cycle === 'yearly'
+                                ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
+                                : formatYen(f.amount ?? 0)}
+                            </div>
+                          </>
+                        )
+                      }
+                      return (
+                        <>
+                          <div
+                            className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
+                          >
+                            {f.amount == null
+                              ? '未入力'
+                              : f.cycle === 'yearly'
+                                ? `${formatYen(f.amount)}/年`
+                                : formatYen(f.amount)}
+                          </div>
+                          {f.cycle === 'yearly' && f.amount != null && (
+                            <div className="text-xs text-slate-400">
+                              月換算 {formatYen(Math.round(f.amount / 12))}
+                            </div>
+                          )}
+                          {f.cycle !== 'yearly' &&
+                            f.baseline_amount > 0 &&
+                            f.amount != null &&
+                            f.baseline_amount > f.amount && (
+                              <div className="text-xs text-emerald-500">
+                                -{formatYen(f.baseline_amount - f.amount)}
+                              </div>
+                            )}
+                        </>
+                      )
+                    })()}
                   </div>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}

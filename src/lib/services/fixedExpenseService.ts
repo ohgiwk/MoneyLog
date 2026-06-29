@@ -15,9 +15,14 @@ export const fixedExpenseService = {
     return data ?? []
   },
 
-  insert: async (data: FixedExpenseInsert): Promise<void> => {
-    const { error } = await supabase.from('fixed_expenses').insert(data)
+  insert: async (data: FixedExpenseInsert): Promise<FixedExpense | null> => {
+    const { data: row, error } = await supabase
+      .from('fixed_expenses')
+      .insert(data)
+      .select()
+      .single()
     if (error) throw new Error(error.message)
+    return row ?? null
   },
 
   insertMany: async (data: FixedExpenseInsert[]): Promise<void> => {

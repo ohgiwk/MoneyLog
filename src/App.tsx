@@ -10,11 +10,12 @@ import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
 import BudgetScreen from './components/BudgetScreen'
+import ExchangeRateScreen from './components/ExchangeRateScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
@@ -57,11 +58,16 @@ export default function App() {
     return <BudgetScreen userId={user.id} onBack={() => setScreen('main')} />
   }
 
+  if (screen === 'exchange-rate') {
+    return <ExchangeRateScreen onBack={() => setScreen('settings')} />
+  }
+
   if (screen === 'settings') {
     return (
       <SettingsScreen
         userId={user.id}
         onCategoryEdit={() => setScreen('category-edit')}
+        onExchangeRate={() => setScreen('exchange-rate')}
         onBack={() => setScreen('main')}
       />
     )
