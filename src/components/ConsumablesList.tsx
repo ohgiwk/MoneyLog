@@ -159,12 +159,19 @@ export default function ConsumablesList({
         <div className="text-sm text-slate-400 text-center py-4">登録された消耗品がありません</div>
       )}
 
-      <button
-        onClick={() => openEditing('new')}
-        className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-sm text-slate-400 font-semibold active:bg-slate-50"
-      >
-        + 消耗品を追加
-      </button>
+      {/* FAB */}
+      <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+        <button
+          onClick={() => openEditing('new')}
+          className="pointer-events-auto w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg active:bg-emerald-600 flex items-center justify-center"
+          aria-label="消耗品を追加"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+      </div>
 
       {/* おすすめ品目 */}
       {unregisteredDefaults.length > 0 && (
