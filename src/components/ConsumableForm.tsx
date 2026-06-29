@@ -110,7 +110,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           ‹
         </button>
         <span className="text-sm font-semibold text-slate-700">
-          {consumable ? '消耗品を編集' : '消耗品を追加'}
+          {consumable ? '定期購入を編集' : '定期購入を追加'}
         </span>
       </div>
 

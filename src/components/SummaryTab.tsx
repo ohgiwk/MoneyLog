@@ -122,7 +122,7 @@ function Overview({
           value={`-${formatYen(Math.round(totalFixed))}`}
           valueColor="text-slate-500"
         />
-        <Row label="消耗品費" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
+        <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
         <Row label="臨時出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
         <div className="h-px bg-slate-100" />
         <Row
@@ -167,7 +167,7 @@ function Overview({
           <TabGroup
             tabs={[
               { key: 'fixed', label: '固定費' },
-              { key: 'consumable', label: '消耗品費' },
+              { key: 'consumable', label: '定期購入' },
               { key: 'oneTime', label: '臨時出費' },
             ] as { key: BreakdownTab; label: string }[]}
             active={breakdownTab}

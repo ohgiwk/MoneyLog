@@ -90,7 +90,7 @@ export default function ConsumablesList({
     <>
       {/* 月額コストサマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">消耗品費合計（月額換算）</div>
+        <div className="text-sm font-semibold text-slate-700 mb-1">定期購入合計（月額換算）</div>
         <div className="text-2xl font-bold text-slate-700">
           {formatYen(totalMonthly)}
           <span className="text-sm font-normal text-slate-400">/月</span>
@@ -161,7 +161,7 @@ export default function ConsumablesList({
       )}
 
       {!loading && consumables.length === 0 && (
-        <div className="text-sm text-slate-400 text-center py-4">登録された消耗品がありません</div>
+        <div className="text-sm text-slate-400 text-center py-4">登録された定期購入がありません</div>
       )}
 
       {/* FAB */}
@@ -169,7 +169,7 @@ export default function ConsumablesList({
         <button
           onClick={() => openEditing('new')}
           className="pointer-events-auto w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg active:bg-emerald-600 flex items-center justify-center"
-          aria-label="消耗品を追加"
+          aria-label="定期購入を追加"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />

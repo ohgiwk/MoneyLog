@@ -14,11 +14,11 @@ const CATEGORY_META: Record<string, { icon: string; description: string }> = {
   通信費: { icon: '📱', description: 'スマホ・インターネットの月額を入力してください' },
   保険: { icon: '🛡️', description: '生命保険・医療保険などを入力してください' },
   自動車: { icon: '🚗', description: '駐車場・自動車保険・ローンを入力してください' },
-  その他固定費: { icon: '📦', description: 'その他の固定費を入力してください' },
+  その他: { icon: '📦', description: 'その他の固定費を入力してください' },
 }
 
 // 住居費と光熱費は同一ステップでまとめて表示する
-type StepKey = '住居費+光熱費' | '通信費' | '保険' | '自動車' | 'その他固定費' | 'subscription'
+type StepKey = '住居費+光熱費' | '通信費' | '保険' | '自動車' | 'その他' | 'subscription'
 
 interface MultiItem {
   name: string
@@ -60,9 +60,9 @@ const STEPS: Step[] = [
     description: '駐車場・自動車保険・ローンを入力してください',
   },
   {
-    key: 'その他固定費',
+    key: 'その他',
     icon: '📦',
-    title: 'その他固定費',
+    title: 'その他',
     description: 'その他の固定費を入力してください',
   },
   {
@@ -79,7 +79,7 @@ const STEP_CATEGORIES: Record<string, string[]> = {
   通信費: ['通信費'],
   保険: ['保険'],
   自動車: ['自動車'],
-  その他固定費: ['その他固定費'],
+  その他: ['その他'],
 }
 
 // ステップに対応するカテゴリ群から既存データを事前入力した MultiItem[] を作る

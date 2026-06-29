@@ -69,10 +69,10 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           />
         </Section>
 
-        {/* 消耗品費 */}
-        <Section title="消耗品費" icon="🛒">
+        {/* 定期購入 */}
+        <Section title="定期購入" icon="🛒">
           <BudgetField
-            label="消耗品費（月）"
+            label="定期購入（月）"
             value={budget.consumable}
             onChange={(v) => handleChange('consumable', v)}
           />
@@ -101,7 +101,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           <div className="text-sm font-semibold text-emerald-700 mb-2">週あたりの予算（目安）</div>
           <div className="space-y-1.5">
             <WeeklyRow label="固定費" amount={weeklyFixed} color="text-slate-600" />
-            <WeeklyRow label="消耗品費" amount={weeklyConsumable} color="text-blue-600" />
+            <WeeklyRow label="定期購入" amount={weeklyConsumable} color="text-blue-600" />
             <WeeklyRow label="臨時出費" amount={weeklyOneTime} color="text-amber-600" />
             <div className="h-px bg-emerald-200 my-1" />
             <WeeklyRow label="合計" amount={weeklyTotal} color="text-emerald-700" bold />

@@ -34,7 +34,7 @@ export const FIXED_EXPENSE_CATEGORIES: CategoryInfo[] = [
   { name: '自動車', icon: '🚗', color: '#78716c' },
   { name: 'サブスク', icon: '🎬', color: '#ec4899' },
   { name: '寄付金', icon: '🎗️', color: '#f43f5e' },
-  { name: 'その他固定費', icon: '📦', color: '#64748b' },
+  { name: 'その他', icon: '📦', color: '#64748b' },
 ]
 
 export const ALL_CATEGORIES: CategoryInfo[] = [
@@ -61,7 +61,7 @@ export const DEFAULT_FIXED_EXPENSES: DefaultFixedExpense[] = [
   { name: '駐車場代', category: '自動車', cycle: 'monthly' },
   { name: '自動車保険', category: '自動車', cycle: 'monthly' },
   { name: '自動車ローン', category: '自動車', cycle: 'monthly' },
-  { name: 'NHK受信料', category: 'その他固定費', cycle: 'monthly' },
+  { name: 'NHK受信料', category: 'その他', cycle: 'monthly' },
 ]
 
 export interface SubscriptionPreset {
@@ -87,7 +87,7 @@ export const CONSUMABLE_CATEGORIES: CategoryInfo[] = [
   { name: 'トイレ・洗剤', icon: '🧻', color: '#06b6d4' },
   { name: 'サプリ・医療', icon: '💊', color: '#10b981' },
   { name: '食品・調味料', icon: '🍙', color: '#f97316' },
-  { name: 'その他消耗品', icon: '📦', color: '#64748b' },
+  { name: 'その他', icon: '📦', color: '#64748b' },
 ]
 
 export interface DefaultConsumable {
@@ -134,13 +134,13 @@ export const DEFAULT_CONSUMABLES: DefaultConsumable[] = [
   { name: 'みりん', category: '食品・調味料', amount: 350, quantity: 1, cycle_days: 90, members_scale: false },
   { name: 'マヨネーズ', category: '食品・調味料', amount: 400, quantity: 1, cycle_days: 60, members_scale: false },
   { name: 'ケチャップ', category: '食品・調味料', amount: 300, quantity: 1, cycle_days: 60, members_scale: false },
-  // その他消耗品
-  { name: 'ゴミ袋', category: 'その他消耗品', amount: 500, quantity: 1, cycle_days: 30, members_scale: true },
-  { name: 'キッチンペーパー', category: 'その他消耗品', amount: 300, quantity: 1, cycle_days: 30, members_scale: true },
-  { name: 'ラップ', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 60, members_scale: false },
-  { name: 'アルミホイル', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 90, members_scale: false },
-  { name: 'スポンジ', category: 'その他消耗品', amount: 200, quantity: 1, cycle_days: 30, members_scale: false },
-  { name: '乾電池', category: 'その他消耗品', amount: 500, quantity: 1, cycle_days: 180, members_scale: false },
+  // その他
+  { name: 'ゴミ袋', category: 'その他', amount: 500, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: 'キッチンペーパー', category: 'その他', amount: 300, quantity: 1, cycle_days: 30, members_scale: true },
+  { name: 'ラップ', category: 'その他', amount: 200, quantity: 1, cycle_days: 60, members_scale: false },
+  { name: 'アルミホイル', category: 'その他', amount: 200, quantity: 1, cycle_days: 90, members_scale: false },
+  { name: 'スポンジ', category: 'その他', amount: 200, quantity: 1, cycle_days: 30, members_scale: false },
+  { name: '乾電池', category: 'その他', amount: 500, quantity: 1, cycle_days: 180, members_scale: false },
 ]
 
 export const CONSUMABLE_CYCLE_PRESETS = [

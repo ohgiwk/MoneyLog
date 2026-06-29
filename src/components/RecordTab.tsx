@@ -17,7 +17,7 @@ type OneTimeView = 'list' | 'form'
 const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'one_time', label: '臨時出費' },
   { key: 'fixed', label: '固定費' },
-  { key: 'consumables', label: '消耗品費' },
+  { key: 'consumables', label: '定期購入' },
 ]
 
 interface Props {

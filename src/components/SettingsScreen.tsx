@@ -41,18 +41,18 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
         </div>
       </div>
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
-        {/* 消耗品費の設定 */}
+        {/* 定期購入の設定 */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              消耗品費
+              定期購入
             </span>
           </div>
           <div className="px-4 py-4 space-y-2">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-slate-700">同居人数</div>
-                <div className="text-xs text-slate-400">消耗品の消費サイクル計算に使用</div>
+                <div className="text-xs text-slate-400">定期購入の消費サイクル計算に使用</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
