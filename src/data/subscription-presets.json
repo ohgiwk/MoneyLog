@@ -65,7 +65,6 @@
   { "name": "dマガジン", "amount": 580, "cycle": "monthly", "subcategory": "ニュース" },
 
   { "name": "NHK受信料", "amount": 1100, "cycle": "monthly", "subcategory": "その他" },
-  { "name": "Amazon Prime (年払い)", "amount": 6000, "cycle": "yearly", "subcategory": "その他" },
   { "name": "Duolingo Plus", "amount": 1067, "cycle": "monthly", "yearlyAmount": 7600, "subcategory": "その他" },
   { "name": "Headspace", "amount": 1300, "cycle": "monthly", "yearlyAmount": 9800, "subcategory": "その他" },
   { "name": "マネーフォワード ME プレミアム", "amount": 500, "cycle": "monthly", "yearlyAmount": 5300, "subcategory": "その他" }
