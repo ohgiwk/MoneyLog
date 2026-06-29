@@ -18,7 +18,7 @@ const CATEGORY_META: Record<string, { icon: string; description: string }> = {
 }
 
 // 住居費と光熱費は同一ステップでまとめて表示する
-type StepKey = '住居費+光熱費' | '通信費' | '保険' | '自動車' | 'その他' | 'subscription'
+type StepKey = 'intro' | '住居費+光熱費' | '通信費' | '保険' | '自動車' | 'その他' | 'subscription'
 
 interface MultiItem {
   name: string
@@ -35,6 +35,12 @@ interface Step {
 }
 
 const STEPS: Step[] = [
+  {
+    key: 'intro',
+    icon: '📋',
+    title: '固定費一覧へようこそ',
+    description: 'まずは基本的な固定費を登録してみましょう',
+  },
   {
     key: '住居費+光熱費',
     icon: '🏠',
@@ -306,8 +312,8 @@ interface Props {
   onComplete: () => void
 }
 
-// subscription 以外のステップキー一覧
-const DATA_STEP_KEYS = STEPS.filter((s) => s.key !== 'subscription').map((s) => s.key)
+// intro・subscription 以外のステップキー一覧
+const DATA_STEP_KEYS = STEPS.filter((s) => s.key !== 'intro' && s.key !== 'subscription').map((s) => s.key)
 
 export default function FixedExpenseTutorial({
   userId,
@@ -483,7 +489,21 @@ export default function FixedExpenseTutorial({
         </div>
 
         {/* コンテンツ */}
-        {step.key !== 'subscription' && dataStepIndex >= 0 && (
+        {step.key === 'intro' && (
+          <div className="py-2 space-y-3 text-sm text-slate-600 leading-relaxed">
+            <p>
+              このページは<span className="font-semibold text-slate-800">固定費の一覧画面</span>です。
+            </p>
+            <p>
+              家賃・通信費・サブスクなど、毎月かならず出ていく費用をここに登録することで、
+              節約できるポイントが一目でわかるようになります。
+            </p>
+            <p>
+              次のステップで、基本的な固定費を一緒に入力していきましょう 💪
+            </p>
+          </div>
+        )}
+        {step.key !== 'intro' && step.key !== 'subscription' && dataStepIndex >= 0 && (
           <MultiStep
             items={multiItems[dataStepIndex]}
             showCategoryHeaders={step.key === '住居費+光熱費'}

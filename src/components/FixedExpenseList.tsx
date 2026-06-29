@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import { formatYen } from '../utils'
@@ -23,6 +23,8 @@ interface Props {
   reload: () => void
   onEditingChange: (editing: boolean) => void
   loading?: boolean
+  fromOnboarding?: boolean
+  onWizardOpen?: () => void
 }
 
 export default function FixedExpenseList({
@@ -32,10 +34,19 @@ export default function FixedExpenseList({
   reload,
   onEditingChange,
   loading,
+  fromOnboarding,
+  onWizardOpen,
 }: Props) {
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [tutorialOpen, setTutorialOpen] = useState(false)
+
+  useEffect(() => {
+    if (fromOnboarding) {
+      setTutorialOpen(true)
+      onWizardOpen?.()
+    }
+  }, [fromOnboarding])
   const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {

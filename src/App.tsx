@@ -33,7 +33,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
-  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'fixed' | 'consumable' | undefined>(undefined)
+  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'fixed' | 'consumables' | undefined>(undefined)
   const scrollRef = useRef<HTMLDivElement>(null)
 
 

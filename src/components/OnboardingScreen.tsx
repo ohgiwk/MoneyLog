@@ -197,12 +197,22 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
               {saving ? '保存中...' : '次へ →'}
             </button>
             {page > 0 && (
-              <button
-                onClick={goPrev}
-                className="w-full mt-3 text-slate-400 text-sm py-2 active:text-slate-600"
-              >
-                ← 戻る
-              </button>
+              <div className="flex justify-between mt-3">
+                <button
+                  onClick={goPrev}
+                  className="text-slate-400 text-sm py-2 px-2 active:text-slate-600"
+                >
+                  ← 戻る
+                </button>
+                {(page === 1 || page === 2) && (
+                  <button
+                    onClick={goNext}
+                    className="text-slate-400 text-sm py-2 px-2 active:text-slate-600"
+                  >
+                    スキップ
+                  </button>
+                )}
+              </div>
             )}
           </>
         )}

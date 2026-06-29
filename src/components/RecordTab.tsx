@@ -44,6 +44,7 @@ export default function RecordTab({
   initialSub,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
+  const [fromOnboarding, setFromOnboarding] = useState(initialSub === 'fixed')
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [fixedEditing, setFixedEditing] = useState(false)
@@ -58,7 +59,10 @@ export default function RecordTab({
 
   // initialSub が指定されたときにサブページを切り替える
   useEffect(() => {
-    if (initialSub) setSub(initialSub)
+    if (initialSub) {
+      setSub(initialSub)
+      if (initialSub === 'fixed') setFromOnboarding(true)
+    }
   }, [initialSub])
 
   // 外部からの編集リクエスト（サマリー画面など）
@@ -202,6 +206,8 @@ export default function RecordTab({
             reload={fetchFixedExpenses}
             onEditingChange={setFixedEditing}
             loading={loading}
+            fromOnboarding={fromOnboarding}
+            onWizardOpen={() => setFromOnboarding(false)}
           />
         </div>
       )}
