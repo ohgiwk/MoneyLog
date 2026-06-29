@@ -3,13 +3,16 @@ import type { CategoryInfo } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
+import { transactionService } from '../lib/services/transactionService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
+import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 
 type RecordSubPage = 'one_time' | 'fixed' | 'consumables'
+type OneTimeView = 'list' | 'form'
 
 const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'one_time', label: '臨時出費' },
@@ -19,57 +22,80 @@ const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
 
 interface Props {
   userId: string
+  month: string
+  setMonth: (m: string) => void
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   fixedCategories: CategoryInfo[]
   editingTx?: Transaction | null
   onEditDone?: () => void
-  onEditSaved?: () => void
-  onEditTx?: (tx: Transaction) => void
-  onDetail?: () => void
 }
 
 export default function RecordTab({
   userId,
+  month,
+  setMonth,
   expenseCategories,
   incomeCategories,
   fixedCategories,
   editingTx,
   onEditDone,
-  onEditSaved,
-  onEditTx,
-  onDetail,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>('one_time')
+  const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
+  const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [fixedEditing, setFixedEditing] = useState(false)
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [availableMonths, setAvailableMonths] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
+  // 外部からの編集リクエスト（サマリー画面など）
   useEffect(() => {
-    if (editingTx) setSub('one_time')
+    if (editingTx) {
+      setSub('one_time')
+      setFormEditingTx(editingTx)
+      setOneTimeView('form')
+    }
   }, [editingTx])
 
+  // マウント時に全データを並列取得
   useEffect(() => {
     const load = async () => {
       setFetchError(null)
+      setLoading(true)
       try {
-        const [fixed, consumablesData, profile] = await Promise.all([
+        const [fixed, consumablesData, profile, months, txs] = await Promise.all([
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
+          transactionService.fetchAvailableMonths(userId),
+          transactionService.fetchByMonth(userId, month),
         ])
         setFixedExpenses(fixed)
         setConsumables(consumablesData)
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
+        setAvailableMonths(months)
+        setTransactions(txs)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
+      } finally {
+        setLoading(false)
       }
     }
     void load()
-  }, [userId])
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 月が変わったらトランザクションを再取得
+  useEffect(() => {
+    transactionService.fetchByMonth(userId, month)
+      .then(setTransactions)
+      .catch(() => {})
+  }, [userId, month])
 
   async function fetchFixedExpenses() {
     try {
@@ -89,11 +115,42 @@ export default function RecordTab({
     }
   }
 
+  async function fetchTransactions() {
+    try {
+      const [txs, months] = await Promise.all([
+        transactionService.fetchByMonth(userId, month),
+        transactionService.fetchAvailableMonths(userId),
+      ])
+      setTransactions(txs)
+      setAvailableMonths(months)
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
+    }
+  }
+
+  function openForm(tx?: Transaction) {
+    setFormEditingTx(tx ?? null)
+    setOneTimeView('form')
+  }
+
+  function backToList() {
+    setFormEditingTx(null)
+    setOneTimeView('list')
+    onEditDone?.()
+    void fetchTransactions()
+  }
+
   const isEditing = fixedEditing || consumableEditing
+  const showTabs = !isEditing && !(sub === 'one_time' && oneTimeView === 'form')
+
+  // 現在月が利用可能リストに含まれない場合も表示できるよう補完
+  const months = availableMonths.includes(month)
+    ? availableMonths
+    : [month, ...availableMonths].sort().reverse()
 
   return (
     <div>
-      {!isEditing && (
+      {showTabs && (
         <div className="px-4 pt-4">
           <TabGroup tabs={SUB_PAGE_TABS} active={sub} onChange={setSub} size="sm" />
         </div>
@@ -105,40 +162,55 @@ export default function RecordTab({
         </div>
       )}
 
-      <div className="p-4 space-y-4">
-        {sub === 'one_time' && (
+      {sub === 'one_time' && oneTimeView === 'list' && (
+        <OneTimeTransactionList
+          transactions={transactions}
+          month={month}
+          setMonth={setMonth}
+          availableMonths={months}
+          loading={loading}
+          onAdd={() => openForm()}
+          onEditTx={(tx) => openForm(tx)}
+        />
+      )}
+
+      {sub === 'one_time' && oneTimeView === 'form' && (
+        <div className="p-4">
           <OneTimeTransactionForm
             userId={userId}
             expenseCategories={expenseCategories}
             incomeCategories={incomeCategories}
-            editingTx={editingTx}
-            onEditDone={onEditDone}
-            onEditSaved={onEditSaved}
-            onEditTx={onEditTx}
-            onDetail={onDetail}
+            editingTx={formEditingTx}
+            onBack={backToList}
           />
-        )}
+        </div>
+      )}
 
-        {sub === 'fixed' && (
+      {sub === 'fixed' && (
+        <div className="p-4 space-y-4">
           <FixedExpenseList
             userId={userId}
             fixedExpenses={fixedExpenses}
             fixedCategories={fixedCategories}
             reload={fetchFixedExpenses}
             onEditingChange={setFixedEditing}
+            loading={loading}
           />
-        )}
+        </div>
+      )}
 
-        {sub === 'consumables' && (
+      {sub === 'consumables' && (
+        <div className="p-4 space-y-4">
           <ConsumablesList
             userId={userId}
             consumables={consumables}
             householdMembers={householdMembers}
             reload={fetchConsumables}
             onEditingChange={setConsumableEditing}
+            loading={loading}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

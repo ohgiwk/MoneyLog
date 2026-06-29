@@ -5,6 +5,7 @@ import { formatYen } from '../utils'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
+import Spinner from './ui/Spinner'
 import type { ReactNode } from 'react'
 
 const STATUS_FILTER_TABS = [
@@ -20,6 +21,7 @@ interface Props {
   fixedCategories: CategoryInfo[]
   reload: () => void
   onEditingChange: (editing: boolean) => void
+  loading?: boolean
 }
 
 export default function FixedExpenseList({
@@ -28,6 +30,7 @@ export default function FixedExpenseList({
   fixedCategories,
   reload,
   onEditingChange,
+  loading,
 }: Props) {
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
@@ -114,7 +117,7 @@ export default function FixedExpenseList({
       <TabGroup tabs={STATUS_FILTER_TABS} active={filter} onChange={setFilter} size="sm" />
 
       {/* 固定費一覧 */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {loading ? <Spinner /> : <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="text-sm text-slate-400 text-center py-6">該当する固定費がありません</div>
         ) : (
@@ -183,7 +186,7 @@ export default function FixedExpenseList({
             return rows
           })()
         )}
-      </div>
+      </div>}
 
       <button
         onClick={() => setTutorialOpen(true)}

@@ -35,6 +35,16 @@ export const transactionService = {
     if (error) throw new Error(error.message)
   },
 
+  fetchAvailableMonths: async (userId: string): Promise<string[]> => {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('date')
+      .eq('user_id', userId)
+    if (error) throw new Error(error.message)
+    const months = new Set((data ?? []).map((t: { date: string }) => t.date.slice(0, 7)))
+    return [...months].sort().reverse() as string[]
+  },
+
   fetchRecent: async (userId: string, limit = 5): Promise<Transaction[]> => {
     const { data, error } = await supabase
       .from('transactions')

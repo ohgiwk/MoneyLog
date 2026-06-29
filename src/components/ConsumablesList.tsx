@@ -4,6 +4,7 @@ import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 import ConsumableRow from './ConsumableRow'
 import ConsumableForm from './ConsumableForm'
+import Spinner from './ui/Spinner'
 
 interface Props {
   userId: string
@@ -11,6 +12,7 @@ interface Props {
   householdMembers: number
   reload: () => void
   onEditingChange: (editing: boolean) => void
+  loading?: boolean
 }
 
 type EditingState = Consumable | null | 'new' | { preset: DefaultConsumable }
@@ -21,6 +23,7 @@ export default function ConsumablesList({
   householdMembers,
   reload,
   onEditingChange,
+  loading,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -95,8 +98,10 @@ export default function ConsumablesList({
         <div className="text-xs text-slate-400 mt-1">同居人数: {householdMembers}人</div>
       </div>
 
+      {loading && <Spinner />}
+
       {/* そろそろ買い時 */}
-      {urgent.length > 0 && (
+      {!loading && urgent.length > 0 && (
         <div>
           <div className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
             <span>⚠️</span> そろそろ買い時（7日以内）
@@ -117,7 +122,7 @@ export default function ConsumablesList({
       )}
 
       {/* カテゴリ別一覧 */}
-      {byCategory.map(({ cat, items }) => (
+      {!loading && byCategory.map(({ cat, items }) => (
         <div key={cat.name}>
           <div className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
             <span>{cat.icon}</span>
@@ -138,7 +143,7 @@ export default function ConsumablesList({
       ))}
 
       {/* 未知カテゴリ */}
-      {uncategorized.length > 0 && (
+      {!loading && uncategorized.length > 0 && (
         <div>
           <div className="text-xs font-semibold text-slate-400 mb-2">その他</div>
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -155,7 +160,7 @@ export default function ConsumablesList({
         </div>
       )}
 
-      {consumables.length === 0 && (
+      {!loading && consumables.length === 0 && (
         <div className="text-sm text-slate-400 text-center py-4">登録された消耗品がありません</div>
       )}
 

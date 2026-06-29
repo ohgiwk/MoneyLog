@@ -1,6 +1,5 @@
 import type { CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen } from '../utils'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import DatePicker from './ui/DatePicker'
 
@@ -9,10 +8,7 @@ interface Props {
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
-  onEditDone?: () => void
-  onEditSaved?: () => void
-  onEditTx?: (tx: Transaction) => void
-  onDetail?: () => void
+  onBack: () => void
 }
 
 export default function OneTimeTransactionForm({
@@ -20,10 +16,7 @@ export default function OneTimeTransactionForm({
   expenseCategories,
   incomeCategories,
   editingTx,
-  onEditDone,
-  onEditSaved,
-  onEditTx,
-  onDetail,
+  onBack,
 }: Props) {
   const {
     values,
@@ -31,7 +24,6 @@ export default function OneTimeTransactionForm({
     formCategories,
     isSubmitting,
     error,
-    recentTx,
     showSuccess,
     setShowSuccess,
     amountError,
@@ -42,7 +34,7 @@ export default function OneTimeTransactionForm({
     handleSubmit,
     handleDelete,
     resetForm,
-  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onEditDone, onEditSaved })
+  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack })
 
   return (
     <>
@@ -86,7 +78,7 @@ export default function OneTimeTransactionForm({
               </button>
               <button
                 type="button"
-                onClick={() => { setShowSuccess(false); onDetail?.() }}
+                onClick={() => { setShowSuccess(false); onBack() }}
                 className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold active:bg-slate-50"
               >
                 一覧を見る
@@ -95,6 +87,21 @@ export default function OneTimeTransactionForm({
           </div>
         </div>
       )}
+
+      {/* ヘッダー */}
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          type="button"
+          onClick={() => { resetForm(); onBack() }}
+          className="text-slate-500 active:text-slate-700 text-lg px-1"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+        <span className="font-semibold text-slate-800">
+          {editingTx ? '記録を編集' : '臨時出費を記録'}
+        </span>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
         {/* 収支トグル */}
@@ -210,11 +217,7 @@ export default function OneTimeTransactionForm({
             </button>
             <button
               type="button"
-              onClick={() => {
-                onEditDone?.()
-                onEditSaved?.()
-                resetForm()
-              }}
+              onClick={() => { resetForm(); onBack() }}
               disabled={isSubmitting}
               className="w-[70%] py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50 disabled:opacity-50"
             >
@@ -223,45 +226,6 @@ export default function OneTimeTransactionForm({
           </div>
         )}
       </form>
-
-      {/* 最近の記録 */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-sm font-semibold text-slate-700">最近の記録</div>
-          <button
-            onClick={onDetail}
-            className="text-xs text-slate-600 font-medium bg-slate-100 active:bg-slate-200 rounded-lg px-2.5 py-1"
-          >
-            詳細
-          </button>
-        </div>
-        {recentTx.length === 0 && (
-          <div className="text-sm text-slate-400 py-1">記録がありません</div>
-        )}
-        <div className="space-y-1.5">
-          {recentTx.map((t) => {
-            const info = categoryInfo(t.category)
-            return (
-              <button
-                key={t.id}
-                onClick={() => onEditTx?.(t)}
-                className="w-full flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0 active:bg-slate-50 rounded-lg px-1 text-left"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{info.icon}</span>
-                  <div>
-                    <div className="text-sm text-slate-700">{t.category}</div>
-                    <div className="text-xs text-slate-400">{t.date}</div>
-                  </div>
-                </div>
-                <span className={'text-sm font-semibold ' + (t.type === 'income' ? 'text-emerald-600' : 'text-rose-500')}>
-                  {t.type === 'income' ? '+' : '-'}{formatYen(t.amount)}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
     </>
   )
 }

@@ -18,8 +18,7 @@ interface Options {
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
-  onEditDone?: () => void
-  onEditSaved?: () => void
+  onBack?: () => void
 }
 
 export function useOneTimeForm({
@@ -27,10 +26,8 @@ export function useOneTimeForm({
   expenseCategories,
   incomeCategories,
   editingTx,
-  onEditDone,
-  onEditSaved,
+  onBack,
 }: Options) {
-  const [recentTx, setRecentTx] = useState<Transaction[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [amountError, setAmountError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -45,10 +42,6 @@ export function useOneTimeForm({
     })
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
-
-  useEffect(() => {
-    transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
-  }, [userId])
 
   useEffect(() => {
     if (editingTx) {
@@ -78,10 +71,7 @@ export function useOneTimeForm({
     setIsSubmitting(true)
     try {
       await transactionService.delete(editingTx.id)
-      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
-      onEditDone?.()
-      onEditSaved?.()
-      resetForm()
+      onBack?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : '削除に失敗しました')
     } finally {
@@ -109,8 +99,7 @@ export function useOneTimeForm({
           amount: amt,
           memo: values.memo.trim() || null,
         })
-        onEditDone?.()
-        onEditSaved?.()
+        onBack?.()
       } else {
         await transactionService.insert({
           user_id: userId,
@@ -124,11 +113,9 @@ export function useOneTimeForm({
         })
         resetForm()
         setShowSuccess(true)
-        transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
         return
       }
       resetForm()
-      transactionService.fetchRecent(userId, 5).then(setRecentTx).catch(() => {})
     } catch (err) {
       setError(err instanceof Error ? err.message : '記録に失敗しました')
     } finally {
@@ -142,7 +129,6 @@ export function useOneTimeForm({
     formCategories,
     isSubmitting,
     error,
-    recentTx,
     showSuccess,
     setShowSuccess,
     amountError,

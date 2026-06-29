@@ -5,7 +5,6 @@ import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import SummaryTab from './components/SummaryTab'
 import RecordTab from './components/RecordTab'
-import RecordDetailScreen from './components/RecordDetailScreen'
 import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
@@ -15,7 +14,7 @@ import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'record-detail'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
@@ -33,6 +32,7 @@ export default function App() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
+
   // タブ・画面遷移時にスクロールをトップに戻す
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0)
@@ -42,18 +42,6 @@ export default function App() {
   useEffect(() => {
     if (screen !== 'main') window.scrollTo(0, 0)
   }, [screen])
-
-  function handleEditTx(tx: Transaction) {
-    setEditingTx(tx)
-    setTab('record')
-    setScreen('main')
-  }
-
-  function handleEditSaved() {
-    setEditingTx(null)
-    setTab('summary')
-    setScreen('record-detail')
-  }
 
   if (loading) {
     return (
@@ -89,18 +77,6 @@ export default function App() {
         onUpdateIncome={categories.updateIncomeCategories}
         onUpdateFixed={categories.updateFixedCategories}
         onBack={() => setScreen('settings')}
-      />
-    )
-  }
-
-  if (screen === 'record-detail') {
-    return (
-      <RecordDetailScreen
-        userId={user.id}
-        month={month}
-        setMonth={setMonth}
-        onBack={() => setScreen('main')}
-        onEditTx={handleEditTx}
       />
     )
   }
@@ -150,14 +126,13 @@ export default function App() {
         {tab === 'record' && (
           <RecordTab
             userId={user.id}
+            month={month}
+            setMonth={setMonth}
             expenseCategories={categories.expenseCategories}
             incomeCategories={categories.incomeCategories}
             fixedCategories={categories.fixedCategories}
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
-            onEditSaved={handleEditSaved}
-            onEditTx={handleEditTx}
-            onDetail={() => setScreen('record-detail')}
           />
         )}
         {tab === 'calendar' && (
