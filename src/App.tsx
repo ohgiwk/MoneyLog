@@ -11,11 +11,13 @@ import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
 import BudgetScreen from './components/BudgetScreen'
 import ExchangeRateScreen from './components/ExchangeRateScreen'
+import OnboardingScreen from './components/OnboardingScreen'
+import WishlistScreen from './components/WishlistScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
 type TabKey = 'summary' | 'record' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'setup' | 'wishlist'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
@@ -31,6 +33,7 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'fixed' | 'consumable' | undefined>(undefined)
   const scrollRef = useRef<HTMLDivElement>(null)
 
 
@@ -38,6 +41,11 @@ export default function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0)
   }, [tab, screen])
+
+  // initialSub は一度使ったらリセット（再訪問時は通常の初期値に戻す）
+  useEffect(() => {
+    if (recordInitialSub) setRecordInitialSub(undefined)
+  }, [tab])
 
   // フルスクリーンページへの遷移時は window もリセット
   useEffect(() => {
@@ -53,6 +61,19 @@ export default function App() {
   }
 
   if (!user) return <AuthScreen />
+
+  if (screen === 'wishlist') {
+    return <WishlistScreen userId={user.id} onBack={() => setScreen('main')} />
+  }
+
+  if (screen === 'setup') {
+    return (
+      <OnboardingScreen
+        userId={user.id}
+        onComplete={() => { setRecordInitialSub('fixed'); setScreen('main'); setTab('record') }}
+      />
+    )
+  }
 
   if (screen === 'budget') {
     return <BudgetScreen userId={user.id} onBack={() => setScreen('main')} />
@@ -115,6 +136,8 @@ export default function App() {
         <DrawerMenu
           onSettings={() => setScreen('settings')}
           onBudget={() => setScreen('budget')}
+          onSetup={() => setScreen('setup')}
+          onWishlist={() => setScreen('wishlist')}
           onSignOut={signOut}
           onClose={() => setDrawerOpen(false)}
         />
@@ -139,6 +162,7 @@ export default function App() {
             fixedCategories={categories.fixedCategories}
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
+            initialSub={recordInitialSub}
           />
         )}
         {tab === 'calendar' && (

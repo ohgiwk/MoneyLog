@@ -29,6 +29,7 @@ interface Props {
   fixedCategories: CategoryInfo[]
   editingTx?: Transaction | null
   onEditDone?: () => void
+  initialSub?: RecordSubPage
 }
 
 export default function RecordTab({
@@ -40,8 +41,9 @@ export default function RecordTab({
   fixedCategories,
   editingTx,
   onEditDone,
+  initialSub,
 }: Props) {
-  const [sub, setSub] = useState<RecordSubPage>('one_time')
+  const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [fixedEditing, setFixedEditing] = useState(false)
@@ -53,6 +55,11 @@ export default function RecordTab({
   const [availableMonths, setAvailableMonths] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+
+  // initialSub が指定されたときにサブページを切り替える
+  useEffect(() => {
+    if (initialSub) setSub(initialSub)
+  }, [initialSub])
 
   // 外部からの編集リクエスト（サマリー画面など）
   useEffect(() => {
