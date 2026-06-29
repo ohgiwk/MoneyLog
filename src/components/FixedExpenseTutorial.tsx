@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   DEFAULT_FIXED_EXPENSES,
   SUBSCRIPTION_PRESETS,
   SUBSCRIPTION_SUBCATEGORIES,
 } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
+import { wishlistService } from '../lib/services/wishlistService'
 import type { FixedExpense } from '../lib/database.types'
 import { getUsdJpyRate, setExpenseCurrencyMeta } from '../lib/exchangeRate'
 
@@ -346,6 +347,14 @@ export default function FixedExpenseTutorial({
   const [cycleOverrides, setCycleOverrides] = useState<Map<string, 'monthly' | 'yearly'>>(new Map())
   const [reviewingNames, setReviewingNames] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
+  const [wishItem, setWishItem] = useState<{ name: string; target_amount: number | null } | null>(null)
+
+  useEffect(() => {
+    wishlistService.fetchByUser(userId).then((items) => {
+      const top = items.find((i) => i.priority === 1) ?? items[0] ?? null
+      if (top) setWishItem({ name: top.name, target_amount: top.target_amount })
+    })
+  }, [userId])
 
   function toggleSub(name: string) {
     setSelectedSubs((prev) => {
@@ -365,12 +374,14 @@ export default function FixedExpenseTutorial({
 
   // review ページ用: 入力・選択済み項目を集計
   const reviewItems = useMemo(() => {
-    const items: { name: string; category: string; displayAmount: string }[] = []
+    const usdRate = getUsdJpyRate()
+    const items: { name: string; category: string; displayAmount: string; yearlyAmount: number }[] = []
     multiItems.forEach((stepItems) => {
       stepItems.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (!isNaN(amt) && amt > 0) {
-          items.push({ name: item.name, category: item.category, displayAmount: `¥${amt.toLocaleString()}` })
+          const yearly = item.cycle === 'yearly' ? amt : amt * 12
+          items.push({ name: item.name, category: item.category, displayAmount: `¥${amt.toLocaleString()}`, yearlyAmount: yearly })
         }
       })
     })
@@ -383,10 +394,22 @@ export default function FixedExpenseTutorial({
         : cycle === 'yearly'
           ? `¥${(p.yearlyAmount ?? p.amount).toLocaleString()}/年`
           : `¥${p.amount.toLocaleString()}/月`
-      items.push({ name: p.name, category: 'サブスク', displayAmount })
+      let yearly: number
+      if (p.currency === 'USD') {
+        const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0) * 12
+        yearly = Math.round(usdAmt * usdRate)
+      } else {
+        yearly = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount * 12
+      }
+      items.push({ name: p.name, category: 'サブスク', displayAmount, yearlyAmount: yearly })
     })
     return items
   }, [multiItems, selectedSubs, cycleOverrides])
+
+  const reviewingTotal = useMemo(
+    () => reviewItems.filter((i) => reviewingNames.has(i.name)).reduce((s, i) => s + i.yearlyAmount, 0),
+    [reviewItems, reviewingNames]
+  )
 
   async function handleNext() {
     if (!isLast) {
@@ -540,13 +563,49 @@ export default function FixedExpenseTutorial({
               >
                 {s.key === 'review' ? (
                   <div className="flex flex-col px-8 pt-6 h-full min-h-0">
-                    <div className="flex items-center gap-3 mb-2 shrink-0">
+                    <div className="flex items-center gap-3 mb-3 shrink-0">
                       <span className="text-3xl">{s.icon}</span>
                       <div>
                         <div className="font-bold text-slate-800">{s.title}</div>
                         <div className="text-xs text-slate-400">{s.description}</div>
                       </div>
                     </div>
+
+                    {/* 欲しいもの×削減効果パネル */}
+                    {wishItem && wishItem.target_amount != null && wishItem.target_amount > 0 && (() => {
+                      const pct = Math.min(100, Math.round((reviewingTotal / wishItem.target_amount) * 100))
+                      const monthsNeeded = reviewingTotal > 0
+                        ? Math.ceil(wishItem.target_amount / (reviewingTotal / 12))
+                        : null
+                      return (
+                        <div className="shrink-0 mb-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white">
+                          <div className="text-xs font-medium text-emerald-100 mb-0.5">🎯 目標</div>
+                          <div className="flex items-baseline justify-between mb-3">
+                            <span className="text-base font-bold">{wishItem.name}</span>
+                            <span className="text-xl font-bold">¥{wishItem.target_amount.toLocaleString()}</span>
+                          </div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-xs text-emerald-100">見直し削減効果（年間）</span>
+                            <span className="text-base font-bold text-yellow-300">¥{reviewingTotal.toLocaleString()}</span>
+                          </div>
+                          <div className="w-full bg-white/30 rounded-full h-2.5 overflow-hidden mb-1">
+                            <div
+                              className="h-2.5 rounded-full bg-yellow-300 transition-all duration-300"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-emerald-100">
+                            <span>
+                              {monthsNeeded != null
+                                ? `削減分で${monthsNeeded}ヶ月後に購入可能`
+                                : '項目を選択すると購入時期を計算します'}
+                            </span>
+                            <span>{pct}%</span>
+                          </div>
+                        </div>
+                      )
+                    })()}
+
                     {reviewItems.length === 0 ? (
                       <p className="text-sm text-slate-400 mt-4">入力・選択された項目がありません</p>
                     ) : (
