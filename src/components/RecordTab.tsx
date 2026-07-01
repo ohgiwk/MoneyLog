@@ -8,13 +8,15 @@ import { TabGroup } from './ui/TabGroup'
 import ConsumablesList from './ConsumablesList'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
+import ShoppingMemo from './ShoppingMemo'
 
-type RecordSubPage = 'one_time' | 'consumables'
+type RecordSubPage = 'one_time' | 'consumables' | 'shopping'
 type OneTimeView = 'list' | 'form'
 
 const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'one_time', label: '臨時出費' },
   { key: 'consumables', label: '定期購入' },
+  { key: 'shopping', label: '買い物メモ' },
 ]
 
 interface Props {
@@ -175,7 +177,7 @@ export default function RecordTab({
         </div>
       )}
 
-{sub === 'consumables' && (
+      {sub === 'consumables' && (
         <div className="p-4 space-y-4">
           <ConsumablesList
             userId={userId}
@@ -186,6 +188,13 @@ export default function RecordTab({
             loading={loading}
           />
         </div>
+      )}
+
+      {sub === 'shopping' && (
+        <ShoppingMemo
+          userId={userId}
+          expenseCategories={expenseCategories}
+        />
       )}
     </div>
   )
