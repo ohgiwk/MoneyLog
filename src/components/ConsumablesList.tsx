@@ -1,9 +1,13 @@
 import { useState } from 'react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, CONSUMABLE_CATEGORIES, DEFAULT_CONSUMABLES, type DefaultConsumable } from '../constants'
+import { EXPENSE_CATEGORIES } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
+import { consumableService } from '../lib/services/consumableService'
+import { transactionService } from '../lib/services/transactionService'
 import ConsumableRow from './ConsumableRow'
 import ConsumableForm from './ConsumableForm'
+import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
 
 interface Props {
@@ -27,6 +31,7 @@ export default function ConsumablesList({
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [purchasing, setPurchasing] = useState<Consumable | null>(null)
 
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
     setEditing(v)
@@ -35,6 +40,23 @@ export default function ConsumablesList({
   function closeEditing() {
     setEditing(null)
     onEditingChange(false)
+    reload()
+  }
+
+  async function handlePurchaseConfirm(date: string, category: string, amount: number, memo: string) {
+    if (!purchasing) return
+    await transactionService.insert({
+      user_id: userId,
+      type: 'expense',
+      expense_kind: 'one_time',
+      date,
+      category,
+      amount,
+      memo: memo || null,
+      recurring_rule_id: null,
+    })
+    await consumableService.update(purchasing.id, { last_purchased: date })
+    setPurchasing(null)
     reload()
   }
 
@@ -113,6 +135,7 @@ export default function ConsumablesList({
                 consumable={c}
                 householdMembers={householdMembers}
                 onClick={() => openEditing(c)}
+                onPurchase={setPurchasing}
                 border={i > 0}
                 urgent
               />
@@ -135,6 +158,7 @@ export default function ConsumablesList({
                 consumable={c}
                 householdMembers={householdMembers}
                 onClick={() => openEditing(c)}
+                onPurchase={setPurchasing}
                 border={i > 0}
               />
             ))}
@@ -153,6 +177,7 @@ export default function ConsumablesList({
                 consumable={c}
                 householdMembers={householdMembers}
                 onClick={() => openEditing(c)}
+                onPurchase={setPurchasing}
                 border={i > 0}
               />
             ))}
@@ -179,6 +204,16 @@ export default function ConsumablesList({
       </div>
 
       {/* おすすめ品目 */}
+      {purchasing && (
+        <ConsumablePurchaseDialog
+          consumable={purchasing}
+          householdMembers={householdMembers}
+          expenseCategories={EXPENSE_CATEGORIES}
+          onConfirm={handlePurchaseConfirm}
+          onCancel={() => setPurchasing(null)}
+        />
+      )}
+
       {unregisteredDefaults.length > 0 && (
         <div>
           <button

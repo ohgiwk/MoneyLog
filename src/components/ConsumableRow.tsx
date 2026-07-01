@@ -6,6 +6,7 @@ interface Props {
   consumable: Consumable
   householdMembers: number
   onClick: () => void
+  onPurchase: (c: Consumable) => void
   border: boolean
   urgent?: boolean
 }
@@ -14,6 +15,7 @@ export default function ConsumableRow({
   consumable: c,
   householdMembers,
   onClick,
+  onPurchase,
   border,
   urgent,
 }: Props) {
@@ -54,6 +56,12 @@ export default function ConsumableRow({
         </div>
         <div className="text-xs text-slate-400">{formatYen(monthly)}/月</div>
       </div>
+      <button
+        onClick={e => { e.stopPropagation(); onPurchase(c) }}
+        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100"
+      >
+        購入済
+      </button>
       <span className="text-slate-300 text-sm">›</span>
     </div>
   )
