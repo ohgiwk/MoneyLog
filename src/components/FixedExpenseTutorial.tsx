@@ -19,7 +19,7 @@ const CATEGORY_META: Record<string, { icon: string; description: string }> = {
 }
 
 // 住居費と光熱費は同一ステップでまとめて表示する
-type StepKey = 'intro' | '住居費+光熱費' | '通信費' | '保険' | '自動車' | '子ども・育児' | 'subscription' | 'その他' | 'review'
+type StepKey = 'intro' | '住居費+光熱費' | '通信費' | '保険' | '自動車' | '子ども・育児' | 'subscription' | 'その他' | 'review' | 'thanks' | 'guide'
 
 interface MultiItem {
   name: string
@@ -90,6 +90,26 @@ const STEPS: Step[] = [
     title: '見直したい項目',
     description: '削減・解約を検討したい項目にチェックを入れてください',
   },
+  {
+    key: 'thanks',
+    icon: '🎉',
+    title: '入力お疲れ様でした！',
+    description: '基本的な固定費の登録が完了しました',
+  },
+  {
+    key: 'guide',
+    icon: '🧭',
+    title: '固定費画面の使い方',
+    description: 'これだけ覚えれば大丈夫です',
+  },
+]
+
+// 「固定費画面の使い方」ガイドで案内する項目
+const GUIDE_ITEMS: { icon: string; title: string; description: string }[] = [
+  { icon: '📊', title: '固定費合計をひと目で確認', description: '画面上部のカードで、毎月の固定費合計がすぐにわかります。' },
+  { icon: '🗂️', title: 'タブで絞り込み', description: '「契約中」「解約済み」「見直し中」でタブを切り替えて確認できます。' },
+  { icon: '👆', title: 'タップして編集', description: '項目をタップすると、金額の変更や解約の記録ができます。' },
+  { icon: '➕', title: '新しい固定費を追加', description: '右下の＋ボタンから、いつでも新しい固定費を追加できます。' },
 ]
 
 // StepKey に対応するカテゴリ一覧（住居費+光熱費 は2カテゴリ）
@@ -326,10 +346,9 @@ interface Props {
   onComplete: () => void
 }
 
-// データ入力ステップのキー一覧（intro・subscription・review を除く）
-const DATA_STEP_KEYS = STEPS.filter(
-  (s) => s.key !== 'intro' && s.key !== 'subscription' && s.key !== 'review'
-).map((s) => s.key)
+// データ入力ステップのキー一覧（データ入力以外の案内ステップを除く）
+const NON_DATA_STEP_KEYS: StepKey[] = ['intro', 'subscription', 'review', 'thanks', 'guide']
+const DATA_STEP_KEYS = STEPS.filter((s) => !NON_DATA_STEP_KEYS.includes(s.key)).map((s) => s.key)
 
 export default function FixedExpenseTutorial({
   userId,
@@ -411,9 +430,21 @@ export default function FixedExpenseTutorial({
     [reviewItems, reviewingNames]
   )
 
+  // 「お疲れ様でした」画面で表示する、登録済み固定費の月額換算合計
+  const registeredMonthlyTotal = useMemo(
+    () => reviewItems.reduce((s, i) => s + i.yearlyAmount, 0) / 12,
+    [reviewItems]
+  )
+
   async function handleNext() {
-    if (!isLast) {
-      setStepIndex((i) => i + 1)
+    const currentKey = STEPS[stepIndex].key
+
+    if (currentKey !== 'review') {
+      if (isLast) {
+        onComplete()
+      } else {
+        setStepIndex((i) => i + 1)
+      }
       return
     }
 
@@ -515,7 +546,7 @@ export default function FixedExpenseTutorial({
     }
 
     setSaving(false)
-    onComplete()
+    setStepIndex((i) => i + 1)
   }
 
   const totalSteps = STEPS.length
@@ -652,6 +683,46 @@ export default function FixedExpenseTutorial({
                       <p>次のステップで、基本的な固定費を一緒に入力していきましょう 💪</p>
                     </div>
                   </div>
+                ) : s.key === 'thanks' ? (
+                  <div className="flex flex-col items-center justify-center px-8 text-center h-full">
+                    <div className="text-5xl mb-6">🎉</div>
+                    <h2 className="text-xl font-bold text-slate-800 mb-4">{s.title}</h2>
+                    <p className="text-sm text-slate-600 leading-relaxed mb-1">
+                      基本的な固定費の登録が完了しました。
+                    </p>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-6">
+                      最後に、固定費画面の使い方を簡単にご紹介します 📖
+                    </p>
+                    {registeredMonthlyTotal > 0 && (
+                      <div className="bg-emerald-50 rounded-2xl px-5 py-4 w-full">
+                        <div className="text-xs text-emerald-600 font-medium mb-1">登録した固定費（月額換算）</div>
+                        <div className="text-2xl font-bold text-emerald-700">
+                          ¥{Math.round(registeredMonthlyTotal).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : s.key === 'guide' ? (
+                  <div className="flex flex-col px-8 pt-6 h-full min-h-0">
+                    <div className="flex items-center gap-3 mb-5 shrink-0">
+                      <span className="text-3xl">{s.icon}</span>
+                      <div>
+                        <div className="font-bold text-slate-800">{s.title}</div>
+                        <div className="text-xs text-slate-400">{s.description}</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3 overflow-y-auto pr-1">
+                      {GUIDE_ITEMS.map((item) => (
+                        <div key={item.title} className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
+                          <span className="text-xl shrink-0">{item.icon}</span>
+                          <div>
+                            <div className="text-sm font-semibold text-slate-700">{item.title}</div>
+                            <div className="text-xs text-slate-500 leading-relaxed">{item.description}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : (
                   <div className="flex flex-col px-8 pt-6 h-full min-h-0">
                     <div className="flex items-center gap-3 mb-5 shrink-0">
@@ -693,7 +764,13 @@ export default function FixedExpenseTutorial({
           disabled={saving}
           className="w-full bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-white font-semibold py-4 rounded-xl text-base transition-colors"
         >
-          {saving ? '保存中...' : isLast ? '完了' : '次へ →'}
+          {saving
+            ? '保存中...'
+            : STEPS[stepIndex].key === 'review'
+              ? '保存して次へ →'
+              : isLast
+                ? 'はじめる'
+                : '次へ →'}
         </button>
         <div className="flex justify-between mt-3">
           {stepIndex > 0 && (
@@ -705,7 +782,7 @@ export default function FixedExpenseTutorial({
             </button>
           )}
           {stepIndex === 0 && <span />}
-          {!isLast && stepIndex > 0 && (
+          {!isLast && stepIndex > 0 && STEPS[stepIndex].key !== 'review' && (
             <button
               onClick={() => setStepIndex((i) => i + 1)}
               className="text-slate-400 text-sm py-2 px-2 active:text-slate-600"
