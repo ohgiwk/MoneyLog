@@ -154,10 +154,10 @@ export default function RecordTab({
   const isEditing = fixedEditing || consumableEditing
   const showTabs = !isEditing && !(sub === 'one_time' && oneTimeView === 'form')
 
-  // 現在月が利用可能リストに含まれない場合も表示できるよう補完
-  const months = availableMonths.includes(month)
-    ? availableMonths
-    : [month, ...availableMonths].sort().reverse()
+  // 記録がある月 + 今月（記録なしでも）を含むリストを構築
+  const currentMonth = new Date().toISOString().slice(0, 7)
+  const monthSet = new Set([currentMonth, ...availableMonths])
+  const months = [...monthSet].sort().reverse()
 
   return (
     <div>
