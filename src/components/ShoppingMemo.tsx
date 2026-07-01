@@ -8,9 +8,10 @@ import PurchaseDialog from './PurchaseDialog'
 interface Props {
   userId: string
   expenseCategories: CategoryInfo[]
+  onTransactionAdded?: () => void
 }
 
-export default function ShoppingMemo({ userId, expenseCategories }: Props) {
+export default function ShoppingMemo({ userId, expenseCategories, onTransactionAdded }: Props) {
   const [items, setItems] = useState<ShoppingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -99,6 +100,7 @@ export default function ShoppingMemo({ userId, expenseCategories }: Props) {
     setItems(prev => prev.filter(it => !selected.has(it.id)))
     setSelected(new Set())
     setShowDialog(false)
+    onTransactionAdded?.()
   }
 
   const selectedItems = items.filter(it => selected.has(it.id))

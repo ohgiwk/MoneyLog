@@ -186,6 +186,7 @@ export default function RecordTab({
             reload={fetchConsumables}
             onEditingChange={setConsumableEditing}
             loading={loading}
+            onTransactionAdded={fetchTransactions}
           />
         </div>
       )}
@@ -194,6 +195,7 @@ export default function RecordTab({
         <ShoppingMemo
           userId={userId}
           expenseCategories={expenseCategories}
+          onTransactionAdded={fetchTransactions}
         />
       )}
     </div>

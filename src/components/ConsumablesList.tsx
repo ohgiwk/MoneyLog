@@ -17,6 +17,7 @@ interface Props {
   reload: () => void
   onEditingChange: (editing: boolean) => void
   loading?: boolean
+  onTransactionAdded?: () => void
 }
 
 type EditingState = Consumable | null | 'new' | { preset: DefaultConsumable }
@@ -28,6 +29,7 @@ export default function ConsumablesList({
   reload,
   onEditingChange,
   loading,
+  onTransactionAdded,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -58,6 +60,7 @@ export default function ConsumablesList({
     await consumableService.update(purchasing.id, { last_purchased: date })
     setPurchasing(null)
     reload()
+    onTransactionAdded?.()
   }
 
   const sorted = [...consumables].sort(
@@ -128,17 +131,25 @@ export default function ConsumablesList({
           <div className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
             <span>⚠️</span> そろそろ買い時（7日以内）
           </div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {urgent.map((c, i) => (
-              <ConsumableRow
-                key={c.id}
-                consumable={c}
-                householdMembers={householdMembers}
-                onClick={() => openEditing(c)}
-                onPurchase={setPurchasing}
-                border={i > 0}
-                urgent
-              />
+          <div className="space-y-1.5">
+            {urgent.map((c) => (
+              <div key={c.id} className="flex items-center gap-2">
+                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <ConsumableRow
+                    consumable={c}
+                    householdMembers={householdMembers}
+                    onClick={() => openEditing(c)}
+                    border={false}
+                    urgent
+                  />
+                </div>
+                <button
+                  onClick={() => setPurchasing(c)}
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                >
+                  購入済
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -151,16 +162,24 @@ export default function ConsumablesList({
             <span>{cat.icon}</span>
             <span>{cat.name}</span>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {items.map((c, i) => (
-              <ConsumableRow
-                key={c.id}
-                consumable={c}
-                householdMembers={householdMembers}
-                onClick={() => openEditing(c)}
-                onPurchase={setPurchasing}
-                border={i > 0}
-              />
+          <div className="space-y-1.5">
+            {items.map((c) => (
+              <div key={c.id} className="flex items-center gap-2">
+                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <ConsumableRow
+                    consumable={c}
+                    householdMembers={householdMembers}
+                    onClick={() => openEditing(c)}
+                    border={false}
+                  />
+                </div>
+                <button
+                  onClick={() => setPurchasing(c)}
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                >
+                  購入済
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -170,16 +189,24 @@ export default function ConsumablesList({
       {!loading && uncategorized.length > 0 && (
         <div>
           <div className="text-xs font-semibold text-slate-400 mb-2">その他</div>
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            {uncategorized.map((c, i) => (
-              <ConsumableRow
-                key={c.id}
-                consumable={c}
-                householdMembers={householdMembers}
-                onClick={() => openEditing(c)}
-                onPurchase={setPurchasing}
-                border={i > 0}
-              />
+          <div className="space-y-1.5">
+            {uncategorized.map((c) => (
+              <div key={c.id} className="flex items-center gap-2">
+                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <ConsumableRow
+                    consumable={c}
+                    householdMembers={householdMembers}
+                    onClick={() => openEditing(c)}
+                    border={false}
+                  />
+                </div>
+                <button
+                  onClick={() => setPurchasing(c)}
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                >
+                  購入済
+                </button>
+              </div>
             ))}
           </div>
         </div>
