@@ -78,9 +78,9 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           />
         </Section>
 
-        {/* 臨時出費（カテゴリ別） */}
+        {/* 出費（カテゴリ別） */}
         <Section
-          title="臨時出費"
+          title="出費"
           icon="⚡"
           subtitle={oneTimeTotal > 0 ? `合計 ${formatYen(oneTimeTotal)}/月` : undefined}
         >
@@ -102,7 +102,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           <div className="space-y-1.5">
             <WeeklyRow label="固定費" amount={weeklyFixed} color="text-slate-600" />
             <WeeklyRow label="定期購入" amount={weeklyConsumable} color="text-blue-600" />
-            <WeeklyRow label="臨時出費" amount={weeklyOneTime} color="text-amber-600" />
+            <WeeklyRow label="出費" amount={weeklyOneTime} color="text-amber-600" />
             <div className="h-px bg-emerald-200 my-1" />
             <WeeklyRow label="合計" amount={weeklyTotal} color="text-emerald-700" bold />
           </div>

@@ -86,7 +86,7 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
     <div className="space-y-3">
       {/* 合計サマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">臨時出費合計</div>
+        <div className="text-sm font-semibold text-slate-700 mb-1">出費合計</div>
         <div className="text-2xl font-bold text-rose-500">
           {formatYen(totalExpense)}
         </div>

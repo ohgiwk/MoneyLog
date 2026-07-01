@@ -123,7 +123,7 @@ function Overview({
           valueColor="text-slate-500"
         />
         <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
-        <Row label="臨時出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
+        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
         <div className="h-px bg-slate-100" />
         <Row
           label="収支"
@@ -168,7 +168,7 @@ function Overview({
             tabs={[
               { key: 'fixed', label: '固定費' },
               { key: 'consumable', label: '定期購入' },
-              { key: 'oneTime', label: '臨時出費' },
+              { key: 'oneTime', label: '出費' },
             ] as { key: BreakdownTab; label: string }[]}
             active={breakdownTab}
             onChange={setBreakdownTab}

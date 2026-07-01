@@ -85,7 +85,7 @@ export default function OneTimeTransactionForm({
           ←
         </button>
         <span className="font-semibold text-slate-800">
-          {editingTx ? '記録を編集' : '臨時出費を記録'}
+          {editingTx ? '記録を編集' : '出費を記録'}
         </span>
       </div>
 
