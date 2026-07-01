@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/MoneyLog/',
+  server: { port: 5175 },
   plugins: [
     react(),
     VitePWA({
