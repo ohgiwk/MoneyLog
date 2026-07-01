@@ -1,22 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
-import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import { transactionService } from '../lib/services/transactionService'
-import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
+import type { Consumable, Transaction } from '../lib/database.types'
 import { TabGroup } from './ui/TabGroup'
-import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 
-type RecordSubPage = 'one_time' | 'fixed' | 'consumables'
+type RecordSubPage = 'one_time' | 'consumables'
 type OneTimeView = 'list' | 'form'
 
 const SUB_PAGE_TABS: { key: RecordSubPage; label: string }[] = [
   { key: 'one_time', label: '臨時出費' },
-  { key: 'fixed', label: '固定費' },
   { key: 'consumables', label: '定期購入' },
 ]
 
@@ -26,7 +23,6 @@ interface Props {
   setMonth: (m: string) => void
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
-  fixedCategories: CategoryInfo[]
   editingTx?: Transaction | null
   onEditDone?: () => void
   initialSub?: RecordSubPage
@@ -38,18 +34,14 @@ export default function RecordTab({
   setMonth,
   expenseCategories,
   incomeCategories,
-  fixedCategories,
   editingTx,
   onEditDone,
   initialSub,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
-  const [fromOnboarding, setFromOnboarding] = useState(initialSub === 'fixed')
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
-  const [fixedEditing, setFixedEditing] = useState(false)
   const [consumableEditing, setConsumableEditing] = useState(false)
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -59,10 +51,7 @@ export default function RecordTab({
 
   // initialSub が指定されたときにサブページを切り替える
   useEffect(() => {
-    if (initialSub) {
-      setSub(initialSub)
-      if (initialSub === 'fixed') setFromOnboarding(true)
-    }
+    if (initialSub) setSub(initialSub)
   }, [initialSub])
 
   // 外部からの編集リクエスト（サマリー画面など）
@@ -80,14 +69,12 @@ export default function RecordTab({
       setFetchError(null)
       setLoading(true)
       try {
-        const [fixed, consumablesData, profile, months, txs] = await Promise.all([
-          fixedExpenseService.fetchByUser(userId),
+        const [consumablesData, profile, months, txs] = await Promise.all([
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
           transactionService.fetchAvailableMonths(userId),
           transactionService.fetchByMonth(userId, month),
         ])
-        setFixedExpenses(fixed)
         setConsumables(consumablesData)
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
         setAvailableMonths(months)
@@ -107,15 +94,6 @@ export default function RecordTab({
       .then(setTransactions)
       .catch(() => {})
   }, [userId, month])
-
-  async function fetchFixedExpenses() {
-    try {
-      const data = await fixedExpenseService.fetchByUser(userId)
-      setFixedExpenses(data)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    }
-  }
 
   async function fetchConsumables() {
     try {
@@ -151,7 +129,7 @@ export default function RecordTab({
     void fetchTransactions()
   }
 
-  const isEditing = fixedEditing || consumableEditing
+  const isEditing = consumableEditing
   const showTabs = !isEditing && !(sub === 'one_time' && oneTimeView === 'form')
 
   // 記録がある月 + 今月（記録なしでも）を含むリストを構築
@@ -197,22 +175,7 @@ export default function RecordTab({
         </div>
       )}
 
-      {sub === 'fixed' && (
-        <div className="p-4 space-y-4">
-          <FixedExpenseList
-            userId={userId}
-            fixedExpenses={fixedExpenses}
-            fixedCategories={fixedCategories}
-            reload={fetchFixedExpenses}
-            onEditingChange={setFixedEditing}
-            loading={loading}
-            fromOnboarding={fromOnboarding}
-            onWizardOpen={() => setFromOnboarding(false)}
-          />
-        </div>
-      )}
-
-      {sub === 'consumables' && (
+{sub === 'consumables' && (
         <div className="p-4 space-y-4">
           <ConsumablesList
             userId={userId}

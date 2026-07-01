@@ -5,6 +5,7 @@ import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import SummaryTab from './components/SummaryTab'
 import RecordTab from './components/RecordTab'
+import FixedExpenseTab from './components/FixedExpenseTab'
 import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
 import SettingsScreen from './components/SettingsScreen'
@@ -16,12 +17,13 @@ import WishlistScreen from './components/WishlistScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
-type TabKey = 'summary' | 'record' | 'calendar'
+type TabKey = 'summary' | 'record' | 'fixed' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'setup' | 'wishlist'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'summary', label: 'ホーム', icon: '🏠' },
   { key: 'record', label: '記録', icon: '✏️' },
+  { key: 'fixed', label: '固定費', icon: '📋' },
   { key: 'calendar', label: 'カレンダー', icon: '📅' },
 ]
 
@@ -33,7 +35,8 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
-  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'fixed' | 'consumables' | undefined>(undefined)
+  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
+  const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
 
@@ -70,7 +73,7 @@ export default function App() {
     return (
       <OnboardingScreen
         userId={user.id}
-        onComplete={() => { setRecordInitialSub('fixed'); setScreen('main'); setTab('record') }}
+        onComplete={() => { setFixedFromOnboarding(true); setScreen('main'); setTab('fixed') }}
       />
     )
   }
@@ -159,10 +162,17 @@ export default function App() {
             setMonth={setMonth}
             expenseCategories={categories.expenseCategories}
             incomeCategories={categories.incomeCategories}
-            fixedCategories={categories.fixedCategories}
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
             initialSub={recordInitialSub}
+          />
+        )}
+        {tab === 'fixed' && (
+          <FixedExpenseTab
+            userId={user.id}
+            fixedCategories={categories.fixedCategories}
+            fromOnboarding={fixedFromOnboarding}
+            onWizardOpen={() => setFixedFromOnboarding(false)}
           />
         )}
         {tab === 'calendar' && (
