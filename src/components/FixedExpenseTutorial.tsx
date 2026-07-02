@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   DEFAULT_FIXED_EXPENSES,
+  FIXED_EXPENSE_CATEGORIES,
   SUBSCRIPTION_PRESETS,
   SUBSCRIPTION_SUBCATEGORIES,
 } from '../constants'
@@ -82,7 +83,7 @@ const STEPS: Step[] = [
     key: 'その他',
     icon: '📦',
     title: 'その他',
-    description: 'その他の固定費を入力してください',
+    description: '名前・カテゴリ・金額を自由に入力してください',
   },
   {
     key: 'review',
@@ -118,7 +119,6 @@ const STEP_CATEGORIES: Record<string, string[]> = {
   通信費: ['通信費'],
   保険: ['保険'],
   自動車: ['自動車'],
-  'その他': ['その他'],
   '子ども・育児': ['子ども・育児'],
 }
 
@@ -339,6 +339,126 @@ function SubscriptionStep({
   )
 }
 
+interface CustomItemStepProps {
+  items: MultiItem[]
+  onAdd: (item: MultiItem) => void
+  onRemove: (index: number) => void
+}
+
+function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) {
+  const [name, setName] = useState('')
+  const [category, setCategory] = useState(FIXED_EXPENSE_CATEGORIES[FIXED_EXPENSE_CATEGORIES.length - 1].name)
+  const [amount, setAmount] = useState('')
+  const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly')
+
+  function handleAdd() {
+    const trimmed = name.trim()
+    if (!trimmed) return
+    onAdd({ name: trimmed, category, amount, cycle })
+    setName('')
+    setAmount('')
+  }
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0">
+      {/* 追加フォーム */}
+      <div className="space-y-2 mb-4 shrink-0 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="例: 町内会費"
+          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+        />
+        <div className="flex gap-2">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          >
+            {FIXED_EXPENSE_CATEGORIES.map((c) => (
+              <option key={c.name} value={c.name}>
+                {c.icon} {c.name}
+              </option>
+            ))}
+          </select>
+          <div className="flex rounded-xl overflow-hidden border border-slate-200 shrink-0 text-xs">
+            <button
+              type="button"
+              onClick={() => setCycle('monthly')}
+              className={'px-3 transition ' + (cycle === 'monthly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')}
+            >
+              月
+            </button>
+            <button
+              type="button"
+              onClick={() => setCycle('yearly')}
+              className={'px-3 transition border-l border-slate-200 ' + (cycle === 'yearly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')}
+            >
+              年
+            </button>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <div className="flex-1 relative">
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!name.trim()}
+            className="px-4 rounded-xl bg-emerald-500 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold active:bg-emerald-600 shrink-0"
+          >
+            追加
+          </button>
+        </div>
+      </div>
+
+      {/* 追加済みリスト */}
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+        {items.length === 0 ? (
+          <p className="text-sm text-slate-400">まだ項目が追加されていません</p>
+        ) : (
+          items.map((item, i) => {
+            const catInfo = FIXED_EXPENSE_CATEGORIES.find((c) => c.name === item.category)
+            return (
+              <div key={`${item.name}-${i}`} className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 shadow-sm">
+                <span className="text-lg shrink-0">{catInfo?.icon ?? '📦'}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-slate-700 truncate">{item.name}</div>
+                  <div className="text-xs text-slate-400">
+                    {item.category}
+                    {item.cycle === 'yearly' ? '・年払い' : ''}
+                  </div>
+                </div>
+                <span className="text-sm text-slate-600 shrink-0">
+                  {item.amount ? `¥${Number(item.amount).toLocaleString()}` : '-'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(i)}
+                  className="text-slate-300 active:text-rose-500 shrink-0 text-lg leading-none px-1"
+                  aria-label="削除"
+                >
+                  ×
+                </button>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
 interface Props {
   userId: string
   fixedExpenses: FixedExpense[]
@@ -347,7 +467,7 @@ interface Props {
 }
 
 // データ入力ステップのキー一覧（データ入力以外の案内ステップを除く）
-const NON_DATA_STEP_KEYS: StepKey[] = ['intro', 'subscription', 'review', 'thanks', 'guide']
+const NON_DATA_STEP_KEYS: StepKey[] = ['intro', 'subscription', 'その他', 'review', 'thanks', 'guide']
 const DATA_STEP_KEYS = STEPS.filter((s) => !NON_DATA_STEP_KEYS.includes(s.key)).map((s) => s.key)
 
 export default function FixedExpenseTutorial({
@@ -364,6 +484,16 @@ export default function FixedExpenseTutorial({
     buildSelectedSubs(fixedExpenses)
   )
   const [cycleOverrides, setCycleOverrides] = useState<Map<string, 'monthly' | 'yearly'>>(new Map())
+  const [customItems, setCustomItems] = useState<MultiItem[]>(() =>
+    fixedExpenses
+      .filter((f) => f.category === 'その他')
+      .map((f) => ({
+        name: f.name,
+        category: f.category,
+        cycle: f.cycle === 'yearly' ? ('yearly' as const) : ('monthly' as const),
+        amount: f.amount != null ? f.amount.toString() : '',
+      }))
+  )
   const [reviewingNames, setReviewingNames] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [wishItem, setWishItem] = useState<{ name: string; target_amount: number | null } | null>(null)
@@ -388,6 +518,14 @@ export default function FixedExpenseTutorial({
     setCycleOverrides((prev) => new Map(prev).set(name, cycle))
   }
 
+  function addCustomItem(item: MultiItem) {
+    setCustomItems((prev) => [...prev, item])
+  }
+
+  function removeCustomItem(index: number) {
+    setCustomItems((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const isLast = stepIndex === STEPS.length - 1
   const today = new Date().toISOString().slice(0, 10)
 
@@ -395,7 +533,7 @@ export default function FixedExpenseTutorial({
   const reviewItems = useMemo(() => {
     const usdRate = getUsdJpyRate()
     const items: { name: string; category: string; displayAmount: string; yearlyAmount: number }[] = []
-    multiItems.forEach((stepItems) => {
+    ;[...multiItems, customItems].forEach((stepItems) => {
       stepItems.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (!isNaN(amt) && amt > 0) {
@@ -423,7 +561,7 @@ export default function FixedExpenseTutorial({
       items.push({ name: p.name, category: 'サブスク', displayAmount, yearlyAmount: yearly })
     })
     return items
-  }, [multiItems, selectedSubs, cycleOverrides])
+  }, [multiItems, customItems, selectedSubs, cycleOverrides])
 
   const reviewingTotal = useMemo(
     () => reviewItems.filter((i) => reviewingNames.has(i.name)).reduce((s, i) => s + i.yearlyAmount, 0),
@@ -453,8 +591,8 @@ export default function FixedExpenseTutorial({
     const inserts: InsertRow[] = []
     const updates: { id: string; amount: number; status: FixedExpense['status'] }[] = []
 
-    // multi ステップの保存 — item.category を使うので正確なカテゴリで保存される
-    multiItems.forEach((items) => {
+    // multi ステップ・自由入力（その他）の保存 — item.category を使うので正確なカテゴリで保存される
+    ;[...multiItems, customItems].forEach((items) => {
       items.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (isNaN(amt) || amt < 0) return
@@ -701,6 +839,17 @@ export default function FixedExpenseTutorial({
                         </div>
                       </div>
                     )}
+                  </div>
+                ) : s.key === 'その他' ? (
+                  <div className="flex flex-col px-8 pt-6 h-full min-h-0">
+                    <div className="flex items-center gap-3 mb-5 shrink-0">
+                      <span className="text-3xl">{s.icon}</span>
+                      <div>
+                        <div className="font-bold text-slate-800">{s.title}</div>
+                        <div className="text-xs text-slate-400">{s.description}</div>
+                      </div>
+                    </div>
+                    <CustomItemStep items={customItems} onAdd={addCustomItem} onRemove={removeCustomItem} />
                   </div>
                 ) : s.key === 'guide' ? (
                   <div className="flex flex-col px-8 pt-6 h-full min-h-0">
