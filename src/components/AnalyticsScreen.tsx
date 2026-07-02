@@ -4,7 +4,7 @@ import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, formatYen } from '../utils'
+import { categoryInfo, formatYen, todayStr } from '../utils'
 import { loadBudget } from '../lib/budgetStorage'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
@@ -16,12 +16,16 @@ type PeriodMode = 'day' | 'week' | 'month'
 
 interface Props {
   userId: string
-  month: string
-  setMonth: (m: string) => void
+  onBack: () => void
 }
 
-export default function SummaryTab({ userId, month, setMonth }: Props) {
+export default function AnalyticsScreen({ userId, onBack }: Props) {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   const budget = useMemo(() => loadBudget(userId), [userId])
+  const [month, setMonth] = useState(todayStr().slice(0, 7))
+  const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
+  const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
@@ -49,50 +53,6 @@ export default function SummaryTab({ userId, month, setMonth }: Props) {
     void load()
   }, [month, userId])
 
-  return (
-    <div>
-      <MonthSwitcher month={month} setMonth={setMonth} />
-
-      {fetchError && (
-        <div className="mx-4 mt-3 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
-          {fetchError}
-        </div>
-      )}
-
-      <div className="p-4 space-y-4">
-        <Overview
-          transactions={transactions}
-          month={month}
-          fixedExpenses={fixedExpenses}
-          consumables={consumables}
-          householdMembers={householdMembers}
-          budget={budget}
-        />
-      </div>
-    </div>
-  )
-}
-
-// ─── Overview ───────────────────────────────────────────────
-
-function Overview({
-  transactions,
-  month,
-  fixedExpenses,
-  consumables,
-  householdMembers,
-  budget,
-}: {
-  transactions: Transaction[]
-  month: string
-  fixedExpenses: FixedExpense[]
-  consumables: Consumable[]
-  householdMembers: number
-  budget: ReturnType<typeof loadBudget>
-}) {
-  const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
-  const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
-
   const {
     income,
     consumableExpense,
@@ -112,95 +72,121 @@ function Overview({
   } = useSummaryCalculations({ transactions, fixedExpenses, consumables, householdMembers, budget, month })
 
   return (
-    <>
-      {/* 収支サマリー */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2.5">
-        <div className="text-sm font-semibold text-slate-700">収支</div>
-        <Row label="収入" value={formatYen(income)} valueColor="text-emerald-600" />
-        <Row
-          label="固定費"
-          value={`-${formatYen(Math.round(totalFixed))}`}
-          valueColor="text-slate-500"
-        />
-        <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
-        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
-        <div className="h-px bg-slate-100" />
-        <Row
-          label="収支"
-          value={(balance >= 0 ? '+' : '') + formatYen(balance)}
-          valueColor={balance >= 0 ? 'text-emerald-600' : 'text-rose-500'}
-          bold
-        />
+    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+      {/* ヘッダー */}
+      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          className="text-slate-500 active:text-slate-700 text-lg px-1"
+          aria-label="戻る"
+        >
+          ←
+        </button>
+        <span className="font-semibold text-slate-800">分析</span>
       </div>
 
-      {/* 予算進捗 */}
-      {hasBudget && (
-        <BudgetProgressPanel
-          periodMode={periodMode}
-          setPeriodMode={setPeriodMode}
-          weekRange={weekRange}
-          dayRange={dayRange}
-          daysInMonth={daysInMonth}
-          month={month}
-          oneTimeCategoryRows={oneTimeCategoryRows}
-        />
-      )}
+      <MonthSwitcher month={month} setMonth={setMonth} />
 
-      {/* 節約進捗 */}
-      {totalSaved > 0 && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <div className="text-sm font-semibold text-slate-700 mb-1">固定費の節約効果</div>
-          <div className="text-2xl font-bold text-emerald-600 mb-1">
-            -{formatYen(Math.round(totalSaved))}
-            <span className="text-sm font-normal text-slate-400">/月</span>
-          </div>
-          <div className="text-xs text-slate-400">
-            累計節約 {formatYen(Math.round(totalSaved * 12))}/年換算
-          </div>
+      {fetchError && (
+        <div className="mx-4 mt-3 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+          {fetchError}
         </div>
       )}
 
-      {/* カテゴリ別内訳（タブ切り替え） */}
-      {hasBreakdown && (
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-slate-700">内訳</div>
-          <TabGroup
-            tabs={[
-              { key: 'fixed', label: '固定費' },
-              { key: 'consumable', label: '定期購入' },
-              { key: 'oneTime', label: '出費' },
-            ] as { key: BreakdownTab; label: string }[]}
-            active={breakdownTab}
-            onChange={setBreakdownTab}
-            size="sm"
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
+        {/* 収支サマリー */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2.5">
+          <div className="text-sm font-semibold text-slate-700">収支</div>
+          <Row label="収入" value={formatYen(income)} valueColor="text-emerald-600" />
+          <Row
+            label="固定費"
+            value={`-${formatYen(Math.round(totalFixed))}`}
+            valueColor="text-slate-500"
           />
-          {breakdownTab === 'fixed' && (
-            <BreakdownBars
-              entries={fixedByCat}
-              total={Math.round(totalFixed)}
-              barColor="bg-slate-400"
-              valueColor="text-slate-600"
-            />
-          )}
-          {breakdownTab === 'consumable' && (
-            <BreakdownBars
-              entries={consumableByCat}
-              total={consumableExpense}
-              barColor="bg-blue-400"
-              valueColor="text-blue-600"
-            />
-          )}
-          {breakdownTab === 'oneTime' && (
-            <BreakdownBars
-              entries={oneTimeByCat}
-              total={oneTimeExpense}
-              barColor="bg-amber-400"
-              valueColor="text-amber-600"
-            />
-          )}
+          <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
+          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
+          <div className="h-px bg-slate-100" />
+          <Row
+            label="収支"
+            value={(balance >= 0 ? '+' : '') + formatYen(balance)}
+            valueColor={balance >= 0 ? 'text-emerald-600' : 'text-rose-500'}
+            bold
+          />
         </div>
-      )}
-    </>
+
+        {/* 予算進捗 */}
+        {hasBudget && (
+          <BudgetProgressPanel
+            periodMode={periodMode}
+            setPeriodMode={setPeriodMode}
+            weekRange={weekRange}
+            dayRange={dayRange}
+            daysInMonth={daysInMonth}
+            month={month}
+            oneTimeCategoryRows={oneTimeCategoryRows}
+          />
+        )}
+
+        {/* 節約進捗 */}
+        {totalSaved > 0 && (
+          <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="text-sm font-semibold text-slate-700 mb-1">固定費の節約効果</div>
+            <div className="text-2xl font-bold text-emerald-600 mb-1">
+              -{formatYen(Math.round(totalSaved))}
+              <span className="text-sm font-normal text-slate-400">/月</span>
+            </div>
+            <div className="text-xs text-slate-400">
+              累計節約 {formatYen(Math.round(totalSaved * 12))}/年換算
+            </div>
+          </div>
+        )}
+
+        {/* カテゴリ別内訳 */}
+        {hasBreakdown ? (
+          <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+            <div className="text-sm font-semibold text-slate-700">内訳</div>
+            <TabGroup
+              tabs={[
+                { key: 'fixed', label: '固定費' },
+                { key: 'consumable', label: '定期購入' },
+                { key: 'oneTime', label: '出費' },
+              ] as { key: BreakdownTab; label: string }[]}
+              active={breakdownTab}
+              onChange={setBreakdownTab}
+              size="sm"
+            />
+            {breakdownTab === 'fixed' && (
+              <BreakdownBars
+                entries={fixedByCat}
+                total={Math.round(totalFixed)}
+                barColor="bg-slate-400"
+                valueColor="text-slate-600"
+              />
+            )}
+            {breakdownTab === 'consumable' && (
+              <BreakdownBars
+                entries={consumableByCat}
+                total={consumableExpense}
+                barColor="bg-blue-400"
+                valueColor="text-blue-600"
+              />
+            )}
+            {breakdownTab === 'oneTime' && (
+              <BreakdownBars
+                entries={oneTimeByCat}
+                total={oneTimeExpense}
+                barColor="bg-amber-400"
+                valueColor="text-amber-600"
+              />
+            )}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-4 shadow-sm text-sm text-slate-400 text-center">
+            この月のデータがありません
+          </div>
+        )}
+      </div>
+    </div>
   )
 }
 
