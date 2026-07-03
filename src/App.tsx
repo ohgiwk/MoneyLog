@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
 import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
+import HomeTab from './components/HomeTab'
 import RecordTab from './components/RecordTab'
 import FixedExpenseTab from './components/FixedExpenseTab'
 import CalendarTab from './components/CalendarTab'
@@ -17,10 +18,11 @@ import AnalyticsScreen from './components/AnalyticsScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 
-type TabKey = 'record' | 'fixed' | 'calendar'
+type TabKey = 'home' | 'record' | 'fixed' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'setup' | 'wishlist' | 'analytics'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: 'home', label: 'ホーム', icon: '🏠' },
   { key: 'record', label: '記録', icon: '✏️' },
   { key: 'fixed', label: '固定費', icon: '📋' },
   { key: 'calendar', label: 'カレンダー', icon: '📅' },
@@ -29,7 +31,7 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 export default function App() {
   const { user, loading, signOut } = useAuth()
   const categories = useCategories()
-  const [tab, setTab] = useState<TabKey>('record')
+  const [tab, setTab] = useState<TabKey>('home')
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
@@ -152,6 +154,7 @@ export default function App() {
 
       {/* コンテンツ */}
       <div ref={scrollRef} className="flex-1 pt-[57px] pb-20 overflow-y-auto">
+        {tab === 'home' && <HomeTab userId={user.id} />}
         {tab === 'record' && (
           <RecordTab
             userId={user.id}
