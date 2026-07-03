@@ -5,7 +5,7 @@ import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, formatYen, todayStr } from '../utils'
-import { loadBudget } from '../lib/budgetStorage'
+import { budgetService, type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
@@ -22,7 +22,7 @@ interface Props {
 export default function AnalyticsScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
-  const budget = useMemo(() => loadBudget(userId), [userId])
+  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
   const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
@@ -36,16 +36,18 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
     const load = async () => {
       setFetchError(null)
       try {
-        const [txs, fixed, cons, profile] = await Promise.all([
+        const [txs, fixed, cons, profile, budgetSettings] = await Promise.all([
           transactionService.fetchByMonth(userId, month),
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
+          budgetService.fetchByUser(userId),
         ])
         setTransactions(txs)
         setFixedExpenses(fixed)
         setConsumables(cons)
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
+        setBudget(budgetSettings)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       }

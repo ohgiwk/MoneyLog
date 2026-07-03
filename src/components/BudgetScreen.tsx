@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
-import { loadBudget, saveBudget, oneTimeBudgetTotal, type BudgetSettings } from '../lib/budgetStorage'
+import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { formatYen } from '../utils'
 
 interface Props {
@@ -10,8 +10,21 @@ interface Props {
 
 export default function BudgetScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
-  const [budget, setBudget] = useState<BudgetSettings>(() => loadBudget(userId))
+  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [saved, setSaved] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      setFetchError(null)
+      try {
+        setBudget(await budgetService.fetchByUser(userId))
+      } catch (err) {
+        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
+      }
+    }
+    void load()
+  }, [userId])
 
   function handleChange(field: 'fixed' | 'consumable', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -28,9 +41,14 @@ export default function BudgetScreen({ userId, onBack }: Props) {
     setSaved(false)
   }
 
-  function handleSave() {
-    saveBudget(userId, budget)
-    setSaved(true)
+  async function handleSave() {
+    setFetchError(null)
+    try {
+      await budgetService.save(userId, budget)
+      setSaved(true)
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : '保存に失敗しました')
+    }
   }
 
   const oneTimeTotal = oneTimeBudgetTotal(budget)
@@ -54,6 +72,12 @@ export default function BudgetScreen({ userId, onBack }: Props) {
       </div>
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
+        {fetchError && (
+          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+            {fetchError}
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl p-4 shadow-sm">
           <p className="text-xs text-slate-400">
             月ごとの予算を設定すると、ホーム画面で週ごとの消費状況を確認できます。

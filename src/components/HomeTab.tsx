@@ -3,7 +3,7 @@ import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense, Transaction } from '../lib/database.types'
 import { formatYen, todayStr } from '../utils'
-import { loadBudget, oneTimeBudgetTotal } from '../lib/budgetStorage'
+import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 
 interface Props {
   userId: string
@@ -14,6 +14,7 @@ const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 export default function HomeTab({ userId }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
+  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
@@ -26,12 +27,14 @@ export default function HomeTab({ userId }: Props) {
     const load = async () => {
       setFetchError(null)
       try {
-        const [txs, fixed] = await Promise.all([
+        const [txs, fixed, budgetSettings] = await Promise.all([
           transactionService.fetchByMonth(userId, month),
           fixedExpenseService.fetchByUser(userId),
+          budgetService.fetchByUser(userId),
         ])
         setTransactions(txs)
         setFixedExpenses(fixed)
+        setBudget(budgetSettings)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       }
@@ -43,8 +46,6 @@ export default function HomeTab({ userId }: Props) {
     setCarryOver(next)
     localStorage.setItem(carryOverKey(userId), String(next))
   }
-
-  const budget = useMemo(() => loadBudget(userId), [userId])
 
   const totalFixed = useMemo(() => {
     const activeFixed = fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing')
@@ -94,6 +95,34 @@ export default function HomeTab({ userId }: Props) {
         <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
           {formatYen(todayAllowance)}
         </div>
+
+        <table className="w-full text-xs text-slate-500">
+          <tbody>
+            <tr>
+              <td className="text-left py-0.5">日割り予算</td>
+              <td className="text-right py-0.5">{formatYen(dailyAllowance)}</td>
+            </tr>
+            {carryOver ? (
+              <>
+                <tr>
+                  <td className="text-left py-0.5">経過日数（{dayOfMonth}日分）</td>
+                  <td className="text-right py-0.5">
+                    {formatYen(Math.round(dailyAllowance * dayOfMonth))}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="text-left py-0.5">今月の出費</td>
+                  <td className="text-right py-0.5">− {formatYen(monthToDateExpense)}</td>
+                </tr>
+              </>
+            ) : (
+              <tr>
+                <td className="text-left py-0.5">本日の出費</td>
+                <td className="text-right py-0.5">− {formatYen(todayExpense)}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
         <div className="flex items-center justify-center gap-3 pt-2">
           <span className="text-sm text-slate-600">お小遣い繰り越し</span>

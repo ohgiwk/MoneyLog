@@ -205,6 +205,17 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['income_records']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['income_records']['Insert']>
       }
+      budgets: {
+        Row: {
+          user_id: string
+          fixed: number
+          consumable: number
+          one_time_by_category: Json
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['budgets']['Row'], 'created_at'>
+        Update: Partial<Database['public']['Tables']['budgets']['Insert']>
+      }
     }
   }
 }
@@ -222,3 +233,4 @@ export type WorkSchedule = Database['public']['Tables']['work_schedule']['Row']
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
 export type IncomeRecord = Database['public']['Tables']['income_records']['Row']
 export type Consumable = Database['public']['Tables']['consumables']['Row']
+export type BudgetRow = Database['public']['Tables']['budgets']['Row']

@@ -209,3 +209,14 @@ create table public.income_records (
 );
 alter table public.income_records enable row level security;
 create policy "own income_records" on public.income_records for all using (auth.uid() = user_id);
+
+-- budgets（予算設定。デバイス間で共有するためDBに保存）
+create table public.budgets (
+  user_id uuid primary key references auth.users on delete cascade,
+  fixed numeric not null default 0,
+  consumable numeric not null default 0,
+  one_time_by_category jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+alter table public.budgets enable row level security;
+create policy "own budgets" on public.budgets for all using (auth.uid() = user_id);

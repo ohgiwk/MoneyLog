@@ -1,15 +1,15 @@
 import { useMemo } from 'react'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { categoryInfo, monthKey, monthlyConsumableCost } from '../utils'
-import type { loadBudget } from '../lib/budgetStorage'
-import { oneTimeBudgetTotal } from '../lib/budgetStorage'
+import type { BudgetSettings } from '../lib/services/budgetService'
+import { oneTimeBudgetTotal } from '../lib/services/budgetService'
 
 interface Options {
   transactions: Transaction[]
   fixedExpenses: FixedExpense[]
   consumables: Consumable[]
   householdMembers: number
-  budget: ReturnType<typeof loadBudget>
+  budget: BudgetSettings
   month: string
 }
 
