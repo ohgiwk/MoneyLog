@@ -74,21 +74,6 @@ export default function OneTimeTransactionForm({
         </div>
       )}
 
-      {/* ヘッダー */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          type="button"
-          onClick={() => { resetForm(); onBack() }}
-          className="text-slate-500 active:text-slate-700 text-lg px-1"
-          aria-label="戻る"
-        >
-          ←
-        </button>
-        <span className="font-semibold text-slate-800">
-          {editingTx ? '記録を編集' : '出費を記録'}
-        </span>
-      </div>
-
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
         {/* 収支トグル */}
         <div className="flex rounded-xl bg-slate-100 p-1">

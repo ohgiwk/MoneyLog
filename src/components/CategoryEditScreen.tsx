@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import CategoryList from './CategoryList'
+import ScreenHeader from './ui/ScreenHeader'
 
 type TabKey = 'expense' | 'income' | 'fixed'
 
@@ -35,12 +36,7 @@ export default function CategoryEditScreen({
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-400 active:text-slate-600 text-xl px-1">
-            ←
-          </button>
-          <span className="font-bold text-lg text-slate-800">カテゴリ編集</span>
-        </div>
+        <ScreenHeader title="カテゴリ編集" onBack={onBack} />
         <div className="flex px-4 gap-1 pb-0">
           {TABS.map((t) => (
             <button

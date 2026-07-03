@@ -15,7 +15,7 @@ interface Props {
   consumables: Consumable[]
   householdMembers: number
   reload: () => void
-  onEditingChange: (editing: boolean) => void
+  onEditingChange: (state: { title: string; onBack: () => void } | null) => void
   loading?: boolean
   onTransactionAdded?: () => void
 }
@@ -37,11 +37,12 @@ export default function ConsumablesList({
 
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
     setEditing(v)
-    onEditingChange(true)
+    const isNew = v === 'new' || (typeof v === 'object' && v !== null && 'preset' in v)
+    onEditingChange({ title: isNew ? '定期購入を追加' : '定期購入を編集', onBack: closeEditing })
   }
   function closeEditing() {
     setEditing(null)
-    onEditingChange(false)
+    onEditingChange(null)
     reload()
   }
 

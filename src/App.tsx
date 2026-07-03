@@ -38,6 +38,7 @@ export default function App() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
   const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
+  const [headerBack, setHeaderBack] = useState<{ title: string; onBack: () => void } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
 
@@ -45,6 +46,11 @@ export default function App() {
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0)
   }, [tab, screen])
+
+  // タブ切り替え時はヘッダーの戻るボタン状態をリセット
+  useEffect(() => {
+    setHeaderBack(null)
+  }, [tab])
 
   // initialSub は一度使ったらリセット（再訪問時は通常の初期値に戻す）
   useEffect(() => {
@@ -121,21 +127,46 @@ export default function App() {
       <UpdateNotification />
       {/* ヘッダー */}
       <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">💰</span>
-            <span className="font-bold text-lg text-slate-800">マネログ</span>
-            <span className="text-xs text-slate-400">MoneyLog</span>
+        <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
+          {headerBack ? (
+            <button
+              onClick={headerBack.onBack}
+              className="text-slate-500 active:text-slate-700 justify-self-start p-1"
+              aria-label="戻る"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          ) : (
+            <span />
+          )}
+
+          <div className="flex items-center justify-center gap-2 min-w-0">
+            {headerBack ? (
+              <span className="font-semibold text-slate-800 truncate">{headerBack.title}</span>
+            ) : (
+              <>
+                <span className="text-2xl">💰</span>
+                <span className="font-bold text-lg text-slate-800">マネログ</span>
+                <span className="text-xs text-slate-400">MoneyLog</span>
+              </>
+            )}
           </div>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="flex flex-col gap-1 p-2 active:opacity-60"
-            aria-label="メニューを開く"
-          >
-            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
-            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
-            <span className="block w-5 h-0.5 bg-slate-500 rounded" />
-          </button>
+
+          {headerBack ? (
+            <span />
+          ) : (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex flex-col gap-1 p-2 active:opacity-60 justify-self-end"
+              aria-label="メニューを開く"
+            >
+              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -165,6 +196,7 @@ export default function App() {
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
             initialSub={recordInitialSub}
+            onHeaderChange={setHeaderBack}
           />
         )}
         {tab === 'fixed' && (
@@ -173,6 +205,7 @@ export default function App() {
             fixedCategories={categories.fixedCategories}
             fromOnboarding={fixedFromOnboarding}
             onWizardOpen={() => setFixedFromOnboarding(false)}
+            onHeaderChange={setHeaderBack}
           />
         )}
         {tab === 'calendar' && (

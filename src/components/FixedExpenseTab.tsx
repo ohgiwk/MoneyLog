@@ -9,9 +9,10 @@ interface Props {
   fixedCategories: CategoryInfo[]
   fromOnboarding?: boolean
   onWizardOpen?: () => void
+  onHeaderChange?: (state: { title: string; onBack: () => void } | null) => void
 }
 
-export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen }: Props) {
+export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen, onHeaderChange }: Props) {
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -53,7 +54,7 @@ export default function FixedExpenseTab({ userId, fixedCategories, fromOnboardin
         fixedExpenses={fixedExpenses}
         fixedCategories={fixedCategories}
         reload={reload}
-        onEditingChange={() => {}}
+        onEditingChange={onHeaderChange ?? (() => {})}
         loading={loading}
         fromOnboarding={fromOnboarding}
         onWizardOpen={onWizardOpen}

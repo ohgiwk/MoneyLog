@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { wishlistService, type WishlistItem } from '../lib/services/wishlistService'
 import ConfirmDialog from './ui/ConfirmDialog'
+import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
   userId: string
@@ -135,16 +136,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       {/* ヘッダー */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="text-slate-500 active:text-slate-700 p-1 -ml-1 text-2xl leading-none"
-            aria-label="戻る"
-          >
-            ‹
-          </button>
-          <span className="font-semibold text-slate-800 text-lg">🎯 目標・欲しいもの</span>
-        </div>
+        <ScreenHeader title="🎯 目標・欲しいもの" onBack={onBack} />
       </div>
 
       {/* コンテンツ */}

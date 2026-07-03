@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { formatYen } from '../utils'
+import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
   userId: string
@@ -60,15 +61,8 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="text-slate-500 active:text-slate-700 text-lg px-1"
-          aria-label="戻る"
-        >
-          ←
-        </button>
-        <span className="font-semibold text-slate-800">予算設定</span>
+      <div className="bg-white border-b border-slate-100">
+        <ScreenHeader title="予算設定" onBack={onBack} />
       </div>
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">

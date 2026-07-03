@@ -10,6 +10,7 @@ import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import { Row } from './ui/Row'
+import ScreenHeader from './ui/ScreenHeader'
 
 type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
 type PeriodMode = 'day' | 'week' | 'month'
@@ -76,15 +77,8 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          className="text-slate-500 active:text-slate-700 text-lg px-1"
-          aria-label="戻る"
-        >
-          ←
-        </button>
-        <span className="font-semibold text-slate-800">分析</span>
+      <div className="bg-white border-b border-slate-100">
+        <ScreenHeader title="分析" onBack={onBack} />
       </div>
 
       <MonthSwitcher month={month} setMonth={setMonth} />

@@ -20,7 +20,7 @@ interface Props {
   fixedExpenses: FixedExpense[]
   fixedCategories: CategoryInfo[]
   reload: () => void
-  onEditingChange: (editing: boolean) => void
+  onEditingChange: (state: { title: string; onBack: () => void } | null) => void
   loading?: boolean
   fromOnboarding?: boolean
   onWizardOpen?: () => void
@@ -50,11 +50,11 @@ export default function FixedExpenseList({
 
   function openEditing(v: FixedExpense | 'new') {
     setEditing(v)
-    onEditingChange(true)
+    onEditingChange({ title: v === 'new' ? '固定費を追加' : '固定費を編集', onBack: closeEditing })
   }
   function closeEditing() {
     setEditing(null)
-    onEditingChange(false)
+    onEditingChange(null)
     reload()
   }
 

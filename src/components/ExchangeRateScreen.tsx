@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getUsdJpyRate, setUsdJpyRate } from '../lib/exchangeRate'
 import { SAVE_SUCCESS_DISPLAY_MS } from '../constants'
+import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
   onBack: () => void
@@ -30,12 +31,7 @@ export default function ExchangeRateScreen({ onBack }: Props) {
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={onBack} className="text-slate-400 active:text-slate-600 text-xl px-1">
-            ←
-          </button>
-          <span className="font-bold text-lg text-slate-800">為替レート設定</span>
-        </div>
+        <ScreenHeader title="為替レート設定" onBack={onBack} />
       </div>
 
       <div className="flex-1 p-4 space-y-4">

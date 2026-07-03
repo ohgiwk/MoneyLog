@@ -102,18 +102,6 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onClose}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 active:bg-slate-200 text-lg"
-        >
-          ‹
-        </button>
-        <span className="text-sm font-semibold text-slate-700">
-          {consumable ? '定期購入を編集' : '定期購入を追加'}
-        </span>
-      </div>
-
       {error && (
         <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
           {error}
