@@ -167,6 +167,24 @@ create table public.work_schedule (
 alter table public.work_schedule enable row level security;
 create policy "own work_schedule" on public.work_schedule for all using (auth.uid() = user_id);
 
+-- calendar_events（予定。勤務日/休暇/祝日の区分は日付に紐づくためwork_scheduleで管理）
+create table public.calendar_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  date date not null,
+  title text not null,
+  start_time time,
+  end_time time,
+  planned_expense numeric not null default 0,
+  memo text,
+  created_at timestamptz not null default now()
+);
+alter table public.calendar_events enable row level security;
+create policy "own calendar_events" on public.calendar_events for all using (auth.uid() = user_id);
+
+-- 既存のcalendar_eventsにday_typeカラムがある場合は削除（区分はwork_scheduleへ移行）
+alter table public.calendar_events drop column if exists day_type;
+
 -- consumables（消耗品費）
 create table public.consumables (
   id uuid primary key default gen_random_uuid(),

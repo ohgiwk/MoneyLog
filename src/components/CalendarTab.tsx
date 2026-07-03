@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { CalendarEvent } from '../lib/database.types'
+import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
+import { workScheduleService } from '../lib/services/workScheduleService'
 import { formatYen } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 
@@ -12,10 +13,10 @@ interface Props {
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
-const DAY_TYPE_LABELS: Record<CalendarEvent['day_type'], { label: string; color: string }> = {
-  work:    { label: '勤務日', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-  off:     { label: '休暇',   color: 'text-sky-600 bg-sky-50 border-sky-200' },
-  holiday: { label: '祝日',   color: 'text-rose-500 bg-rose-50 border-rose-200' },
+const DAY_TYPE_LABELS: Record<WorkSchedule['day_type'], { label: string; color: string; cellBg: string }> = {
+  work:    { label: '勤務日', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', cellBg: 'bg-emerald-50' },
+  off:     { label: '休暇',   color: 'text-sky-600 bg-sky-50 border-sky-200', cellBg: 'bg-sky-50' },
+  holiday: { label: 'その他', color: 'text-amber-600 bg-amber-50 border-amber-200', cellBg: 'bg-amber-50' },
 }
 
 function todayStr() {
@@ -24,10 +25,12 @@ function todayStr() {
 
 export default function CalendarTab({ userId, month, setMonth }: Props) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [workSchedule, setWorkSchedule] = useState<WorkSchedule[]>([])
   const [selectedDate, setSelectedDate] = useState<string>(todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [dayTypeError, setDayTypeError] = useState<string | null>(null)
 
   useEffect(() => {
     void load()
@@ -36,10 +39,34 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
   async function load() {
     setFetchError(null)
     try {
-      const data = await calendarEventService.fetchByMonth(userId, month)
-      setEvents(data)
+      const [eventData, scheduleData] = await Promise.all([
+        calendarEventService.fetchByMonth(userId, month),
+        workScheduleService.fetchByMonth(userId, month),
+      ])
+      setEvents(eventData)
+      setWorkSchedule(scheduleData)
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
+    }
+  }
+
+  const dayTypeByDate = useMemo(() => {
+    const map = new Map<string, WorkSchedule['day_type']>()
+    for (const s of workSchedule) map.set(s.date, s.day_type)
+    return map
+  }, [workSchedule])
+
+  async function handleDayTypeChange(next: WorkSchedule['day_type'] | null) {
+    setDayTypeError(null)
+    try {
+      if (next === null) {
+        await workScheduleService.clearDayType(userId, selectedDate)
+      } else {
+        await workScheduleService.setDayType(userId, selectedDate, next)
+      }
+      await load()
+    } catch (err) {
+      setDayTypeError(err instanceof Error ? err.message : '保存に失敗しました')
     }
   }
 
@@ -118,15 +145,16 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
             const isToday = date === todayStr()
             const dow = new Date(date + 'T00:00:00').getDay()
             const dayNum = parseInt(date.slice(8))
-            const hasWork = dayEvents.some((e) => e.day_type === 'work')
-            const hasOff  = dayEvents.some((e) => e.day_type === 'off' || e.day_type === 'holiday')
+            const dayType = dayTypeByDate.get(date)
+            const cellBg = dayType ? DAY_TYPE_LABELS[dayType].cellBg : ''
             return (
               <button
                 key={date}
                 onClick={() => setSelectedDate(date)}
                 className={
                   'relative h-14 flex flex-col items-center pt-1 border-b border-r border-slate-50 last:border-r-0 transition ' +
-                  (isSelected ? 'bg-emerald-50' : 'active:bg-slate-50')
+                  cellBg + ' ' +
+                  (isSelected ? 'ring-2 ring-inset ring-emerald-400' : cellBg ? '' : 'active:bg-slate-50')
                 }
               >
                 <span
@@ -143,14 +171,10 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                 >
                   {dayNum}
                 </span>
-                {/* イベントドット */}
-                <div className="flex gap-0.5 mt-0.5">
-                  {hasWork && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />}
-                  {hasOff  && <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />}
-                  {dayEvents.length > 0 && !hasWork && !hasOff && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                  )}
-                </div>
+                {/* 予定ドット */}
+                {dayEvents.length > 0 && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-0.5" />
+                )}
                 {dayEvents.length > 1 && (
                   <span className="text-[9px] text-slate-400">{dayEvents.length}件</span>
                 )}
@@ -173,6 +197,30 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
         </button>
       </div>
 
+      {/* 選択日の区分設定 */}
+      <div className="bg-white rounded-2xl shadow-sm px-4 py-3 space-y-2">
+        <span className="text-xs text-slate-400">区分</span>
+        {dayTypeError && <p className="text-xs text-rose-500">{dayTypeError}</p>}
+        <div className="flex gap-2">
+          {(['work', 'off', 'holiday'] as const).map((t) => {
+            const selected = dayTypeByDate.get(selectedDate) === t
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => void handleDayTypeChange(selected ? null : t)}
+                className={
+                  'flex-1 py-2 rounded-xl text-xs font-semibold border transition ' +
+                  (selected ? DAY_TYPE_LABELS[t].color : 'border-slate-100 text-slate-400 bg-slate-50')
+                }
+              >
+                {DAY_TYPE_LABELS[t].label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* 選択日の予定リスト */}
       {selectedEvents.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-slate-400">
@@ -188,14 +236,6 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span
-                    className={
-                      'text-[10px] font-semibold px-1.5 py-0.5 rounded border ' +
-                      DAY_TYPE_LABELS[ev.day_type].color
-                    }
-                  >
-                    {DAY_TYPE_LABELS[ev.day_type].label}
-                  </span>
                   <span className="text-sm font-semibold text-slate-700 truncate">{ev.title}</span>
                 </div>
                 {(ev.start_time || ev.end_time) && (
@@ -250,7 +290,6 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
   const [title, setTitle]               = useState(event?.title ?? '')
   const [startTime, setStartTime]       = useState(event?.start_time?.slice(0, 5) ?? '')
   const [endTime, setEndTime]           = useState(event?.end_time?.slice(0, 5) ?? '')
-  const [dayType, setDayType]           = useState<CalendarEvent['day_type']>(event?.day_type ?? 'work')
   const [plannedExpense, setPlannedExpense] = useState(event?.planned_expense ? String(event.planned_expense) : '')
   const [memo, setMemo]                 = useState(event?.memo ?? '')
   const [titleError, setTitleError]     = useState<string | null>(null)
@@ -269,7 +308,6 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
         title: title.trim(),
         start_time: startTime || null,
         end_time: endTime || null,
-        day_type: dayType,
         planned_expense: parseInt(plannedExpense) || 0,
         memo: memo.trim() || null,
       }
@@ -348,28 +386,6 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 onChange={(e) => setEndTime(e.target.value)}
                 className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
               />
-            </div>
-          </div>
-
-          {/* 勤務日・休暇 */}
-          <div>
-            <label className="text-xs text-slate-400">区分</label>
-            <div className="flex gap-2 mt-1">
-              {(['work', 'off', 'holiday'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setDayType(t)}
-                  className={
-                    'flex-1 py-2 rounded-xl text-xs font-semibold border transition ' +
-                    (dayType === t
-                      ? DAY_TYPE_LABELS[t].color
-                      : 'border-slate-100 text-slate-400 bg-slate-50')
-                  }
-                >
-                  {DAY_TYPE_LABELS[t].label}
-                </button>
-              ))}
             </div>
           </div>
 

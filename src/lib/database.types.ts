@@ -167,7 +167,6 @@ export interface Database {
           title: string
           start_time: string | null
           end_time: string | null
-          day_type: 'work' | 'off' | 'holiday'
           planned_expense: number
           memo: string | null
           created_at: string
