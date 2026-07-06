@@ -5,7 +5,7 @@ interface Props {
 
 export default function ScreenHeader({ title, onBack }: Props) {
   return (
-    <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
+    <div className="px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
       <button
         onClick={onBack}
         className="text-slate-500 active:text-slate-700 justify-self-start p-1"

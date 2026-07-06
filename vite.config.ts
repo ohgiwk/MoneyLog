@@ -2,8 +2,10 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const isCapacitor = process.env.CAPACITOR_BUILD === 'true'
+
 export default defineConfig({
-  base: '/MoneyLog/',
+  base: isCapacitor ? '/' : '/MoneyLog/',
   server: { port: 5175 },
   plugins: [
     react(),

@@ -126,7 +126,7 @@ export default function App() {
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <UpdateNotification />
       {/* ヘッダー */}
-      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100">
+      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100 pt-[env(safe-area-inset-top)]">
         <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
           {headerBack ? (
             <button
@@ -184,7 +184,7 @@ export default function App() {
       )}
 
       {/* コンテンツ */}
-      <div ref={scrollRef} className="flex-1 pt-[57px] pb-20 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 pt-[calc(57px+env(safe-area-inset-top))] pb-20 overflow-y-auto">
         {tab === 'home' && <HomeTab userId={user.id} />}
         {tab === 'record' && (
           <RecordTab
