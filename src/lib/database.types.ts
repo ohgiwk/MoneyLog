@@ -11,6 +11,7 @@ export interface Database {
           hourly_wage: number | null
           expected_work_days: number | null
           household_members: number
+          month_start_day: number
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['profiles']['Row'], 'created_at'>

@@ -18,9 +18,10 @@ interface Props {
   availableMonths?: string[]
   loading?: boolean
   onEditTx?: (tx: Transaction) => void
+  startDay?: number
 }
 
-export default function TransactionDetailView({ transactions, month, setMonth, availableMonths, loading, onEditTx }: Props) {
+export default function TransactionDetailView({ transactions, month, setMonth, availableMonths, loading, onEditTx, startDay = 1 }: Props) {
   const {
     typeFilter,
     setTypeFilter,
@@ -31,7 +32,7 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
     isFiltered,
     categories,
     grouped,
-  } = useTransactionFilters(transactions, month)
+  } = useTransactionFilters(transactions, month, startDay)
 
   const totalExpense = useMemo(
     () => transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),

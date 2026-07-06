@@ -24,6 +24,48 @@ export function shiftMonth(ym: string, delta: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
+// startDay を起点とした集計期間のキー（例: startDay=25 なら 3/25〜4/24 は '2024-03'）
+export function periodKey(dateStr: string, startDay: number): string {
+  if (startDay <= 1) return dateStr.slice(0, 7)
+  const ym = dateStr.slice(0, 7)
+  const day = Number(dateStr.slice(8, 10))
+  return day >= startDay ? ym : shiftMonth(ym, -1)
+}
+
+// periodKey が表す集計期間の実際の日付範囲
+export function periodRange(periodYm: string, startDay: number): { from: string; to: string } {
+  if (startDay <= 1) {
+    const [y, m] = periodYm.split('-').map(Number)
+    const lastDay = new Date(y, m, 0).getDate()
+    return { from: `${periodYm}-01`, to: `${periodYm}-${String(lastDay).padStart(2, '0')}` }
+  }
+  const [y, m] = periodYm.split('-').map(Number)
+  const startDayClamped = Math.min(startDay, new Date(y, m, 0).getDate())
+  const from = `${periodYm}-${String(startDayClamped).padStart(2, '0')}`
+
+  const nextYm = shiftMonth(periodYm, 1)
+  const [ny, nm] = nextYm.split('-').map(Number)
+  const nextStartDayClamped = Math.min(startDay, new Date(ny, nm, 0).getDate())
+  const toDate = new Date(ny, nm - 1, nextStartDayClamped)
+  toDate.setDate(toDate.getDate() - 1)
+  const to = toDate.toISOString().slice(0, 10)
+
+  return { from, to }
+}
+
+// 集計期間の初日から数えた経過日数（1始まり）
+export function periodDayIndex(dateStr: string, periodYm: string, startDay: number): number {
+  const { from } = periodRange(periodYm, startDay)
+  const diff = (new Date(dateStr).getTime() - new Date(from).getTime()) / 86400000
+  return Math.round(diff) + 1
+}
+
+// 集計期間の総日数
+export function periodDayCount(periodYm: string, startDay: number): number {
+  const { from, to } = periodRange(periodYm, startDay)
+  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1
+}
+
 export function categoryInfo(name: string): CategoryInfo {
   return ALL_CATEGORIES.find((c) => c.name === name) ?? { name, icon: '📦', color: '#64748b' }
 }

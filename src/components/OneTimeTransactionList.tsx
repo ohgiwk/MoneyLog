@@ -9,9 +9,10 @@ interface Props {
   loading?: boolean
   onAdd: () => void
   onEditTx: (tx: Transaction) => void
+  startDay?: number
 }
 
-export default function OneTimeTransactionList({ transactions, month, setMonth, availableMonths, loading, onAdd, onEditTx }: Props) {
+export default function OneTimeTransactionList({ transactions, month, setMonth, availableMonths, loading, onAdd, onEditTx, startDay }: Props) {
   return (
     <>
       <div className="p-4">
@@ -22,6 +23,7 @@ export default function OneTimeTransactionList({ transactions, month, setMonth, 
           availableMonths={availableMonths}
           loading={loading}
           onEditTx={onEditTx}
+          startDay={startDay}
         />
       </div>
 

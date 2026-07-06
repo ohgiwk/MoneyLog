@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
+import { profileService } from '../lib/services/profileService'
 import type { FixedExpense, Transaction } from '../lib/database.types'
-import { formatYen, todayStr } from '../utils'
+import { formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 
 interface Props {
@@ -15,20 +16,26 @@ export default function HomeTab({ userId }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
+  const [monthStartDay, setMonthStartDay] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
 
   const today = todayStr()
-  const month = today.slice(0, 7)
+  const period = periodKey(today, monthStartDay)
 
   useEffect(() => {
     const load = async () => {
       setFetchError(null)
       try {
+        const profile = await profileService.fetchById(userId)
+        const startDay = profile?.month_start_day ?? 1
+        setMonthStartDay(startDay)
+        const currentPeriod = periodKey(today, startDay)
+
         const [txs, fixed, budgetSettings] = await Promise.all([
-          transactionService.fetchByMonth(userId, month),
+          transactionService.fetchByMonth(userId, currentPeriod, startDay),
           fixedExpenseService.fetchByUser(userId),
           budgetService.fetchByUser(userId),
         ])
@@ -40,7 +47,7 @@ export default function HomeTab({ userId }: Props) {
       }
     }
     void load()
-  }, [userId, month])
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCarryOverChange(next: boolean) {
     setCarryOver(next)
@@ -54,10 +61,10 @@ export default function HomeTab({ userId }: Props) {
 
   const monthlyBudgetTotal = budget.fixed + budget.consumable + oneTimeBudgetTotal(budget)
 
-  const daysInMonth = useMemo(() => {
-    const [y, m] = month.split('-').map(Number)
-    return new Date(y, m, 0).getDate()
-  }, [month])
+  const daysInMonth = useMemo(
+    () => periodDayCount(period, monthStartDay),
+    [period, monthStartDay]
+  )
 
   const dailyAllowance = (monthlyBudgetTotal - totalFixed) / daysInMonth
 
@@ -68,7 +75,7 @@ export default function HomeTab({ userId }: Props) {
 
   const todayExpense = oneTimeExpenseOn(today)
 
-  const dayOfMonth = Number(today.slice(8, 10))
+  const dayOfMonth = periodDayIndex(today, period, monthStartDay)
 
   const monthToDateExpense = useMemo(
     () =>

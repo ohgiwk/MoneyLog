@@ -1,18 +1,16 @@
 import { supabase } from '../supabase'
 import type { Transaction } from '../database.types'
 import { cachedFetch, cacheInvalidateTable } from '../cache'
+import { periodKey, periodRange } from '../../utils'
 
 type TransactionInsert = Omit<Transaction, 'id' | 'created_at'>
 
 const TABLE = 'transactions'
 
 export const transactionService = {
-  fetchByMonth: async (userId: string, month: string): Promise<Transaction[]> => {
-    return cachedFetch(`${TABLE}:${userId}:${month}`, async () => {
-      const [year, monthNum] = month.split('-').map(Number)
-      const lastDay = new Date(year, monthNum, 0).getDate()
-      const from = `${month}-01`
-      const to = `${month}-${String(lastDay).padStart(2, '0')}`
+  fetchByMonth: async (userId: string, month: string, startDay = 1): Promise<Transaction[]> => {
+    return cachedFetch(`${TABLE}:${userId}:${month}:${startDay}`, async () => {
+      const { from, to } = periodRange(month, startDay)
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
@@ -43,14 +41,14 @@ export const transactionService = {
     cacheInvalidateTable(TABLE)
   },
 
-  fetchAvailableMonths: async (userId: string): Promise<string[]> => {
-    return cachedFetch(`${TABLE}:months:${userId}`, async () => {
+  fetchAvailableMonths: async (userId: string, startDay = 1): Promise<string[]> => {
+    return cachedFetch(`${TABLE}:months:${userId}:${startDay}`, async () => {
       const { data, error } = await supabase
         .from('transactions')
         .select('date')
         .eq('user_id', userId)
       if (error) throw new Error(error.message)
-      const months = new Set((data ?? []).map((t: { date: string }) => t.date.slice(0, 7)))
+      const months = new Set((data ?? []).map((t: { date: string }) => periodKey(t.date, startDay)))
       return [...months].sort().reverse() as string[]
     })
   },

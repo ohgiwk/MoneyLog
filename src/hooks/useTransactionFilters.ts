@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
-import { monthKey } from '../utils'
+import { periodKey } from '../utils'
 
-export function useTransactionFilters(transactions: Transaction[], month: string) {
+export function useTransactionFilters(transactions: Transaction[], month: string, startDay = 1) {
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -10,8 +10,8 @@ export function useTransactionFilters(transactions: Transaction[], month: string
   const isFiltered = typeFilter !== 'all' || categoryFilter !== 'all'
 
   const monthTx = useMemo(
-    () => transactions.filter((t) => monthKey(t.date) === month),
-    [transactions, month]
+    () => transactions.filter((t) => periodKey(t.date, startDay) === month),
+    [transactions, month, startDay]
   )
 
   const categories = useMemo(() => {

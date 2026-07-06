@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import { transactionService } from '../lib/services/transactionService'
 import type { Consumable, Transaction } from '../lib/database.types'
+import { periodKey, todayStr } from '../utils'
 import { TabGroup } from './ui/TabGroup'
 import ConsumablesList from './ConsumablesList'
 import OneTimeTransactionList from './OneTimeTransactionList'
@@ -48,10 +49,12 @@ export default function RecordTab({
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
+  const [monthStartDay, setMonthStartDay] = useState(1)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [availableMonths, setAvailableMonths] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const periodInitialized = useRef(false)
 
   // initialSub が指定されたときにサブページを切り替える
   useEffect(() => {
@@ -73,14 +76,28 @@ export default function RecordTab({
       setFetchError(null)
       setLoading(true)
       try {
-        const [consumablesData, profile, months, txs] = await Promise.all([
+        const profile = await profileService.fetchById(userId)
+        const startDay = profile?.month_start_day ?? 1
+        setMonthStartDay(startDay)
+        if (profile) setHouseholdMembers(profile.household_members ?? 1)
+
+        // 月開始日の設定に応じて、現在いるべき集計期間に補正する（初回のみ）
+        let effectiveMonth = month
+        if (!periodInitialized.current) {
+          periodInitialized.current = true
+          const correctPeriod = periodKey(todayStr(), startDay)
+          if (correctPeriod !== month) {
+            effectiveMonth = correctPeriod
+            setMonth(correctPeriod)
+          }
+        }
+
+        const [consumablesData, months, txs] = await Promise.all([
           consumableService.fetchByUser(userId),
-          profileService.fetchById(userId),
-          transactionService.fetchAvailableMonths(userId),
-          transactionService.fetchByMonth(userId, month),
+          transactionService.fetchAvailableMonths(userId, startDay),
+          transactionService.fetchByMonth(userId, effectiveMonth, startDay),
         ])
         setConsumables(consumablesData)
-        if (profile) setHouseholdMembers(profile.household_members ?? 1)
         setAvailableMonths(months)
         setTransactions(txs)
       } catch (err) {
@@ -94,10 +111,11 @@ export default function RecordTab({
 
   // 月が変わったらトランザクションを再取得
   useEffect(() => {
-    transactionService.fetchByMonth(userId, month)
+    if (!periodInitialized.current) return
+    transactionService.fetchByMonth(userId, month, monthStartDay)
       .then(setTransactions)
       .catch(() => {})
-  }, [userId, month])
+  }, [userId, month, monthStartDay])
 
   async function fetchConsumables() {
     try {
@@ -111,8 +129,8 @@ export default function RecordTab({
   async function fetchTransactions() {
     try {
       const [txs, months] = await Promise.all([
-        transactionService.fetchByMonth(userId, month),
-        transactionService.fetchAvailableMonths(userId),
+        transactionService.fetchByMonth(userId, month, monthStartDay),
+        transactionService.fetchAvailableMonths(userId, monthStartDay),
       ])
       setTransactions(txs)
       setAvailableMonths(months)
@@ -150,9 +168,9 @@ export default function RecordTab({
   const isEditing = consumableEditing
   const showTabs = !isEditing && !(sub === 'one_time' && oneTimeView === 'form')
 
-  // 記録がある月 + 今月（記録なしでも）を含むリストを構築
-  const currentMonth = new Date().toISOString().slice(0, 7)
-  const monthSet = new Set([currentMonth, ...availableMonths])
+  // 記録がある期間 + 現在の集計期間（記録なしでも）を含むリストを構築
+  const currentPeriod = periodKey(todayStr(), monthStartDay)
+  const monthSet = new Set([currentPeriod, ...availableMonths])
   const months = [...monthSet].sort().reverse()
 
   return (
@@ -178,6 +196,7 @@ export default function RecordTab({
           loading={loading}
           onAdd={() => openForm()}
           onEditTx={(tx) => openForm(tx)}
+          startDay={monthStartDay}
         />
       )}
 

@@ -238,3 +238,10 @@ create table public.budgets (
 );
 alter table public.budgets enable row level security;
 create policy "own budgets" on public.budgets for all using (auth.uid() = user_id);
+
+-- profiles に月の開始日カラムを追加（1〜28。ホーム画面/記録タブの集計期間の起点に使用）
+alter table public.profiles add column if not exists month_start_day int not null default 1;
+alter table public.profiles drop constraint if exists profiles_month_start_day_check;
+alter table public.profiles
+  add constraint profiles_month_start_day_check
+  check (month_start_day >= 1 and month_start_day <= 28);

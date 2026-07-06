@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
-import { HOUSEHOLD_MEMBERS_MIN, HOUSEHOLD_MEMBERS_MAX, SAVE_SUCCESS_DISPLAY_MS } from '../constants'
+import {
+  HOUSEHOLD_MEMBERS_MIN,
+  HOUSEHOLD_MEMBERS_MAX,
+  MONTH_START_DAY_MIN,
+  MONTH_START_DAY_MAX,
+  SAVE_SUCCESS_DISPLAY_MS,
+} from '../constants'
 import { profileService } from '../lib/services/profileService'
+import { cacheInvalidateTable } from '../lib/cache'
 import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
@@ -12,6 +19,7 @@ interface Props {
 
 export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate, onBack }: Props) {
   const [householdMembers, setHouseholdMembers] = useState(1)
+  const [monthStartDay, setMonthStartDay] = useState(1)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -19,7 +27,10 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
 
   useEffect(() => {
     profileService.fetchById(userId).then((p) => {
-      if (p) setHouseholdMembers(p.household_members ?? 1)
+      if (p) {
+        setHouseholdMembers(p.household_members ?? 1)
+        setMonthStartDay(p.month_start_day ?? 1)
+      }
     })
   }, [userId])
 
@@ -31,12 +42,71 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
     setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
   }
 
+  async function saveMonthStartDay(value: number) {
+    setSaving(true)
+    await profileService.update(userId, { month_start_day: value })
+    // 集計期間の起点が変わるため、キャッシュ済みの出費データを無効化する
+    cacheInvalidateTable('transactions')
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
+  }
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <ScreenHeader title="設定" onBack={onBack} />
       </div>
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+        {/* 家計の設定 */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              家計
+            </span>
+          </div>
+          <div className="px-4 py-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-slate-700">月の開始日</div>
+                <div className="text-xs text-slate-400">
+                  ホーム画面の累計・記録タブの集計期間の起点に使用
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const v = Math.max(MONTH_START_DAY_MIN, monthStartDay - 1)
+                    setMonthStartDay(v)
+                    saveMonthStartDay(v)
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
+                >
+                  −
+                </button>
+                <span className="text-lg font-semibold text-slate-700 w-6 text-center">
+                  {monthStartDay}
+                </span>
+                <button
+                  onClick={() => {
+                    const v = Math.min(MONTH_START_DAY_MAX, monthStartDay + 1)
+                    setMonthStartDay(v)
+                    saveMonthStartDay(v)
+                  }}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
+                >
+                  ＋
+                </button>
+              </div>
+            </div>
+            {(saving || saved) && (
+              <div className="text-xs text-emerald-500 text-right">
+                {saving ? '保存中...' : '保存しました'}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* 定期購入の設定 */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100">
