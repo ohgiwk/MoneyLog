@@ -34,6 +34,7 @@ export default function ConsumablesList({
   const [editing, setEditing] = useState<EditingState>(null)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [purchasing, setPurchasing] = useState<Consumable | null>(null)
+  const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
     setEditing(v)
@@ -114,12 +115,40 @@ export default function ConsumablesList({
 
   return (
     <>
-      {/* 月額コストサマリー */}
+      {/* 月額/年額コストサマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">定期購入合計（月額換算）</div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-sm font-semibold text-slate-700 mb-1">
+            定期購入合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
+          </div>
+          <div className="shrink-0 flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setSummaryPeriod('monthly')}
+              className={
+                'px-2.5 py-1 ' +
+                (summaryPeriod === 'monthly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+              }
+            >
+              月
+            </button>
+            <button
+              type="button"
+              onClick={() => setSummaryPeriod('yearly')}
+              className={
+                'px-2.5 py-1 ' +
+                (summaryPeriod === 'yearly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+              }
+            >
+              年
+            </button>
+          </div>
+        </div>
         <div className="text-2xl font-bold text-slate-700">
-          {formatYen(totalMonthly)}
-          <span className="text-sm font-normal text-slate-400">/月</span>
+          {formatYen(summaryPeriod === 'monthly' ? totalMonthly : totalMonthly * 12)}
+          <span className="text-sm font-normal text-slate-400">
+            {summaryPeriod === 'monthly' ? '/月' : '/年'}
+          </span>
         </div>
         <div className="text-xs text-slate-400 mt-1">同居人数: {householdMembers}人</div>
       </div>
