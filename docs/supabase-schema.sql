@@ -245,3 +245,6 @@ alter table public.profiles drop constraint if exists profiles_month_start_day_c
 alter table public.profiles
   add constraint profiles_month_start_day_check
   check (month_start_day >= 1 and month_start_day <= 28);
+
+-- transactions に店舗種別カラムを追加（出費記録時の任意項目）
+alter table public.transactions add column if not exists store_type text;

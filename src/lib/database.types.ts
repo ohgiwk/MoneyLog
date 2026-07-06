@@ -80,6 +80,7 @@ export interface Database {
           category: string
           amount: number
           memo: string | null
+          store_type: string | null
           recurring_rule_id: string | null
           created_at: string
         }

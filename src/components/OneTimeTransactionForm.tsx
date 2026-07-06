@@ -1,4 +1,4 @@
-import type { CategoryInfo } from '../constants'
+import { STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import DatePicker from './ui/DatePicker'
@@ -148,6 +148,33 @@ export default function OneTimeTransactionForm({
           </div>
           {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
         </div>
+
+        {/* 店舗種別 */}
+        {values.type === 'expense' && (
+          <div>
+            <label className="text-xs text-slate-400">店舗種別（任意）</label>
+            <div className="relative mt-1">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg">
+                {STORE_TYPES.find((s) => s.name === values.storeType)?.icon ?? '🏷️'}
+              </span>
+              <select
+                value={values.storeType}
+                onChange={(e) => setValue('storeType', e.target.value)}
+                className="w-full appearance-none border border-slate-200 rounded-xl pl-10 pr-8 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-white"
+              >
+                <option value="">未選択</option>
+                {STORE_TYPES.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.icon} {s.name}
+                  </option>
+                ))}
+              </select>
+              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                ▼
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* メモ */}
         <div>

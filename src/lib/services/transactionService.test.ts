@@ -67,6 +67,7 @@ describe('transactionService.insert', () => {
       category: '食費',
       amount: 500,
       memo: null,
+      store_type: null,
       recurring_rule_id: null,
     }
     await transactionService.insert(data)

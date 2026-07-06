@@ -11,6 +11,7 @@ interface OneTimeFormValues {
   category: string
   amount: string
   memo: string
+  storeType: string
 }
 
 interface Options {
@@ -39,6 +40,7 @@ export function useOneTimeForm({
       category: expenseCategories[0]?.name ?? '',
       amount: '',
       memo: '',
+      storeType: '',
     })
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
@@ -51,6 +53,7 @@ export function useOneTimeForm({
         category: editingTx.category,
         amount: String(editingTx.amount),
         memo: editingTx.memo ?? '',
+        storeType: editingTx.store_type ?? '',
       })
     }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -59,11 +62,17 @@ export function useOneTimeForm({
     reset()
     setValue('date', todayStr())
     setValue('category', expenseCategories[0]?.name ?? '')
+    setValue('storeType', '')
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {
     const cats = newType === 'expense' ? expenseCategories : incomeCategories
-    setValues({ ...values, type: newType, category: cats[0]?.name ?? '' })
+    setValues({
+      ...values,
+      type: newType,
+      category: cats[0]?.name ?? '',
+      storeType: newType === 'expense' ? values.storeType : '',
+    })
   }
 
   async function handleDelete() {
@@ -98,6 +107,7 @@ export function useOneTimeForm({
           category: values.category,
           amount: amt,
           memo: values.memo.trim() || null,
+          store_type: values.type === 'expense' ? values.storeType || null : null,
         })
         onBack?.()
       } else {
@@ -109,6 +119,7 @@ export function useOneTimeForm({
           category: values.category,
           amount: amt,
           memo: values.memo.trim() || null,
+          store_type: values.type === 'expense' ? values.storeType || null : null,
           recurring_rule_id: null,
         })
         resetForm()
