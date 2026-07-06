@@ -39,6 +39,7 @@ export default function FixedExpenseList({
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [tutorialOpen, setTutorialOpen] = useState(false)
+  const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   useEffect(() => {
     if (fromOnboarding) {
@@ -117,10 +118,38 @@ export default function FixedExpenseList({
 
       {/* 節約サマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">固定費合計（月額換算）</div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-sm font-semibold text-slate-700 mb-1">
+            固定費合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
+          </div>
+          <div className="shrink-0 flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => setSummaryPeriod('monthly')}
+              className={
+                'px-2.5 py-1 ' +
+                (summaryPeriod === 'monthly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+              }
+            >
+              月
+            </button>
+            <button
+              type="button"
+              onClick={() => setSummaryPeriod('yearly')}
+              className={
+                'px-2.5 py-1 ' +
+                (summaryPeriod === 'yearly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+              }
+            >
+              年
+            </button>
+          </div>
+        </div>
         <div className="text-2xl font-bold text-slate-700">
-          {formatYen(totalAmount)}
-          <span className="text-sm font-normal text-slate-400">/月</span>
+          {formatYen(summaryPeriod === 'monthly' ? totalAmount : totalAmount * 12)}
+          <span className="text-sm font-normal text-slate-400">
+            {summaryPeriod === 'monthly' ? '/月' : '/年'}
+          </span>
         </div>
         {totalSaved > 0 && (
           <div className="text-xs text-emerald-600 font-semibold mt-1">
