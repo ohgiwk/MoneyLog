@@ -1,5 +1,8 @@
 import { supabase } from '../supabase'
 import type { ShoppingItem } from '../database.types'
+import { cachedFetch, cacheInvalidateTable } from '../cache'
+
+const TABLE = 'shopping_items'
 
 async function ensureOpenList(userId: string): Promise<string> {
   const { data: lists, error: listError } = await supabase
@@ -29,17 +32,19 @@ async function ensureOpenList(userId: string): Promise<string> {
 
 export const shoppingMemoService = {
   fetchItems: async (userId: string): Promise<ShoppingItem[]> => {
-    const listId = await ensureOpenList(userId)
-    const { data, error } = await supabase
-      .from('shopping_items')
-      .select('*')
-      .eq('list_id', listId)
-      .eq('user_id', userId)
-      .eq('status', 'pending')
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true })
-    if (error) throw new Error(error.message)
-    return data ?? []
+    return cachedFetch(`${TABLE}:${userId}`, async () => {
+      const listId = await ensureOpenList(userId)
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .select('*')
+        .eq('list_id', listId)
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true })
+      if (error) throw new Error(error.message)
+      return data ?? []
+    })
   },
 
   addItem: async (userId: string, name: string): Promise<ShoppingItem> => {
@@ -59,6 +64,7 @@ export const shoppingMemoService = {
       .select()
       .single()
     if (error) throw new Error(error.message)
+    cacheInvalidateTable(TABLE)
     return data
   },
 
@@ -68,16 +74,19 @@ export const shoppingMemoService = {
       .update({ name })
       .eq('id', id)
     if (error) throw new Error(error.message)
+    cacheInvalidateTable(TABLE)
   },
 
   deleteItem: async (id: string): Promise<void> => {
     const { error } = await supabase.from('shopping_items').delete().eq('id', id)
     if (error) throw new Error(error.message)
+    cacheInvalidateTable(TABLE)
   },
 
   deleteItems: async (ids: string[]): Promise<void> => {
     if (ids.length === 0) return
     const { error } = await supabase.from('shopping_items').delete().in('id', ids)
     if (error) throw new Error(error.message)
+    cacheInvalidateTable(TABLE)
   },
 }

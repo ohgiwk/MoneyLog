@@ -1,4 +1,7 @@
 import { supabase } from '../supabase'
+import { cachedFetch, cacheSet } from '../cache'
+
+const TABLE = 'budgets'
 
 export interface BudgetSettings {
   fixed: number
@@ -10,18 +13,20 @@ const empty = (): BudgetSettings => ({ fixed: 0, consumable: 0, oneTimeByCategor
 
 export const budgetService = {
   fetchByUser: async (userId: string): Promise<BudgetSettings> => {
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (error) throw new Error(error.message)
-    if (!data) return empty()
-    return {
-      fixed: data.fixed,
-      consumable: data.consumable,
-      oneTimeByCategory: (data.one_time_by_category as Record<string, number>) ?? {},
-    }
+    return cachedFetch(`${TABLE}:${userId}`, async () => {
+      const { data, error } = await supabase
+        .from('budgets')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (error) throw new Error(error.message)
+      if (!data) return empty()
+      return {
+        fixed: data.fixed,
+        consumable: data.consumable,
+        oneTimeByCategory: (data.one_time_by_category as Record<string, number>) ?? {},
+      }
+    })
   },
 
   save: async (userId: string, budget: BudgetSettings): Promise<void> => {
@@ -32,6 +37,7 @@ export const budgetService = {
       one_time_by_category: budget.oneTimeByCategory,
     })
     if (error) throw new Error(error.message)
+    cacheSet(`${TABLE}:${userId}`, budget)
   },
 }
 
