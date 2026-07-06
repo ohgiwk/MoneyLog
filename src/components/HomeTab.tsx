@@ -23,6 +23,7 @@ export default function HomeTab({ userId }: Props) {
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
+  const [optionsOpen, setOptionsOpen] = useState(false)
 
   const today = todayStr()
   const period = periodKey(today, monthStartDay)
@@ -101,7 +102,56 @@ export default function HomeTab({ userId }: Props) {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm text-center space-y-4">
+      <div className="relative bg-white rounded-2xl p-6 shadow-sm text-center space-y-4">
+        <button
+          type="button"
+          aria-label="オプション"
+          onClick={() => setOptionsOpen((v) => !v)}
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 active:bg-slate-100"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+            <circle cx="8" cy="7" r="2.5" fill="currentColor" />
+            <line x1="2" y1="7" x2="5.5" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="10.5" y1="7" x2="22" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="16" cy="12" r="2.5" fill="currentColor" />
+            <line x1="2" y1="12" x2="13.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="18.5" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="10" cy="17" r="2.5" fill="currentColor" />
+            <line x1="2" y1="17" x2="7.5" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="12.5" y1="17" x2="22" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        {optionsOpen && (
+          <>
+            <button
+              type="button"
+              aria-label="閉じる"
+              className="fixed inset-0 z-10 cursor-default"
+              onClick={() => setOptionsOpen(false)}
+            />
+            <div className="absolute top-12 right-3 z-20 bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 text-left">
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <span className="text-sm text-slate-600">お小遣い繰り越し</span>
+                <button
+                  role="switch"
+                  aria-checked={carryOver}
+                  onClick={() => handleCarryOverChange(!carryOver)}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${
+                    carryOver ? 'bg-emerald-500' : 'bg-slate-200'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      carryOver ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         <div className="text-sm font-semibold text-slate-500">本日のお小遣い</div>
         <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
           {formatYen(todayAllowance)}
@@ -134,24 +184,6 @@ export default function HomeTab({ userId }: Props) {
             )}
           </tbody>
         </table>
-
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <span className="text-sm text-slate-600">お小遣い繰り越し</span>
-          <button
-            role="switch"
-            aria-checked={carryOver}
-            onClick={() => handleCarryOverChange(!carryOver)}
-            className={`w-11 h-6 rounded-full transition-colors relative ${
-              carryOver ? 'bg-emerald-500' : 'bg-slate-200'
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                carryOver ? 'translate-x-5' : ''
-              }`}
-            />
-          </button>
-        </div>
       </div>
 
       {upcomingEvents.length > 0 && (
