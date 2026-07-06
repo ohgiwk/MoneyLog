@@ -204,32 +204,6 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">同居人数スケール</label>
-          <div className="mt-1 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setValue('membersScale', !values.membersScale)}
-              className={
-                'relative w-10 h-6 rounded-full transition-colors ' +
-                (values.membersScale ? 'bg-emerald-500' : 'bg-slate-200')
-              }
-            >
-              <span
-                className={
-                  'absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ' +
-                  (values.membersScale ? 'translate-x-5' : 'translate-x-1')
-                }
-              />
-            </button>
-            <span className="text-sm text-slate-600">
-              {values.membersScale
-                ? `有効（${householdMembers}人 → 実効${previewEffectiveCycle}日おき）`
-                : '無効（人数によらず固定）'}
-            </span>
-          </div>
-        </div>
-
-        <div>
           <DatePicker label="最終購入日" value={values.lastPurchased} onChange={(v) => setValue('lastPurchased', v)} />
         </div>
 
