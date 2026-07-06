@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { profileService } from '../lib/services/profileService'
-import type { FixedExpense, Transaction } from '../lib/database.types'
+import { calendarEventService } from '../lib/services/calendarEventService'
+import type { CalendarEvent, FixedExpense, Transaction } from '../lib/database.types'
 import { formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 
@@ -15,6 +16,7 @@ const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 export default function HomeTab({ userId }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
+  const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([])
   const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [monthStartDay, setMonthStartDay] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -34,14 +36,16 @@ export default function HomeTab({ userId }: Props) {
         setMonthStartDay(startDay)
         const currentPeriod = periodKey(today, startDay)
 
-        const [txs, fixed, budgetSettings] = await Promise.all([
+        const [txs, fixed, budgetSettings, upcoming] = await Promise.all([
           transactionService.fetchByMonth(userId, currentPeriod, startDay),
           fixedExpenseService.fetchByUser(userId),
           budgetService.fetchByUser(userId),
+          calendarEventService.fetchUpcomingExpenses(userId, today),
         ])
         setTransactions(txs)
         setFixedExpenses(fixed)
         setBudget(budgetSettings)
+        setUpcomingEvents(upcoming)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       }
@@ -149,6 +153,29 @@ export default function HomeTab({ userId }: Props) {
           </button>
         </div>
       </div>
+
+      {upcomingEvents.length > 0 && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="text-sm font-semibold text-slate-500">今後の予定出費</div>
+          <ul className="divide-y divide-slate-100">
+            {upcomingEvents.map((event) => (
+              <li key={event.id} className="flex items-center justify-between py-2 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-slate-700">{event.title}</span>
+                  <span className="text-xs text-slate-400">{formatEventDate(event.date)}</span>
+                </div>
+                <span className="font-semibold text-slate-700">{formatYen(event.planned_expense)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
+}
+
+function formatEventDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00')
+  const dow = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()]
+  return `${d.getMonth() + 1}月${d.getDate()}日（${dow}）`
 }

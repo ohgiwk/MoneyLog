@@ -26,6 +26,20 @@ export const calendarEventService = {
     })
   },
 
+  fetchUpcomingExpenses: async (userId: string, fromDate: string): Promise<CalendarEvent[]> => {
+    return cachedFetch(`${TABLE}:upcoming:${userId}:${fromDate}`, async () => {
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', fromDate)
+        .gt('planned_expense', 0)
+        .order('date', { ascending: true })
+      if (error) throw new Error(error.message)
+      return data ?? []
+    })
+  },
+
   insert: async (data: CalendarEventInsert): Promise<void> => {
     const { error } = await supabase.from('calendar_events').insert(data)
     if (error) throw new Error(error.message)
