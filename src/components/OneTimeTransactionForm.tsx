@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
@@ -36,6 +37,9 @@ export default function OneTimeTransactionForm({
     handleDelete,
     resetForm,
   } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack })
+
+  const [storeTypeOpen, setStoreTypeOpen] = useState(false)
+  const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
 
   return (
     <>
@@ -151,28 +155,57 @@ export default function OneTimeTransactionForm({
 
         {/* 店舗種別 */}
         {values.type === 'expense' && (
-          <div>
+          <div className="relative">
             <label className="text-xs text-slate-400">店舗種別（任意）</label>
-            <div className="relative mt-1">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg">
-                {STORE_TYPES.find((s) => s.name === values.storeType)?.icon ?? '🏷️'}
+            <button
+              type="button"
+              onClick={() => setStoreTypeOpen((v) => !v)}
+              className="w-full mt-1 flex items-center justify-between border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-700 bg-white"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg">{selectedStoreType?.icon ?? '🏷️'}</span>
+                <span>{selectedStoreType?.name ?? '未選択'}</span>
               </span>
-              <select
-                value={values.storeType}
-                onChange={(e) => setValue('storeType', e.target.value)}
-                className="w-full appearance-none border border-slate-200 rounded-xl pl-10 pr-8 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-300 bg-white"
-              >
-                <option value="">未選択</option>
-                {STORE_TYPES.map((s) => (
-                  <option key={s.name} value={s.name}>
-                    {s.icon} {s.name}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
-                ▼
-              </span>
-            </div>
+              <span className="text-slate-400 text-xs">{storeTypeOpen ? '▲' : '▼'}</span>
+            </button>
+
+            {storeTypeOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-label="閉じる"
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setStoreTypeOpen(false)}
+                />
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-20 max-h-64 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => { setValue('storeType', ''); setStoreTypeOpen(false) }}
+                    className={
+                      'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
+                      (values.storeType === '' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 active:bg-slate-50')
+                    }
+                  >
+                    <span className="text-lg">🏷️</span>
+                    <span>未選択</span>
+                  </button>
+                  {STORE_TYPES.map((s) => (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => { setValue('storeType', s.name); setStoreTypeOpen(false) }}
+                      className={
+                        'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
+                        (values.storeType === s.name ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 active:bg-slate-50')
+                      }
+                    >
+                      <span className="text-lg">{s.icon}</span>
+                      <span>{s.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
