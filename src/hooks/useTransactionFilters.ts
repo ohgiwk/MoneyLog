@@ -34,6 +34,9 @@ export function useTransactionFilters(transactions: Transaction[], month: string
       arr.push(t)
       map.set(t.date, arr)
     }
+    for (const arr of map.values()) {
+      arr.sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    }
     return [...map.entries()].sort(([a], [b]) => (a < b ? 1 : -1))
   }, [filtered])
 
