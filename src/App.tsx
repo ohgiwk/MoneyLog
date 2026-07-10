@@ -39,6 +39,7 @@ export default function App() {
   const [direction, setDirection] = useState<NavDirection>('forward')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
+  const [recordTapKey, setRecordTapKey] = useState(0)
   const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
   const [headerBack, setHeaderBack] = useState<{ title: string; onBack: () => void } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -191,6 +192,7 @@ export default function App() {
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
             initialSub={recordInitialSub}
+            resetSignal={recordTapKey}
             onHeaderChange={setHeaderBack}
           />
         )}
@@ -213,7 +215,10 @@ export default function App() {
         {TABS.map((t) => (
           <button
             key={t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => {
+              if (t.key === 'record') setRecordTapKey((k) => k + 1)
+              setTab(t.key)
+            }}
             className={
               'flex flex-col items-center gap-0.5 px-6 py-1 ' +
               (tab === t.key ? 'text-emerald-600' : 'text-slate-400')

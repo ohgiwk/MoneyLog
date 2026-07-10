@@ -30,6 +30,7 @@ interface Props {
   editingTx?: Transaction | null
   onEditDone?: () => void
   initialSub?: RecordSubPage
+  resetSignal?: number
   onHeaderChange?: (state: { title: string; onBack: () => void } | null) => void
 }
 
@@ -42,6 +43,7 @@ export default function RecordTab({
   editingTx,
   onEditDone,
   initialSub,
+  resetSignal,
   onHeaderChange,
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
@@ -62,6 +64,18 @@ export default function RecordTab({
   useEffect(() => {
     if (initialSub) setSub(initialSub)
   }, [initialSub])
+
+  // 下部タブの「記録」を再タップしたら出費一覧に戻す
+  const resetSignalMounted = useRef(false)
+  useEffect(() => {
+    if (!resetSignalMounted.current) {
+      resetSignalMounted.current = true
+      return
+    }
+    setSub('one_time')
+    setOneTimeDirection('back')
+    setOneTimeView('list')
+  }, [resetSignal])
 
   // 外部からの編集リクエスト（サマリー画面など）
   useEffect(() => {
