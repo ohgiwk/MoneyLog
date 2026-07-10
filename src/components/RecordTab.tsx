@@ -31,7 +31,13 @@ interface Props {
   onEditDone?: () => void
   initialSub?: RecordSubPage
   resetSignal?: number
-  onHeaderChange?: (state: { title: string; onBack: () => void } | null) => void
+  onHeaderChange?: (
+    state: {
+      title: string
+      onBack: () => void
+      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+    } | null
+  ) => void
 }
 
 export default function RecordTab({
@@ -170,14 +176,13 @@ export default function RecordTab({
     void fetchTransactions()
   }
 
-  // 出費フォーム表示中はヘッダーに戻るボタンを表示
+  // 出費フォーム表示中のヘッダーは OneTimeTransactionForm 自身が管理する。
+  // それ以外のビューに切り替わったらヘッダーをクリアする
   useEffect(() => {
-    if (sub === 'one_time' && oneTimeView === 'form') {
-      onHeaderChange?.({ title: formEditingTx ? '記録を編集' : '出費を記録', onBack: backToList })
-    } else {
+    if (!(sub === 'one_time' && oneTimeView === 'form')) {
       onHeaderChange?.(null)
     }
-  }, [sub, oneTimeView, formEditingTx]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sub, oneTimeView]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleConsumableEditingChange(state: { title: string; onBack: () => void } | null) {
     setConsumableEditing(state !== null)
@@ -220,13 +225,14 @@ export default function RecordTab({
               startDay={monthStartDay}
             />
           ) : (
-            <div className="p-4">
+            <div className="p-4 pb-28">
               <OneTimeTransactionForm
                 userId={userId}
                 expenseCategories={expenseCategories}
                 incomeCategories={incomeCategories}
                 editingTx={formEditingTx}
                 onBack={backToList}
+                onHeaderChange={onHeaderChange}
               />
             </div>
           )}

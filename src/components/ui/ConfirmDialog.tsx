@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom'
+
 interface Props {
   message: string
   confirmLabel?: string
@@ -13,7 +15,9 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  return (
+  // 祖先の transform/z-index によるスタッキングコンテキストの影響を受けないよう、
+  // document.body 直下に portal 描画してヘッダー・下部ナビより確実に手前に表示する
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
       <div className="relative w-72 bg-white rounded-2xl shadow-xl px-5 py-5 mx-4">
@@ -33,6 +37,7 @@ export default function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { MEAL_TYPES, PAYMENT_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
@@ -12,6 +12,13 @@ interface Props {
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
   onBack: () => void
+  onHeaderChange?: (
+    state: {
+      title: string
+      onBack: () => void
+      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+    } | null
+  ) => void
 }
 
 export default function OneTimeTransactionForm({
@@ -20,12 +27,14 @@ export default function OneTimeTransactionForm({
   incomeCategories,
   editingTx,
   onBack,
+  onHeaderChange,
 }: Props) {
   const {
     values,
     setValue,
     formCategories,
     isSubmitting,
+    isDirty,
     error,
     showSuccess,
     setShowSuccess,
@@ -38,16 +47,44 @@ export default function OneTimeTransactionForm({
     selectPaymentType,
     handleSubmit,
     handleDelete,
-    resetForm,
   } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack })
 
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
   const { methods: paymentMethods } = usePaymentMethods()
   const paymentMethodsForType = paymentMethods.filter((m) => m.type === values.paymentType)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+
+  function requestBack() {
+    if (isDirty) {
+      setShowDiscardConfirm(true)
+    } else {
+      onBack()
+    }
+  }
+
+  // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
+  useEffect(() => {
+    onHeaderChange?.({
+      title: editingTx ? '記録を編集' : '出費を記録',
+      onBack: requestBack,
+      action: editingTx
+        ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
+        : undefined,
+    })
+  }, [editingTx, isDirty, isSubmitting]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
+      {showDiscardConfirm && (
+        <ConfirmDialog
+          message="入力内容を破棄しますか？"
+          confirmLabel="破棄する"
+          onConfirm={() => { setShowDiscardConfirm(false); onBack() }}
+          onCancel={() => setShowDiscardConfirm(false)}
+        />
+      )}
+
       {confirmDelete && (
         <ConfirmDialog
           message="この記録を削除しますか？"
@@ -308,12 +345,16 @@ export default function OneTimeTransactionForm({
         </div>
 
         {error && <p className="text-xs text-rose-500">{error}</p>}
+      </form>
 
+      {/* 保存ボタン（タブメニュー上にフローティング表示） */}
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
         <button
-          type="submit"
+          type="button"
+          onClick={() => handleSubmit()}
           disabled={isSubmitting}
           className={
-            'w-full py-3 rounded-xl text-white font-semibold shadow disabled:opacity-50 ' +
+            'w-[60%] py-3.5 rounded-[2rem] text-white font-semibold text-sm shadow-lg disabled:opacity-50 ' +
             (values.type === 'expense'
               ? 'bg-rose-500 active:bg-rose-600'
               : 'bg-emerald-500 active:bg-emerald-600')
@@ -321,28 +362,7 @@ export default function OneTimeTransactionForm({
         >
           {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}
         </button>
-
-        {editingTx && (
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(true)}
-              disabled={isSubmitting}
-              className="w-[30%] py-3 rounded-xl text-rose-500 font-semibold border border-rose-200 active:bg-rose-50 disabled:opacity-50"
-            >
-              削除
-            </button>
-            <button
-              type="button"
-              onClick={() => { resetForm(); onBack() }}
-              disabled={isSubmitting}
-              className="w-[70%] py-3 rounded-xl text-slate-500 font-semibold border border-slate-200 active:bg-slate-50 disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-          </div>
-        )}
-      </form>
+      </div>
     </>
   )
 }

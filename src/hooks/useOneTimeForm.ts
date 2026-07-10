@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { CategoryInfo, PaymentType } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
@@ -37,8 +37,9 @@ export function useOneTimeForm({
   const [amountError, setAmountError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
-    useForm<OneTimeFormValues>({
+  function buildDefaultValues(): OneTimeFormValues {
+    const defaultPayment = getDefaultPayment()
+    return {
       type: 'expense',
       date: todayStr(),
       category: expenseCategories[0]?.name ?? '',
@@ -46,15 +47,23 @@ export function useOneTimeForm({
       memo: '',
       storeType: '',
       mealType: '',
-      paymentType: getDefaultPayment().type,
-      paymentMethod: getDefaultPayment().name ?? '',
-    })
+      paymentType: defaultPayment.type,
+      paymentMethod: defaultPayment.name ?? '',
+    }
+  }
+
+  const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
+    useForm<OneTimeFormValues>(buildDefaultValues())
+
+  // フォームが未編集かどうかの判定基準（最後に読み込んだ／保存した状態のスナップショット）
+  const initialSnapshot = useRef(JSON.stringify(values))
+  const isDirty = JSON.stringify(values) !== initialSnapshot.current
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
 
   useEffect(() => {
     if (editingTx) {
-      setValues({
+      const loaded: OneTimeFormValues = {
         type: editingTx.type as 'expense' | 'income',
         date: editingTx.date,
         category: editingTx.category,
@@ -64,19 +73,17 @@ export function useOneTimeForm({
         mealType: editingTx.meal_type ?? '',
         paymentType: (editingTx.payment_type as PaymentType | null) ?? '',
         paymentMethod: editingTx.payment_method ?? '',
-      })
+      }
+      setValues(loaded)
+      initialSnapshot.current = JSON.stringify(loaded)
     }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function resetForm() {
-    const defaultPayment = getDefaultPayment()
     reset()
-    setValue('date', todayStr())
-    setValue('category', expenseCategories[0]?.name ?? '')
-    setValue('storeType', '')
-    setValue('mealType', '')
-    setValue('paymentType', defaultPayment.type)
-    setValue('paymentMethod', defaultPayment.name ?? '')
+    const next = buildDefaultValues()
+    setValues(next)
+    initialSnapshot.current = JSON.stringify(next)
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {
@@ -119,8 +126,8 @@ export function useOneTimeForm({
     }
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(e?: FormEvent) {
+    e?.preventDefault()
     const amt = parseFloat(values.amount)
     if (!amt || amt <= 0) {
       setAmountError('正しい金額を入力してください')
@@ -182,6 +189,7 @@ export function useOneTimeForm({
     setValue,
     formCategories,
     isSubmitting,
+    isDirty,
     error,
     showSuccess,
     setShowSuccess,

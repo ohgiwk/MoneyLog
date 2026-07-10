@@ -42,7 +42,11 @@ export default function App() {
   const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
   const [recordTapKey, setRecordTapKey] = useState(0)
   const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
-  const [headerBack, setHeaderBack] = useState<{ title: string; onBack: () => void } | null>(null)
+  const [headerBack, setHeaderBack] = useState<{
+    title: string
+    onBack: () => void
+    action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+  } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   function navigate(next: Screen, dir: NavDirection = 'forward') {
@@ -155,7 +159,20 @@ export default function App() {
           </div>
 
           {headerBack ? (
-            <span />
+            headerBack.action ? (
+              <button
+                onClick={headerBack.action.onClick}
+                disabled={headerBack.action.disabled}
+                className={
+                  'justify-self-end px-1 text-sm font-semibold active:opacity-70 disabled:opacity-40 ' +
+                  (headerBack.action.tone === 'danger' ? 'text-rose-500' : 'text-emerald-600')
+                }
+              >
+                {headerBack.action.label}
+              </button>
+            ) : (
+              <span />
+            )
           ) : (
             <button
               onClick={() => setDrawerOpen(true)}
