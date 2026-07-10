@@ -107,6 +107,14 @@ export const STORE_TYPES: CategoryInfo[] = [
   { name: 'その他', icon: '🏷️', color: '#64748b' },
 ]
 
+export const MEAL_TYPES: CategoryInfo[] = [
+  { name: '朝食', icon: '🌅', color: '#f59e0b' },
+  { name: '昼食', icon: '🍱', color: '#10b981' },
+  { name: '夕食', icon: '🍚', color: '#f97316' },
+  { name: '飲み物', icon: '🥤', color: '#06b6d4' },
+  { name: 'その他', icon: '📦', color: '#64748b' },
+]
+
 export interface DefaultConsumable {
   name: string
   category: string

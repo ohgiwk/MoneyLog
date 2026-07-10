@@ -62,6 +62,7 @@ export default function ConsumablesList({
       amount,
       memo: memo || null,
       store_type: null,
+      meal_type: null,
       recurring_rule_id: null,
     })
     await consumableService.update(purchasing.id, { last_purchased: date })

@@ -94,6 +94,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       amount,
       memo: memo || null,
       store_type: null,
+      meal_type: null,
       recurring_rule_id: null,
     })
     const ids = [...selected]

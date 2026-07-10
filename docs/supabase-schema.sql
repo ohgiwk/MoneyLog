@@ -248,3 +248,6 @@ alter table public.profiles
 
 -- transactions に店舗種別カラムを追加（出費記録時の任意項目）
 alter table public.transactions add column if not exists store_type text;
+
+-- transactions に食事タイプカラムを追加（食費カテゴリ選択時の任意項目: 朝食/昼食/夕食/飲み物/その他）
+alter table public.transactions add column if not exists meal_type text;

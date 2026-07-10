@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { STORE_TYPES, type CategoryInfo } from '../constants'
+import { MEAL_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import DatePicker from './ui/DatePicker'
@@ -33,6 +33,7 @@ export default function OneTimeTransactionForm({
     confirmDelete,
     setConfirmDelete,
     handleTypeChange,
+    selectCategory,
     handleSubmit,
     handleDelete,
     resetForm,
@@ -116,7 +117,7 @@ export default function OneTimeTransactionForm({
               <button
                 key={c.name}
                 type="button"
-                onClick={() => setValue('category', c.name)}
+                onClick={() => selectCategory(c.name)}
                 className={
                   'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
@@ -132,6 +133,31 @@ export default function OneTimeTransactionForm({
             ))}
           </div>
         </div>
+
+        {/* 食事タイプ（食費カテゴリ選択時のみ） */}
+        {values.type === 'expense' && values.category === '食費' && (
+          <div>
+            <label className="text-xs text-slate-400">食事タイプ（任意）</label>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {MEAL_TYPES.map((m) => (
+                <button
+                  key={m.name}
+                  type="button"
+                  onClick={() => setValue('mealType', values.mealType === m.name ? '' : m.name)}
+                  className={
+                    'flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs border ' +
+                    (values.mealType === m.name
+                      ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-600')
+                  }
+                >
+                  <span>{m.icon}</span>
+                  <span>{m.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 金額 */}
         <div>

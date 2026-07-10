@@ -12,6 +12,7 @@ interface OneTimeFormValues {
   amount: string
   memo: string
   storeType: string
+  mealType: string
 }
 
 interface Options {
@@ -41,6 +42,7 @@ export function useOneTimeForm({
       amount: '',
       memo: '',
       storeType: '',
+      mealType: '',
     })
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
@@ -54,6 +56,7 @@ export function useOneTimeForm({
         amount: String(editingTx.amount),
         memo: editingTx.memo ?? '',
         storeType: editingTx.store_type ?? '',
+        mealType: editingTx.meal_type ?? '',
       })
     }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -63,6 +66,7 @@ export function useOneTimeForm({
     setValue('date', todayStr())
     setValue('category', expenseCategories[0]?.name ?? '')
     setValue('storeType', '')
+    setValue('mealType', '')
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {
@@ -72,6 +76,15 @@ export function useOneTimeForm({
       type: newType,
       category: cats[0]?.name ?? '',
       storeType: newType === 'expense' ? values.storeType : '',
+      mealType: '',
+    })
+  }
+
+  function selectCategory(category: string) {
+    setValues({
+      ...values,
+      category,
+      mealType: category === '食費' ? values.mealType : '',
     })
   }
 
@@ -108,6 +121,7 @@ export function useOneTimeForm({
           amount: amt,
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
+          meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
         })
         onBack?.()
       } else {
@@ -120,6 +134,7 @@ export function useOneTimeForm({
           amount: amt,
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
+          meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
           recurring_rule_id: null,
         })
         resetForm()
@@ -147,6 +162,7 @@ export function useOneTimeForm({
     confirmDelete,
     setConfirmDelete,
     handleTypeChange,
+    selectCategory,
     handleSubmit,
     handleDelete,
     resetForm,
