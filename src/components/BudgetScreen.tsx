@@ -59,7 +59,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   const weeklyTotal = weeklyFixed + weeklyConsumable + weeklyOneTime
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="bg-white border-b border-slate-100">
         <ScreenHeader title="予算設定" onBack={onBack} />

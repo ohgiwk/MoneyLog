@@ -222,7 +222,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
 
       {/* 購入済みボタン（選択時に表示） */}
       {selected.size > 0 && (
-        <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto px-4 z-20">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
           <button
             onClick={() => setShowDialog(true)}
             className="w-full py-3.5 rounded-2xl bg-emerald-500 text-white font-medium text-sm shadow-lg active:bg-emerald-600"

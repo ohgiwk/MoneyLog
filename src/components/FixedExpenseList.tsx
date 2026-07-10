@@ -7,6 +7,7 @@ import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
 import Spinner from './ui/Spinner'
+import PageTransition, { type NavDirection } from './PageTransition'
 import type { ReactNode } from 'react'
 
 const STATUS_FILTER_TABS = [
@@ -38,6 +39,7 @@ export default function FixedExpenseList({
 }: Props) {
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
+  const [direction, setDirection] = useState<NavDirection>('forward')
   const [tutorialOpen, setTutorialOpen] = useState(false)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
@@ -50,10 +52,12 @@ export default function FixedExpenseList({
   const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {
+    setDirection('forward')
     setEditing(v)
     onEditingChange({ title: v === 'new' ? '固定費を追加' : '固定費を編集', onBack: closeEditing })
   }
   function closeEditing() {
+    setDirection('back')
     setEditing(null)
     onEditingChange(null)
     reload()
@@ -91,8 +95,10 @@ export default function FixedExpenseList({
   )
   const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
 
+  let content: ReactNode
+
   if (editing !== null) {
-    return (
+    content = (
       <FixedExpenseForm
         userId={userId}
         expense={editing === 'new' ? undefined : editing}
@@ -100,9 +106,8 @@ export default function FixedExpenseList({
         onClose={closeEditing}
       />
     )
-  }
-
-  return (
+  } else {
+    content = (
     <>
       {tutorialOpen && (
         <FixedExpenseTutorial
@@ -363,7 +368,7 @@ export default function FixedExpenseList({
       </button>
 
       {/* FAB */}
-      <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
         <button
           onClick={() => openEditing('new')}
           className="pointer-events-auto w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg active:bg-emerald-600 flex items-center justify-center"
@@ -376,5 +381,12 @@ export default function FixedExpenseList({
         </button>
       </div>
     </>
+    )
+  }
+
+  return (
+    <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
+      {content}
+    </PageTransition>
   )
 }

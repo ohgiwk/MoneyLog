@@ -53,7 +53,7 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <ScreenHeader title="設定" onBack={onBack} />
       </div>

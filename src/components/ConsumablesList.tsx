@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, CONSUMABLE_CATEGORIES, DEFAULT_CONSUMABLES, type DefaultConsumable } from '../constants'
 import { EXPENSE_CATEGORIES } from '../constants'
 import type { Consumable } from '../lib/database.types'
@@ -9,6 +9,7 @@ import ConsumableRow from './ConsumableRow'
 import ConsumableForm from './ConsumableForm'
 import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
+import PageTransition, { type NavDirection } from './PageTransition'
 
 interface Props {
   userId: string
@@ -32,16 +33,19 @@ export default function ConsumablesList({
   onTransactionAdded,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
+  const [direction, setDirection] = useState<NavDirection>('forward')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [purchasing, setPurchasing] = useState<Consumable | null>(null)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
+    setDirection('forward')
     setEditing(v)
     const isNew = v === 'new' || (typeof v === 'object' && v !== null && 'preset' in v)
     onEditingChange({ title: isNew ? '定期購入を追加' : '定期購入を編集', onBack: closeEditing })
   }
   function closeEditing() {
+    setDirection('back')
     setEditing(null)
     onEditingChange(null)
     reload()
@@ -101,9 +105,11 @@ export default function ConsumablesList({
     items: unregisteredDefaults.filter((d) => d.category === cat.name),
   })).filter((g) => g.items.length > 0)
 
+  let content: ReactNode
+
   if (editing !== null) {
     const isPreset = typeof editing === 'object' && editing !== null && 'preset' in (editing as object)
-    return (
+    content = (
       <ConsumableForm
         userId={userId}
         consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
@@ -112,9 +118,8 @@ export default function ConsumablesList({
         onClose={closeEditing}
       />
     )
-  }
-
-  return (
+  } else {
+    content = (
     <>
       {/* 月額/年額コストサマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -248,7 +253,7 @@ export default function ConsumablesList({
       )}
 
       {/* FAB */}
-      <div className="fixed bottom-24 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
         <button
           onClick={() => openEditing('new')}
           className="pointer-events-auto w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg active:bg-emerald-600 flex items-center justify-center"
@@ -309,5 +314,12 @@ export default function ConsumablesList({
         </div>
       )}
     </>
+    )
+  }
+
+  return (
+    <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
+      {content}
+    </PageTransition>
   )
 }

@@ -75,7 +75,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
   } = useSummaryCalculations({ transactions, fixedExpenses, consumables, householdMembers, budget, month })
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="bg-white border-b border-slate-100">
         <ScreenHeader title="分析" onBack={onBack} />

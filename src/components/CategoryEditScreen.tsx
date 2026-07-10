@@ -34,7 +34,7 @@ export default function CategoryEditScreen({
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <ScreenHeader title="カテゴリ編集" onBack={onBack} />
         <div className="flex px-4 gap-1 pb-0">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
 import { todayStr } from './utils'
@@ -17,6 +17,7 @@ import WishlistScreen from './components/WishlistScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
+import PageTransition, { type NavDirection } from './components/PageTransition'
 
 type TabKey = 'home' | 'record' | 'fixed' | 'calendar'
 type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'setup' | 'wishlist' | 'analytics'
@@ -35,12 +36,17 @@ export default function App() {
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
+  const [direction, setDirection] = useState<NavDirection>('forward')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
   const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
   const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
   const [headerBack, setHeaderBack] = useState<{ title: string; onBack: () => void } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  function navigate(next: Screen, dir: NavDirection = 'forward') {
+    setDirection(dir)
+    setScreen(next)
+  }
 
   // タブ・画面遷移時にスクロールをトップに戻す
   useEffect(() => {
@@ -72,44 +78,34 @@ export default function App() {
 
   if (!user) return <AuthScreen />
 
+  let content: ReactNode
+
   if (screen === 'wishlist') {
-    return <WishlistScreen userId={user.id} onBack={() => setScreen('main')} />
-  }
-
-  if (screen === 'analytics') {
-    return <AnalyticsScreen userId={user.id} onBack={() => setScreen('main')} />
-  }
-
-  if (screen === 'setup') {
-    return (
+    content = <WishlistScreen userId={user.id} onBack={() => navigate('main', 'back')} />
+  } else if (screen === 'analytics') {
+    content = <AnalyticsScreen userId={user.id} onBack={() => navigate('main', 'back')} />
+  } else if (screen === 'setup') {
+    content = (
       <OnboardingScreen
         userId={user.id}
-        onComplete={() => { setFixedFromOnboarding(true); setScreen('main'); setTab('fixed') }}
+        onComplete={() => { setFixedFromOnboarding(true); navigate('main', 'back'); setTab('fixed') }}
       />
     )
-  }
-
-  if (screen === 'budget') {
-    return <BudgetScreen userId={user.id} onBack={() => setScreen('main')} />
-  }
-
-  if (screen === 'exchange-rate') {
-    return <ExchangeRateScreen onBack={() => setScreen('settings')} />
-  }
-
-  if (screen === 'settings') {
-    return (
+  } else if (screen === 'budget') {
+    content = <BudgetScreen userId={user.id} onBack={() => navigate('main', 'back')} />
+  } else if (screen === 'exchange-rate') {
+    content = <ExchangeRateScreen onBack={() => navigate('settings', 'back')} />
+  } else if (screen === 'settings') {
+    content = (
       <SettingsScreen
         userId={user.id}
-        onCategoryEdit={() => setScreen('category-edit')}
-        onExchangeRate={() => setScreen('exchange-rate')}
-        onBack={() => setScreen('main')}
+        onCategoryEdit={() => navigate('category-edit')}
+        onExchangeRate={() => navigate('exchange-rate')}
+        onBack={() => navigate('main', 'back')}
       />
     )
-  }
-
-  if (screen === 'category-edit') {
-    return (
+  } else if (screen === 'category-edit') {
+    content = (
       <CategoryEditScreen
         expenseCategories={categories.expenseCategories}
         incomeCategories={categories.incomeCategories}
@@ -117,13 +113,12 @@ export default function App() {
         onUpdateExpense={categories.updateExpenseCategories}
         onUpdateIncome={categories.updateIncomeCategories}
         onUpdateFixed={categories.updateFixedCategories}
-        onBack={() => setScreen('settings')}
+        onBack={() => navigate('settings', 'back')}
       />
     )
-  }
-
-  return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+  } else {
+    content = (
+    <div className="max-w-md mx-auto h-full bg-slate-50 flex flex-col overflow-hidden">
       <UpdateNotification />
       {/* ヘッダー */}
       <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100 pt-[env(safe-area-inset-top)]">
@@ -173,18 +168,18 @@ export default function App() {
       {/* ドロワーメニュー */}
       {drawerOpen && (
         <DrawerMenu
-          onSettings={() => setScreen('settings')}
-          onBudget={() => setScreen('budget')}
-          onSetup={() => setScreen('setup')}
-          onWishlist={() => setScreen('wishlist')}
-          onAnalytics={() => setScreen('analytics')}
+          onSettings={() => navigate('settings')}
+          onBudget={() => navigate('budget')}
+          onSetup={() => navigate('setup')}
+          onWishlist={() => navigate('wishlist')}
+          onAnalytics={() => navigate('analytics')}
           onSignOut={signOut}
           onClose={() => setDrawerOpen(false)}
         />
       )}
 
       {/* コンテンツ */}
-      <div ref={scrollRef} className="flex-1 pt-[calc(57px+env(safe-area-inset-top))] pb-20 overflow-y-auto">
+      <div ref={scrollRef} className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto">
         {tab === 'home' && <HomeTab userId={user.id} />}
         {tab === 'record' && (
           <RecordTab
@@ -214,7 +209,7 @@ export default function App() {
       </div>
 
       {/* ボトムナビ */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-slate-100 flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-t border-slate-100 flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -230,5 +225,12 @@ export default function App() {
         ))}
       </div>
     </div>
+    )
+  }
+
+  return (
+    <PageTransition pageKey={screen} direction={direction} className="h-[100dvh]" fillHeight>
+      {content}
+    </PageTransition>
   )
 }

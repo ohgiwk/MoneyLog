@@ -133,14 +133,14 @@ export default function WishlistScreen({ userId, onBack }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <ScreenHeader title="🎯 目標・欲しいもの" onBack={onBack} />
       </div>
 
       {/* コンテンツ */}
-      <div className="flex-1 px-4 py-4 pb-24">
+      <div className="flex-1 px-4 py-4 pb-24 overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-12 text-slate-400 text-sm">読み込み中...</div>
         ) : items.length === 0 ? (

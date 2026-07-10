@@ -10,6 +10,7 @@ import ConsumablesList from './ConsumablesList'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import ShoppingMemo from './ShoppingMemo'
+import PageTransition, { type NavDirection } from './PageTransition'
 
 type RecordSubPage = 'one_time' | 'consumables' | 'shopping'
 type OneTimeView = 'list' | 'form'
@@ -45,6 +46,7 @@ export default function RecordTab({
 }: Props) {
   const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
+  const [oneTimeDirection, setOneTimeDirection] = useState<NavDirection>('forward')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [consumableEditing, setConsumableEditing] = useState(false)
   const [consumables, setConsumables] = useState<Consumable[]>([])
@@ -66,6 +68,7 @@ export default function RecordTab({
     if (editingTx) {
       setSub('one_time')
       setFormEditingTx(editingTx)
+      setOneTimeDirection('forward')
       setOneTimeView('form')
     }
   }, [editingTx])
@@ -141,11 +144,13 @@ export default function RecordTab({
 
   function openForm(tx?: Transaction) {
     setFormEditingTx(tx ?? null)
+    setOneTimeDirection('forward')
     setOneTimeView('form')
   }
 
   function backToList() {
     setFormEditingTx(null)
+    setOneTimeDirection('back')
     setOneTimeView('list')
     onEditDone?.()
     void fetchTransactions()
@@ -187,29 +192,31 @@ export default function RecordTab({
         </div>
       )}
 
-      {sub === 'one_time' && oneTimeView === 'list' && (
-        <OneTimeTransactionList
-          transactions={transactions}
-          month={month}
-          setMonth={setMonth}
-          availableMonths={months}
-          loading={loading}
-          onAdd={() => openForm()}
-          onEditTx={(tx) => openForm(tx)}
-          startDay={monthStartDay}
-        />
-      )}
-
-      {sub === 'one_time' && oneTimeView === 'form' && (
-        <div className="p-4">
-          <OneTimeTransactionForm
-            userId={userId}
-            expenseCategories={expenseCategories}
-            incomeCategories={incomeCategories}
-            editingTx={formEditingTx}
-            onBack={backToList}
-          />
-        </div>
+      {sub === 'one_time' && (
+        <PageTransition pageKey={oneTimeView} direction={oneTimeDirection}>
+          {oneTimeView === 'list' ? (
+            <OneTimeTransactionList
+              transactions={transactions}
+              month={month}
+              setMonth={setMonth}
+              availableMonths={months}
+              loading={loading}
+              onAdd={() => openForm()}
+              onEditTx={(tx) => openForm(tx)}
+              startDay={monthStartDay}
+            />
+          ) : (
+            <div className="p-4">
+              <OneTimeTransactionForm
+                userId={userId}
+                expenseCategories={expenseCategories}
+                incomeCategories={incomeCategories}
+                editingTx={formEditingTx}
+                onBack={backToList}
+              />
+            </div>
+          )}
+        </PageTransition>
       )}
 
       {sub === 'consumables' && (

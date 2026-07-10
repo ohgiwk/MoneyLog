@@ -29,12 +29,12 @@ export default function ExchangeRateScreen({ onBack }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-slate-50 flex flex-col">
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
         <ScreenHeader title="為替レート設定" onBack={onBack} />
       </div>
 
-      <div className="flex-1 p-4 space-y-4">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
           <div>
             <div className="text-sm font-medium text-slate-700 mb-1">USD / JPY レート</div>
