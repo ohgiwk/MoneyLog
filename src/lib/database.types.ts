@@ -82,6 +82,8 @@ export interface Database {
           memo: string | null
           store_type: string | null
           meal_type: string | null
+          payment_type: string | null
+          payment_method: string | null
           recurring_rule_id: string | null
           created_at: string
         }

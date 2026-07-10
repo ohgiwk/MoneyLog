@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { CategoryInfo } from '../constants'
+import type { CategoryInfo, PaymentType } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
+import { getDefaultPayment } from './usePaymentMethods'
 import { todayStr } from '../utils'
 import { useForm } from './useForm'
 
@@ -13,6 +14,8 @@ interface OneTimeFormValues {
   memo: string
   storeType: string
   mealType: string
+  paymentType: PaymentType | ''
+  paymentMethod: string
 }
 
 interface Options {
@@ -43,6 +46,8 @@ export function useOneTimeForm({
       memo: '',
       storeType: '',
       mealType: '',
+      paymentType: getDefaultPayment().type,
+      paymentMethod: getDefaultPayment().name ?? '',
     })
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
@@ -57,16 +62,21 @@ export function useOneTimeForm({
         memo: editingTx.memo ?? '',
         storeType: editingTx.store_type ?? '',
         mealType: editingTx.meal_type ?? '',
+        paymentType: (editingTx.payment_type as PaymentType | null) ?? '',
+        paymentMethod: editingTx.payment_method ?? '',
       })
     }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function resetForm() {
+    const defaultPayment = getDefaultPayment()
     reset()
     setValue('date', todayStr())
     setValue('category', expenseCategories[0]?.name ?? '')
     setValue('storeType', '')
     setValue('mealType', '')
+    setValue('paymentType', defaultPayment.type)
+    setValue('paymentMethod', defaultPayment.name ?? '')
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {
@@ -85,6 +95,14 @@ export function useOneTimeForm({
       ...values,
       category,
       mealType: category === '食費' ? values.mealType : '',
+    })
+  }
+
+  function selectPaymentType(type: PaymentType) {
+    setValues({
+      ...values,
+      paymentType: type,
+      paymentMethod: type === values.paymentType ? values.paymentMethod : '',
     })
   }
 
@@ -122,6 +140,11 @@ export function useOneTimeForm({
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
           meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
+          payment_type: values.type === 'expense' ? values.paymentType || null : null,
+          payment_method:
+            values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
+              ? values.paymentMethod || null
+              : null,
         })
         onBack?.()
       } else {
@@ -135,6 +158,11 @@ export function useOneTimeForm({
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
           meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
+          payment_type: values.type === 'expense' ? values.paymentType || null : null,
+          payment_method:
+            values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
+              ? values.paymentMethod || null
+              : null,
           recurring_rule_id: null,
         })
         resetForm()
@@ -163,6 +191,7 @@ export function useOneTimeForm({
     setConfirmDelete,
     handleTypeChange,
     selectCategory,
+    selectPaymentType,
     handleSubmit,
     handleDelete,
     resetForm,

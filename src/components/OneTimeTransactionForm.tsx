@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { MEAL_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
+import { MEAL_TYPES, PAYMENT_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
+import { usePaymentMethods } from '../hooks/usePaymentMethods'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
 
@@ -34,6 +35,7 @@ export default function OneTimeTransactionForm({
     setConfirmDelete,
     handleTypeChange,
     selectCategory,
+    selectPaymentType,
     handleSubmit,
     handleDelete,
     resetForm,
@@ -41,6 +43,8 @@ export default function OneTimeTransactionForm({
 
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
+  const { methods: paymentMethods } = usePaymentMethods()
+  const paymentMethodsForType = paymentMethods.filter((m) => m.type === values.paymentType)
 
   return (
     <>
@@ -231,6 +235,62 @@ export default function OneTimeTransactionForm({
                   ))}
                 </div>
               </>
+            )}
+          </div>
+        )}
+
+        {/* 支払い方法 */}
+        {values.type === 'expense' && (
+          <div>
+            <label className="text-xs text-slate-400">支払い方法（任意）</label>
+            <div className="grid grid-cols-4 gap-1.5 mt-1">
+              {PAYMENT_TYPES.map((p) => (
+                <button
+                  key={p.type}
+                  type="button"
+                  onClick={() => selectPaymentType(p.type)}
+                  className={
+                    'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border-2 transition ' +
+                    (values.paymentType === p.type
+                      ? 'border-emerald-500 bg-emerald-50'
+                      : 'border-transparent bg-slate-100')
+                  }
+                >
+                  <span className="text-lg">{p.icon}</span>
+                  <span className="text-[10px] leading-tight text-slate-600 text-center">
+                    {p.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {values.paymentType && values.paymentType !== 'cash' && (
+              <div className="mt-2 pl-3 border-l-2 border-emerald-200 space-y-1.5">
+                <div className="text-[11px] text-slate-400">利用サービスを選択（任意）</div>
+                {paymentMethodsForType.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {paymentMethodsForType.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setValue('paymentMethod', values.paymentMethod === m.name ? '' : m.name)}
+                        className={
+                          'px-3 py-1 rounded-lg text-xs font-medium border ' +
+                          (values.paymentMethod === m.name
+                            ? 'border-emerald-500 bg-emerald-500 text-white'
+                            : 'border-slate-200 bg-white text-slate-600')
+                        }
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400">
+                    設定 &gt; 支払い方法 からサービスを登録できます
+                  </p>
+                )}
+              </div>
             )}
           </div>
         )}

@@ -251,3 +251,9 @@ alter table public.transactions add column if not exists store_type text;
 
 -- transactions に食事タイプカラムを追加（食費カテゴリ選択時の任意項目: 朝食/昼食/夕食/飲み物/その他）
 alter table public.transactions add column if not exists meal_type text;
+
+-- transactions に支払い方法カラムを追加（出費記録時の任意項目）
+-- payment_type: 'cash' | 'credit_card' | 'emoney' | 'qr'
+-- payment_method: クレジットカード/電子マネー/QRコード決済を選んだ場合の具体的なサービス名（例: 楽天カード、PayPay）
+alter table public.transactions add column if not exists payment_type text;
+alter table public.transactions add column if not exists payment_method text;

@@ -14,10 +14,11 @@ interface Props {
   userId: string
   onCategoryEdit: () => void
   onExchangeRate: () => void
+  onPaymentMethods: () => void
   onBack: () => void
 }
 
-export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate, onBack }: Props) {
+export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate, onPaymentMethods, onBack }: Props) {
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [monthStartDay, setMonthStartDay] = useState(1)
   const [saving, setSaving] = useState(false)
@@ -174,12 +175,23 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
           </button>
           <button
             onClick={onExchangeRate}
-            className="w-full flex items-center gap-3 px-4 py-4 active:bg-slate-50"
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-slate-50 border-b border-slate-50"
           >
             <span className="text-xl">💱</span>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-slate-700">為替レート設定</div>
               <div className="text-xs text-slate-400">USD/JPY レートを設定（固定費のドル入力に使用）</div>
+            </div>
+            <span className="text-slate-300 text-lg">›</span>
+          </button>
+          <button
+            onClick={onPaymentMethods}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-slate-50"
+          >
+            <span className="text-xl">💳</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-slate-700">支払い方法</div>
+              <div className="text-xs text-slate-400">クレジットカード・電子マネー・QR決済の登録とデフォルト設定</div>
             </div>
             <span className="text-slate-300 text-lg">›</span>
           </button>

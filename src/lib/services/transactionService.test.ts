@@ -69,6 +69,8 @@ describe('transactionService.insert', () => {
       memo: null,
       store_type: null,
       meal_type: null,
+      payment_type: null,
+      payment_method: null,
       recurring_rule_id: null,
     }
     await transactionService.insert(data)

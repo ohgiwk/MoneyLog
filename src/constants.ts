@@ -115,6 +115,15 @@ export const MEAL_TYPES: CategoryInfo[] = [
   { name: 'その他', icon: '📦', color: '#64748b' },
 ]
 
+export type PaymentType = 'cash' | 'credit_card' | 'emoney' | 'qr'
+
+export const PAYMENT_TYPES: { type: PaymentType; name: string; icon: string }[] = [
+  { type: 'cash', name: '現金', icon: '💵' },
+  { type: 'credit_card', name: 'クレジットカード', icon: '💳' },
+  { type: 'emoney', name: '電子マネー', icon: '🪙' },
+  { type: 'qr', name: 'QRコード決済', icon: '📱' },
+]
+
 export interface DefaultConsumable {
   name: string
   category: string

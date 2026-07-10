@@ -1,0 +1,144 @@
+import { useEffect, useState } from 'react'
+import { PAYMENT_TYPES, type PaymentType } from '../constants'
+import { usePaymentMethods } from '../hooks/usePaymentMethods'
+import ScreenHeader from './ui/ScreenHeader'
+
+const MANAGED_TYPES = PAYMENT_TYPES.filter((t) => t.type !== 'cash')
+
+interface Props {
+  onBack: () => void
+}
+
+export default function PaymentMethodsScreen({ onBack }: Props) {
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
+  const { methods, defaultPayment, addMethod, removeMethod, setDefaultPayment } = usePaymentMethods()
+  const [newNames, setNewNames] = useState<Record<PaymentType, string>>({
+    cash: '',
+    credit_card: '',
+    emoney: '',
+    qr: '',
+  })
+
+  function handleAdd(type: PaymentType) {
+    const name = newNames[type]
+    if (!name.trim()) return
+    addMethod(type, name)
+    setNewNames((prev) => ({ ...prev, [type]: '' }))
+  }
+
+  function isDefault(type: PaymentType, name: string | null) {
+    return defaultPayment.type === type && defaultPayment.name === name
+  }
+
+  return (
+    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+        <ScreenHeader title="支払い方法" onBack={onBack} />
+      </div>
+
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-8">
+        {/* デフォルトの支払い方法 */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+              デフォルトの支払い方法
+            </span>
+          </div>
+          <div className="p-3 space-y-1.5">
+            <button
+              onClick={() => setDefaultPayment({ type: 'cash', name: null })}
+              className={
+                'w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-left border ' +
+                (isDefault('cash', null)
+                  ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-100 bg-slate-50 text-slate-600')
+              }
+            >
+              <span className="text-lg">💵</span>
+              <span className="flex-1">現金</span>
+              {isDefault('cash', null) && <span className="text-emerald-500 text-xs font-semibold">✓</span>}
+            </button>
+            {methods.length === 0 ? (
+              <p className="text-xs text-slate-400 px-3 py-2">
+                クレジットカード・電子マネー・QRコード決済の支払い方法を下から登録できます
+              </p>
+            ) : (
+              methods.map((m) => {
+                const typeInfo = PAYMENT_TYPES.find((t) => t.type === m.type)
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => setDefaultPayment({ type: m.type, name: m.name })}
+                    className={
+                      'w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-left border ' +
+                      (isDefault(m.type, m.name)
+                        ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                        : 'border-slate-100 bg-slate-50 text-slate-600')
+                    }
+                  >
+                    <span className="text-lg">{typeInfo?.icon}</span>
+                    <span className="flex-1">{m.name}</span>
+                    <span className="text-xs text-slate-400">{typeInfo?.name}</span>
+                    {isDefault(m.type, m.name) && (
+                      <span className="text-emerald-500 text-xs font-semibold">✓</span>
+                    )}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+
+        {/* 種別ごとの管理 */}
+        {MANAGED_TYPES.map((t) => {
+          const list = methods.filter((m) => m.type === t.type)
+          return (
+            <div key={t.type} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+                <span className="text-lg">{t.icon}</span>
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  {t.name}
+                </span>
+              </div>
+              <div className="p-3 space-y-1.5">
+                {list.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 text-sm text-slate-700"
+                  >
+                    <span className="flex-1">{m.name}</span>
+                    <button
+                      onClick={() => removeMethod(m.id)}
+                      className="text-slate-400 active:text-rose-500 text-xs px-1"
+                      aria-label={`${m.name}を削除`}
+                    >
+                      削除
+                    </button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newNames[t.type]}
+                    onChange={(e) => setNewNames((prev) => ({ ...prev, [t.type]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(t.type) }}
+                    placeholder={`例: ${t.type === 'credit_card' ? '楽天カード' : t.type === 'emoney' ? 'Suica' : 'PayPay'}`}
+                    className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                  />
+                  <button
+                    onClick={() => handleAdd(t.type)}
+                    disabled={!newNames[t.type].trim()}
+                    className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium active:bg-emerald-600 disabled:opacity-40"
+                  >
+                    追加
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

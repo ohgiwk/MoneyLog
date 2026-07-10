@@ -12,6 +12,7 @@ import SettingsScreen from './components/SettingsScreen'
 import CategoryEditScreen from './components/CategoryEditScreen'
 import BudgetScreen from './components/BudgetScreen'
 import ExchangeRateScreen from './components/ExchangeRateScreen'
+import PaymentMethodsScreen from './components/PaymentMethodsScreen'
 import OnboardingScreen from './components/OnboardingScreen'
 import WishlistScreen from './components/WishlistScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
@@ -20,7 +21,7 @@ import UpdateNotification from './components/UpdateNotification'
 import PageTransition, { type NavDirection } from './components/PageTransition'
 
 type TabKey = 'home' | 'record' | 'fixed' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'setup' | 'wishlist' | 'analytics'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'wishlist' | 'analytics'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'home', label: 'ホーム', icon: '🏠' },
@@ -96,12 +97,15 @@ export default function App() {
     content = <BudgetScreen userId={user.id} onBack={() => navigate('main', 'back')} />
   } else if (screen === 'exchange-rate') {
     content = <ExchangeRateScreen onBack={() => navigate('settings', 'back')} />
+  } else if (screen === 'payment-methods') {
+    content = <PaymentMethodsScreen onBack={() => navigate('settings', 'back')} />
   } else if (screen === 'settings') {
     content = (
       <SettingsScreen
         userId={user.id}
         onCategoryEdit={() => navigate('category-edit')}
         onExchangeRate={() => navigate('exchange-rate')}
+        onPaymentMethods={() => navigate('payment-methods')}
         onBack={() => navigate('main', 'back')}
       />
     )
