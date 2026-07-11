@@ -9,7 +9,13 @@ interface Props {
   fixedCategories: CategoryInfo[]
   fromOnboarding?: boolean
   onWizardOpen?: () => void
-  onHeaderChange?: (state: { title: string; onBack: () => void } | null) => void
+  onHeaderChange?: (
+    state: {
+      title: string
+      onBack: () => void
+      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+    } | null
+  ) => void
 }
 
 export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen, onHeaderChange }: Props) {

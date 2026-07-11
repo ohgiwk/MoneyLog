@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
@@ -24,10 +24,19 @@ interface Props {
   preset?: DefaultConsumable
   householdMembers: number
   onClose: () => void
+  onHeaderChange?: (
+    state: {
+      title: string
+      onBack: () => void
+      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+    } | null
+  ) => void
 }
 
-export default function ConsumableForm({ userId, consumable, preset, householdMembers, onClose }: Props) {
+export default function ConsumableForm({ userId, consumable, preset, householdMembers, onClose, onHeaderChange }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: consumable?.name ?? preset?.name ?? '',
     category: consumable?.category ?? preset?.category ?? CONSUMABLE_CATEGORIES[0].name,
@@ -38,6 +47,38 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     lastPurchased: consumable?.last_purchased ?? new Date().toISOString().slice(0, 10),
     notes: consumable?.notes ?? '',
   })
+
+  // 未編集かどうかの判定基準（マウント時の初期状態のスナップショット）
+  const initialSnapshot = useRef(JSON.stringify(values))
+  const isDirty = JSON.stringify(values) !== initialSnapshot.current
+
+  // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
+  // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
+  const closedRef = useRef(false)
+  function closeAndNotify() {
+    closedRef.current = true
+    onClose()
+  }
+
+  function requestBack() {
+    if (isDirty) {
+      setShowDiscardConfirm(true)
+    } else {
+      closeAndNotify()
+    }
+  }
+
+  // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
+  useEffect(() => {
+    if (closedRef.current) return
+    onHeaderChange?.({
+      title: consumable ? '定期購入を編集' : '定期購入を追加',
+      onBack: requestBack,
+      action: consumable
+        ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
+        : undefined,
+    })
+  }, [consumable, isDirty, isSubmitting]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const previewEffectiveCycle = effectiveCycleDays(
     { members_scale: values.membersScale, cycle_days: Number(values.cycleDays) } as Consumable,
@@ -79,7 +120,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
       } else {
         await consumableService.insert({ user_id: userId, ...payload })
       }
-      onClose()
+      closeAndNotify()
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
     } finally {
@@ -87,21 +128,19 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     }
   }
 
-  const [confirmDelete, setConfirmDelete] = useState(false)
-
   async function remove() {
     if (!consumable) return
     setError(null)
     try {
       await consumableService.delete(consumable.id)
-      onClose()
+      closeAndNotify()
     } catch (err) {
       setError(err instanceof Error ? err.message : '削除に失敗しました')
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-24">
       {error && (
         <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
           {error}
@@ -226,30 +265,27 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           />
         </div>
 
-        <div className="flex gap-3 pt-2">
-          {consumable && (
-            <button
-              onClick={() => setConfirmDelete(true)}
-              className="px-4 py-2.5 rounded-xl border border-rose-200 text-rose-500 text-sm font-semibold"
-            >
-              削除
-            </button>
-          )}
-          <button
-            onClick={save}
-            disabled={isSubmitting}
-            className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold disabled:opacity-50"
-          >
-            {isSubmitting ? '保存中...' : '保存'}
-          </button>
-        </div>
+      </div>
+
+      {/* 保存ボタン（タブメニュー上にフローティング表示） */}
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
         <button
-          onClick={onClose}
-          className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 text-sm font-semibold active:bg-slate-50"
+          onClick={save}
+          disabled={isSubmitting}
+          className="w-[60%] py-3.5 rounded-[2rem] bg-emerald-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-emerald-600"
         >
-          キャンセル
+          {isSubmitting ? '保存中...' : '保存'}
         </button>
       </div>
+
+      {showDiscardConfirm && (
+        <ConfirmDialog
+          message="入力内容を破棄しますか？"
+          confirmLabel="破棄する"
+          onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
+          onCancel={() => setShowDiscardConfirm(false)}
+        />
+      )}
 
       {confirmDelete && consumable && (
         <ConfirmDialog

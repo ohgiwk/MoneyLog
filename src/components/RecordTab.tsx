@@ -184,7 +184,13 @@ export default function RecordTab({
     }
   }, [sub, oneTimeView]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleConsumableEditingChange(state: { title: string; onBack: () => void } | null) {
+  function handleConsumableEditingChange(
+    state: {
+      title: string
+      onBack: () => void
+      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+    } | null
+  ) {
     setConsumableEditing(state !== null)
     onHeaderChange?.(state)
   }

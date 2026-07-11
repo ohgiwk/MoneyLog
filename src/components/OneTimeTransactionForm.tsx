@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MEAL_TYPES, PAYMENT_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
@@ -29,6 +29,14 @@ export default function OneTimeTransactionForm({
   onBack,
   onHeaderChange,
 }: Props) {
+  // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
+  // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
+  const closedRef = useRef(false)
+  function closeAndNotify() {
+    closedRef.current = true
+    onBack()
+  }
+
   const {
     values,
     setValue,
@@ -47,7 +55,7 @@ export default function OneTimeTransactionForm({
     selectPaymentType,
     handleSubmit,
     handleDelete,
-  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack })
+  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack: closeAndNotify })
 
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
@@ -59,12 +67,13 @@ export default function OneTimeTransactionForm({
     if (isDirty) {
       setShowDiscardConfirm(true)
     } else {
-      onBack()
+      closeAndNotify()
     }
   }
 
   // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
   useEffect(() => {
+    if (closedRef.current) return
     onHeaderChange?.({
       title: editingTx ? '記録を編集' : '出費を記録',
       onBack: requestBack,
@@ -80,7 +89,7 @@ export default function OneTimeTransactionForm({
         <ConfirmDialog
           message="入力内容を破棄しますか？"
           confirmLabel="破棄する"
-          onConfirm={() => { setShowDiscardConfirm(false); onBack() }}
+          onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
           onCancel={() => setShowDiscardConfirm(false)}
         />
       )}
@@ -110,7 +119,7 @@ export default function OneTimeTransactionForm({
               </button>
               <button
                 type="button"
-                onClick={() => { setShowSuccess(false); onBack() }}
+                onClick={() => { setShowSuccess(false); closeAndNotify() }}
                 className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold active:bg-slate-50"
               >
                 一覧を見る

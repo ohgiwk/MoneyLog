@@ -11,12 +11,18 @@ import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
 
+interface HeaderState {
+  title: string
+  onBack: () => void
+  action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+}
+
 interface Props {
   userId: string
   consumables: Consumable[]
   householdMembers: number
   reload: () => void
-  onEditingChange: (state: { title: string; onBack: () => void } | null) => void
+  onEditingChange: (state: HeaderState | null) => void
   loading?: boolean
   onTransactionAdded?: () => void
 }
@@ -41,8 +47,6 @@ export default function ConsumablesList({
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
     setDirection('forward')
     setEditing(v)
-    const isNew = v === 'new' || (typeof v === 'object' && v !== null && 'preset' in v)
-    onEditingChange({ title: isNew ? '定期購入を追加' : '定期購入を編集', onBack: closeEditing })
   }
   function closeEditing() {
     setDirection('back')
@@ -119,6 +123,7 @@ export default function ConsumablesList({
         preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
         householdMembers={householdMembers}
         onClose={closeEditing}
+        onHeaderChange={onEditingChange}
       />
     )
   } else {

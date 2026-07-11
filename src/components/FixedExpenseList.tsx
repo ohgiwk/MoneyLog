@@ -16,12 +16,18 @@ const STATUS_FILTER_TABS = [
   { key: 'cancelled' as const, label: STATUS_LABELS.cancelled.label },
 ]
 
+interface HeaderState {
+  title: string
+  onBack: () => void
+  action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+}
+
 interface Props {
   userId: string
   fixedExpenses: FixedExpense[]
   fixedCategories: CategoryInfo[]
   reload: () => void
-  onEditingChange: (state: { title: string; onBack: () => void } | null) => void
+  onEditingChange: (state: HeaderState | null) => void
   loading?: boolean
   fromOnboarding?: boolean
   onWizardOpen?: () => void
@@ -54,7 +60,6 @@ export default function FixedExpenseList({
   function openEditing(v: FixedExpense | 'new') {
     setDirection('forward')
     setEditing(v)
-    onEditingChange({ title: v === 'new' ? '固定費を追加' : '固定費を編集', onBack: closeEditing })
   }
   function closeEditing() {
     setDirection('back')
@@ -104,6 +109,7 @@ export default function FixedExpenseList({
         expense={editing === 'new' ? undefined : editing}
         fixedCategories={fixedCategories}
         onClose={closeEditing}
+        onHeaderChange={onEditingChange}
       />
     )
   } else {
