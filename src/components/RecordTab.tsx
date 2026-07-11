@@ -215,7 +215,7 @@ export default function RecordTab({
   return (
     <div>
       {showTabs && (
-        <div className="px-4 pt-4">
+        <div className="sticky top-0 z-10 bg-slate-50 px-4 pt-4 pb-2">
           <TabGroup tabs={SUB_PAGE_TABS} active={sub} onChange={setSub} size="sm" />
         </div>
       )}
