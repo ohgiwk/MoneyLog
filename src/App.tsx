@@ -206,7 +206,7 @@ export default function App() {
 
       {/* コンテンツ */}
       <div ref={scrollRef} className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto">
-        {tab === 'home' && <HomeTab userId={user.id} />}
+        {tab === 'home' && <HomeTab userId={user.id} onManageBudget={() => navigate('budget')} />}
         {tab === 'record' && (
           <RecordTab
             userId={user.id}

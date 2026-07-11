@@ -1,32 +1,41 @@
 import { useEffect, useMemo, useState } from 'react'
 import { transactionService } from '../lib/services/transactionService'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
+import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import { calendarEventService } from '../lib/services/calendarEventService'
-import type { CalendarEvent, FixedExpense, Transaction } from '../lib/database.types'
+import type { CalendarEvent, Consumable, FixedExpense, Transaction } from '../lib/database.types'
 import { formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
+import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 
 interface Props {
   userId: string
+  onManageBudget?: () => void
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 
-export default function HomeTab({ userId }: Props) {
+export default function HomeTab({ userId, onManageBudget }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [budgetMonthTx, setBudgetMonthTx] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
+  const [consumables, setConsumables] = useState<Consumable[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([])
   const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [monthStartDay, setMonthStartDay] = useState(1)
+  const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
 
   const today = todayStr()
   const period = periodKey(today, monthStartDay)
+  const calendarMonth = today.slice(0, 7)
 
   useEffect(() => {
     const load = async () => {
@@ -35,16 +44,21 @@ export default function HomeTab({ userId }: Props) {
         const profile = await profileService.fetchById(userId)
         const startDay = profile?.month_start_day ?? 1
         setMonthStartDay(startDay)
+        setHouseholdMembers(profile?.household_members ?? 1)
         const currentPeriod = periodKey(today, startDay)
 
-        const [txs, fixed, budgetSettings, upcoming] = await Promise.all([
+        const [txs, monthTxs, fixed, cons, budgetSettings, upcoming] = await Promise.all([
           transactionService.fetchByMonth(userId, currentPeriod, startDay),
+          transactionService.fetchByMonth(userId, today.slice(0, 7)),
           fixedExpenseService.fetchByUser(userId),
+          consumableService.fetchByUser(userId),
           budgetService.fetchByUser(userId),
           calendarEventService.fetchUpcomingExpenses(userId, today),
         ])
         setTransactions(txs)
+        setBudgetMonthTx(monthTxs)
         setFixedExpenses(fixed)
+        setConsumables(cons)
         setBudget(budgetSettings)
         setUpcomingEvents(upcoming)
       } catch (err) {
@@ -93,6 +107,21 @@ export default function HomeTab({ userId }: Props) {
   const todayAllowance = carryOver
     ? dailyAllowance * dayOfMonth - monthToDateExpense
     : dailyAllowance - todayExpense
+
+  const {
+    hasBudget,
+    weekRange,
+    dayRange,
+    daysInMonth: budgetDaysInMonth,
+    oneTimeCategoryRows,
+  } = useSummaryCalculations({
+    transactions: budgetMonthTx,
+    fixedExpenses,
+    consumables,
+    householdMembers,
+    budget,
+    month: calendarMonth,
+  })
 
   return (
     <div className="p-4 space-y-4">
@@ -185,6 +214,19 @@ export default function HomeTab({ userId }: Props) {
           </tbody>
         </table>
       </div>
+
+      {hasBudget && (
+        <BudgetProgressPanel
+          periodMode={periodMode}
+          setPeriodMode={setPeriodMode}
+          weekRange={weekRange}
+          dayRange={dayRange}
+          daysInMonth={budgetDaysInMonth}
+          month={calendarMonth}
+          oneTimeCategoryRows={oneTimeCategoryRows}
+          onManageBudget={onManageBudget}
+        />
+      )}
 
       {upcomingEvents.length > 0 && (
         <div className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
