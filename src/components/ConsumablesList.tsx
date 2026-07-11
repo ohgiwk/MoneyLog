@@ -117,14 +117,16 @@ export default function ConsumablesList({
   if (editing !== null) {
     const isPreset = typeof editing === 'object' && editing !== null && 'preset' in (editing as object)
     content = (
-      <ConsumableForm
-        userId={userId}
-        consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
-        preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
-        householdMembers={householdMembers}
-        onClose={closeEditing}
-        onHeaderChange={onEditingChange}
-      />
+      <div className="-m-4 p-4 min-h-screen bg-slate-50">
+        <ConsumableForm
+          userId={userId}
+          consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
+          preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
+          householdMembers={householdMembers}
+          onClose={closeEditing}
+          onHeaderChange={onEditingChange}
+        />
+      </div>
     )
   } else {
     content = (

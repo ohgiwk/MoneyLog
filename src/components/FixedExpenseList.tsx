@@ -104,13 +104,15 @@ export default function FixedExpenseList({
 
   if (editing !== null) {
     content = (
-      <FixedExpenseForm
-        userId={userId}
-        expense={editing === 'new' ? undefined : editing}
-        fixedCategories={fixedCategories}
-        onClose={closeEditing}
-        onHeaderChange={onEditingChange}
-      />
+      <div className="-m-4 p-4 min-h-screen bg-slate-50">
+        <FixedExpenseForm
+          userId={userId}
+          expense={editing === 'new' ? undefined : editing}
+          fixedCategories={fixedCategories}
+          onClose={closeEditing}
+          onHeaderChange={onEditingChange}
+        />
+      </div>
     )
   } else {
     content = (

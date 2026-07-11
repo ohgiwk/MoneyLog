@@ -240,7 +240,7 @@ export default function RecordTab({
               startDay={monthStartDay}
             />
           ) : (
-            <div className="p-4 pb-28">
+            <div className="min-h-screen bg-slate-50 p-4 pb-28">
               <OneTimeTransactionForm
                 userId={userId}
                 expenseCategories={expenseCategories}
