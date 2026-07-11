@@ -31,6 +31,7 @@ interface Props {
   onEditDone?: () => void
   initialSub?: RecordSubPage
   resetSignal?: number
+  onNavigate?: () => void
   onHeaderChange?: (
     state: {
       title: string
@@ -50,9 +51,14 @@ export default function RecordTab({
   onEditDone,
   initialSub,
   resetSignal,
+  onNavigate,
   onHeaderChange,
 }: Props) {
-  const [sub, setSub] = useState<RecordSubPage>(initialSub ?? 'one_time')
+  const [sub, setSubRaw] = useState<RecordSubPage>(initialSub ?? 'one_time')
+  const setSub = (next: RecordSubPage) => {
+    onNavigate?.()
+    setSubRaw(next)
+  }
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [oneTimeDirection, setOneTimeDirection] = useState<NavDirection>('forward')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
@@ -163,12 +169,14 @@ export default function RecordTab({
   }
 
   function openForm(tx?: Transaction) {
+    onNavigate?.()
     setFormEditingTx(tx ?? null)
     setOneTimeDirection('forward')
     setOneTimeView('form')
   }
 
   function backToList() {
+    onNavigate?.()
     setFormEditingTx(null)
     setOneTimeDirection('back')
     setOneTimeView('list')
@@ -191,6 +199,7 @@ export default function RecordTab({
       action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
     } | null
   ) {
+    onNavigate?.()
     setConsumableEditing(state !== null)
     onHeaderChange?.(state)
   }

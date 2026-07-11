@@ -54,6 +54,10 @@ export default function App() {
     setScreen(next)
   }
 
+  function resetScroll() {
+    scrollRef.current?.scrollTo(0, 0)
+  }
+
   // タブ・画面遷移時にスクロールをトップに戻す
   useEffect(() => {
     scrollRef.current?.scrollTo(0, 0)
@@ -215,6 +219,7 @@ export default function App() {
             initialSub={recordInitialSub}
             resetSignal={recordTapKey}
             onHeaderChange={setHeaderBack}
+            onNavigate={resetScroll}
           />
         )}
         {tab === 'fixed' && (
@@ -224,6 +229,7 @@ export default function App() {
             fromOnboarding={fixedFromOnboarding}
             onWizardOpen={() => setFixedFromOnboarding(false)}
             onHeaderChange={setHeaderBack}
+            onNavigate={resetScroll}
           />
         )}
         {tab === 'calendar' && (
