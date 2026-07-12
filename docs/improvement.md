@@ -1,29 +1,101 @@
 # コードベース改善点まとめ
 
-調査日: 2026-06-25 / 最終更新: 2026-06-26
+調査日: 2026-06-25 / 最終更新: 2026-07-12
 
 ---
 
-## 対応済みサマリー
+## 残課題（優先度順、見送り中）
 
-| 優先度 | 項目 | 対応日 |
-|--------|------|--------|
-| 高 | RecordTab.tsx の分割（FixedExpenseList / Form, ConsumablesList / Form / Row） | 2026-06-25 |
-| 高 | エラーハンドリング強化（サービス層 throw、try/catch、バリデーション表示） | 2026-06-25 |
-| 高 | TabGroup / Row 汎用コンポーネント化 | 2026-06-25 |
-| 中 | 型安全性（requireEnv、RecordSubPage 型アサーション除去、useEffect 依存配列） | 2026-06-25 |
-| 中 | useForm カスタムフック作成・3フォームに適用 | 2026-06-25 |
-| 中 | 計算ロジックを utils.ts に移動 | 2026-06-25 |
-| 中 | パフォーマンス（O(n²)→Map、monthTx useMemo） | 2026-06-25 |
-| 低〜中 | マジックナンバー定数化（HOUSEHOLD_MEMBERS_MIN/MAX 等） | 2026-06-25 |
-| 低 | AuthScreen テスト追加（6テスト） | 2026-06-25 |
-| 低 | AuthScreen アクセシビリティ（ARIA ラベル、focus:ring、role="tab"） | 2026-06-25 |
+### A. 日付フォーマットの重複実装（優先度: 中、費用対効果高）
+
+「M月D日（曜）」形式の日付フォーマットが3箇所で個別実装されている。いずれも独自に `['日','月','火','水','木','金','土']` 配列を保持:
+- `src/components/HomeTab.tsx:250`
+- `src/components/TransactionDetailView.tsx:11-12`
+- `src/components/CalendarTab.tsx:273-276`
+
+**改善案:** `utils.ts` に `formatDateWithWeekday(dateStr)` を追加して3箇所を統合する。小さい変更で確実に重複を減らせる。
 
 ---
 
-## 残課題（見送り中）
+### B. useSummaryCalculations の単体テスト（優先度: 中、費用対効果高）
 
-### A. useAsync フック（優先度: 低）
+予算進捗・週/月別集計などの計算ロジックが集約されている `useSummaryCalculations.ts` にテストがない。Supabaseのモックが不要な純粋関数に近いフックのため、`RecordTab`/`SummaryTab`（D項目）よりも低コストでテスト追加できる。
+
+**改善案:** `useSummaryCalculations.test.ts` を追加し、`aggregateOneTimeByCategory` や `oneTimeCategoryRows` の集計結果を中心に検証する。
+
+---
+
+### C. 他コンポーネントのフォーカスリング（優先度: 低）
+
+`RecordTab`・`FixedExpenseForm`・`ConsumableForm` 等のボタン群に `focus:ring-*` が当たっていない箇所がある。具体例（2026-07-12再調査）: `CalendarTab.tsx` の日付セルボタン（L151-159）、区分選択ボタン（L208-215）、予定リストボタン（L232-236）、削除/キャンセル/保存ボタン（L422-443）。`<input>` 系は `focus:ring-2` が概ね付与済みだが、ボタン単位ではまだ穴が多い。
+
+**見送り理由:** 主要ユーザーフロー（AuthScreen・フォーム入力欄）は対応済み。全ボタン対応は UI スタイルガイド整備とあわせて行う。
+
+---
+
+### D. RecordTab / SummaryTab のコンポーネントテスト（優先度: 低）
+
+- `RecordTab` — フォーム送信・バリデーション
+- `SummaryTab` — 月別集計値の正確性
+
+**見送り理由:** Supabase サービス層のモックが必要で実装コストが高い。utils.ts・サービス層・AuthScreen のテストで基盤は整備済み。
+
+---
+
+### E. サービス層のテストカバレッジ偏り（優先度: 低）
+
+`transactionService`（4件）・`fixedExpenseService`（7件）のみテストがあり、`calendarEventService.ts` / `workScheduleService.ts` / `shoppingMemoService.ts` / `wishlistService.ts` / `budgetService.ts` / `consumableService.ts` はテスト0件。
+
+**見送り理由:** 優先度は B・D より低い。機能追加のタイミングで併せて追加するのが効率的。
+
+---
+
+### F. 依然として大きいファイル（優先度: 低）
+
+`CalendarTab.tsx`（449行）、`FixedExpenseForm.tsx`（402行）、`FixedExpenseList.tsx`（397行）。`CalendarTab.tsx` は本体と `EventForm`（モーダル、L279-449）が同居しており `calendarTab/EventForm.tsx` への切り出しが可能。`FixedExpenseForm`/`List` は単一責務のフォーム/リストで、`FixedExpenseTutorial.tsx` のような明確な複数ステップ構造ではないため分割の価値は薄い。
+
+**見送り理由:** `FixedExpenseTutorial.tsx`（946行）ほどの緊急性はない。`CalendarTab.tsx` の `EventForm` 切り出しは着手コストが低く次点候補。
+
+---
+
+### G. React.memo 未使用によるリスト再描画（優先度: 低）
+
+プロジェクト全体で `React.memo` が使われていない。`ConsumablesList.tsx`（336行）や `FixedExpenseList.tsx` は親の再レンダリングのたびに全行を再計算・再描画する可能性がある。
+
+**見送り理由:** 現状の項目数（家庭用アプリの想定規模）ではパフォーマンス上の実害は出ていない。件数が増えるユースケースが出てきたら行コンポーネントへの `memo` 適用を検討する。
+
+---
+
+### H. localStorage キーがユーザーID非依存（優先度: 低、要方針確認）
+
+カテゴリ設定（`useCategories.ts`）・支払い方法（`usePaymentMethods.ts`）・為替レート（`exchangeRate.ts`）が `localStorage` にグローバルキー（例: `moneylog_expense_categories`）で保存されている。同一ブラウザを複数アカウントで使い回すと前ユーザーの設定が漏れる・混在する可能性がある。
+
+**見送り理由:** 現状は単一ユーザー専用デバイス利用が前提。マルチアカウント利用を想定する場合はキーに `userId` を含める方針に変更する。
+
+---
+
+### I. Props drilling → React Context（優先度: 低）
+
+`src/App.tsx` で `userId` と `categories` が全タブに手渡しされている。将来的に React Context でまとめると拡張しやすい。
+
+```typescript
+// src/contexts/AppContext.tsx
+export const AppContext = createContext<{ userId: string; categories: Categories }>()
+```
+
+**見送り理由:** 現在の props 数が許容範囲内。タブ追加など拡張時に対応する。
+
+---
+
+### J. clsx / tailwind-merge 導入（優先度: 低）
+
+複数箇所で `className={'... ' + (cond ? '...' : '...')}` パターンが使われており、`clsx` または `tailwind-merge` を導入すると可読性が上がる。
+
+**見送り理由:** 新依存ライブラリの追加を伴う。現状の文字列連結で動作に問題なし。
+
+---
+
+### K. useAsync フック（優先度: 低）
 
 各コンポーネントで try/catch パターンが重複している。`useAsync` フックで共通化できる。
 
@@ -42,44 +114,6 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
 ```
 
 **見送り理由:** 現在の try/catch パターンで機能上問題なし。useAsync 化すると deps に eslint 抑制コメントが必要になる。
-
----
-
-### B. clsx / tailwind-merge 導入（優先度: 低）
-
-複数箇所で `className={'... ' + (cond ? '...' : '...')}` パターンが使われており、`clsx` または `tailwind-merge` を導入すると可読性が上がる。
-
-**見送り理由:** 新依存ライブラリの追加を伴う。現状の文字列連結で動作に問題なし。
-
----
-
-### C. Props drilling → React Context（優先度: 低）
-
-`src/App.tsx` で `userId` と `categories` が全タブに手渡しされている。将来的に React Context でまとめると拡張しやすい。
-
-```typescript
-// src/contexts/AppContext.tsx
-export const AppContext = createContext<{ userId: string; categories: Categories }>()
-```
-
-**見送り理由:** 現在の props 数が許容範囲内。タブ追加など拡張時に対応する。
-
----
-
-### D. RecordTab / SummaryTab のコンポーネントテスト（優先度: 低）
-
-- `RecordTab` — フォーム送信・バリデーション
-- `SummaryTab` — 月別集計値の正確性
-
-**見送り理由:** Supabase サービス層のモックが必要で実装コストが高い。utils.ts・サービス層・AuthScreen のテストで基盤は整備済み。
-
----
-
-### E. 他コンポーネントのフォーカスリング（優先度: 低）
-
-`RecordTab`・`FixedExpenseForm`・`ConsumableForm` 等のボタン群に `focus:ring-*` が当たっていない箇所がある。
-
-**見送り理由:** 主要ユーザーフロー（AuthScreen・フォーム入力欄）は対応済み。全ボタン対応は UI スタイルガイド整備とあわせて行う。
 
 ---
 

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { workScheduleService } from '../lib/services/workScheduleService'
-import { formatYen } from '../utils'
+import { formatDateWithWeekday, formatYen } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 
 interface Props {
@@ -187,7 +187,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
       {/* 選択日のヘッダー + 追加ボタン */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-700">
-          {formatSelectedDate(selectedDate)}
+          {formatDateWithWeekday(selectedDate)}
         </span>
         <button
           onClick={openAdd}
@@ -270,12 +270,6 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
   )
 }
 
-function formatSelectedDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  const dow = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()]
-  return `${d.getMonth() + 1}月${d.getDate()}日（${dow}）`
-}
-
 // ─── EventForm ───────────────────────────────────────────────
 
 interface EventFormProps {
@@ -346,7 +340,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
             <h2 className="text-base font-semibold text-slate-700">
               {event ? '予定を編集' : '予定を追加'}
             </h2>
-            <span className="text-xs text-slate-400">{formatSelectedDate(date)}</span>
+            <span className="text-xs text-slate-400">{formatDateWithWeekday(date)}</span>
           </div>
 
           {error && (

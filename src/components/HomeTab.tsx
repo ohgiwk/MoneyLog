@@ -5,7 +5,7 @@ import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import type { CalendarEvent, Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
+import { formatDateWithWeekday, formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
@@ -234,7 +234,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
               <li key={event.id} className="flex items-center justify-between py-2 text-sm">
                 <div className="flex flex-col">
                   <span className="text-slate-700">{event.title}</span>
-                  <span className="text-xs text-slate-400">{formatEventDate(event.date)}</span>
+                  <span className="text-xs text-slate-400">{formatDateWithWeekday(event.date)}</span>
                 </div>
                 <span className="font-semibold text-slate-700">{formatYen(event.planned_expense)}</span>
               </li>
@@ -244,10 +244,4 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
       )}
     </div>
   )
-}
-
-function formatEventDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  const dow = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()]
-  return `${d.getMonth() + 1}月${d.getDate()}日（${dow}）`
 }

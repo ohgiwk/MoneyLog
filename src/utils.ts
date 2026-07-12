@@ -22,6 +22,14 @@ export function calcBudgetProgress(spent: number, budget: number): { pct: number
   }
 }
 
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
+
+// 「M月D日（曜）」形式の日付表示
+export function formatDateWithWeekday(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
+}
+
 export function formatYen(n: number): string {
   return '¥' + Math.round(n).toLocaleString('ja-JP')
 }

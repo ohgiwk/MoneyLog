@@ -1,16 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
 import { STORE_TYPES } from '../constants'
-import { categoryInfo, formatYen } from '../utils'
+import { categoryInfo, formatDateWithWeekday, formatYen } from '../utils'
 import { useTransactionFilters } from '../hooks/useTransactionFilters'
 import Spinner from './ui/Spinner'
-
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr + 'T00:00:00')
-  return `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
-}
 
 interface Props {
   transactions: Transaction[]
@@ -255,7 +248,7 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
         return (
           <div key={date} className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="flex justify-between items-center px-4 py-2.5 bg-slate-100 border-b border-slate-200">
-              <span className="text-xs font-semibold text-slate-600">{formatDate(date)}</span>
+              <span className="text-xs font-semibold text-slate-600">{formatDateWithWeekday(date)}</span>
               <div className="flex gap-2 text-xs">
                 {dayIncome > 0 && <span className="text-emerald-600">+{formatYen(dayIncome)}</span>}
                 {dayExpense > 0 && <span className="text-rose-400">-{formatYen(dayExpense)}</span>}
