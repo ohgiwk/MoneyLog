@@ -166,7 +166,6 @@ export default function ConsumablesList({
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
-        <div className="text-xs text-slate-400 mt-1">同居人数: {householdMembers}人</div>
       </div>
 
       {loading && <Spinner />}
