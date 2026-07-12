@@ -94,6 +94,7 @@ export const STORE_TYPES: CategoryInfo[] = [
   { name: 'ドラッグストア', icon: '💊', color: '#06b6d4' },
   { name: 'デパート・百貨店', icon: '🏬', color: '#a855f7' },
   { name: 'ホームセンター', icon: '🔨', color: '#f59e0b' },
+  { name: 'ガソリンスタンド', icon: '⛽', color: '#78716c' },
   { name: '飲食店', icon: '🍽️', color: '#ef4444' },
   { name: 'ネット通販', icon: '📦', color: '#3b82f6' },
   { name: 'その他', icon: '🏷️', color: '#64748b' },
