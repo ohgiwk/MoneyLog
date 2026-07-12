@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 
 interface Props {
   value: string // YYYY-MM-DD
@@ -83,7 +84,7 @@ export default function DatePicker({ value, onChange, label }: Props) {
         <span className="text-slate-400 text-base">📅</span>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
           <div className="relative bg-white rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
@@ -166,7 +167,8 @@ export default function DatePicker({ value, onChange, label }: Props) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
