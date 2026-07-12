@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
-import { formatYen, todayStr } from '../utils'
+import { calcBudgetProgress, formatYen, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
 
@@ -57,8 +57,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
 
   const oneTimeTotal = oneTimeBudgetTotal(budget)
   const budgetTotal = budget.fixed + budget.consumable + oneTimeTotal
-  const usagePct = budget.income > 0 ? Math.min((budgetTotal / budget.income) * 100, 100) : 0
-  const overIncome = budgetTotal > budget.income && budget.income > 0
+  const { pct: usagePct, over: overIncome } = calcBudgetProgress(budgetTotal, budget.income)
   const remaining = budget.income - budgetTotal
 
   return (

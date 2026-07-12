@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { formatYen } from '../utils'
+import { calcBudgetProgress, formatYen, mondayFirstDow } from '../utils'
 
 export type PeriodMode = 'week' | 'month'
 
@@ -29,13 +29,12 @@ export default function BudgetProgressPanel({
   }[]
   onManageBudget?: () => void
 }) {
-  const today = new Date()
-
   // 期間ラベルと進捗率
   const { rangeLabel, filledDots, totalDots, periodLabel } = useMemo(() => {
+    const today = new Date()
     if (periodMode === 'week') {
       const label = `${weekRange.start.slice(5).replace('-', '/')} 〜 ${weekRange.end.slice(5).replace('-', '/')}`
-      const dow = (today.getDay() + 6) % 7 // 0=Mon
+      const dow = mondayFirstDow(today)
       return {
         rangeLabel: label,
         filledDots: dow,
@@ -53,7 +52,7 @@ export default function BudgetProgressPanel({
       totalDots: daysInMonth,
       periodLabel: `${dayOfMonth}日 / ${daysInMonth}日`,
     }
-  }, [periodMode, weekRange, month, daysInMonth, today])
+  }, [periodMode, weekRange, month, daysInMonth])
 
   const rows = oneTimeCategoryRows.map((r) => {
     if (periodMode === 'week') return { ...r, spent: r.spent, budget: r.weekBudget }
@@ -141,8 +140,7 @@ function BudgetProgress({
   budget: number
   color: string
 }) {
-  const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
-  const over = spent > budget && budget > 0
+  const { pct, over } = calcBudgetProgress(spent, budget)
   return (
     <div>
       <div className="flex justify-between items-center mb-1">

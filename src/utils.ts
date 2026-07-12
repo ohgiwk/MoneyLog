@@ -9,6 +9,19 @@ export function monthKey(dateStr: string): string {
   return dateStr.slice(0, 7)
 }
 
+// 月曜=0始まりの曜日インデックス（Date.getDay() は日曜=0始まりのため変換）
+export function mondayFirstDow(date: Date): number {
+  return (date.getDay() + 6) % 7
+}
+
+// 予算に対する使用率(%, 0-100)と超過フラグ
+export function calcBudgetProgress(spent: number, budget: number): { pct: number; over: boolean } {
+  return {
+    pct: budget > 0 ? Math.min((spent / budget) * 100, 100) : 0,
+    over: spent > budget && budget > 0,
+  }
+}
+
 export function formatYen(n: number): string {
   return '¥' + Math.round(n).toLocaleString('ja-JP')
 }

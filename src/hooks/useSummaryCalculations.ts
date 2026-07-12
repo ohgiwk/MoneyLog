@@ -1,8 +1,19 @@
 import { useMemo } from 'react'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, monthKey, monthlyConsumableCost } from '../utils'
+import { categoryInfo, mondayFirstDow, monthKey, monthlyConsumableCost } from '../utils'
+import { WEEKS_PER_MONTH } from '../constants'
 import type { BudgetSettings } from '../lib/services/budgetService'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
+
+// 出費取引をカテゴリ別に合計する（当日/週/月の各集計で共通利用）
+function aggregateOneTimeByCategory(txs: Transaction[]): Map<string, number> {
+  const map = new Map<string, number>()
+  for (const t of txs) {
+    if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+    map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+  }
+  return map
+}
 
 interface Options {
   transactions: Transaction[]
@@ -69,7 +80,7 @@ export function useSummaryCalculations({
   // 今週（月曜始まり）の日付範囲
   const weekRange = useMemo(() => {
     const today = new Date()
-    const dow = (today.getDay() + 6) % 7 // 0=Mon
+    const dow = mondayFirstDow(today)
     const mon = new Date(today)
     mon.setDate(today.getDate() - dow)
     const sun = new Date(mon)
@@ -83,14 +94,7 @@ export function useSummaryCalculations({
     [transactions, weekRange]
   )
 
-  const weekOneTimeByCat = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const t of thisWeekTx) {
-      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
-    }
-    return map
-  }, [thisWeekTx])
+  const weekOneTimeByCat = useMemo(() => aggregateOneTimeByCategory(thisWeekTx), [thisWeekTx])
 
   const hasBudget = oneTimeBudgetTotal(budget) > 0 || weekOneTimeByCat.size > 0
 
@@ -100,25 +104,15 @@ export function useSummaryCalculations({
     return { start: today, end: today }
   }, [])
 
-  const dayOneTimeByCat = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const t of transactions) {
-      if (t.date !== dayRange.start) continue
-      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
-    }
-    return map
-  }, [transactions, dayRange])
+  const todayTx = useMemo(
+    () => transactions.filter((t) => t.date === dayRange.start),
+    [transactions, dayRange]
+  )
+
+  const dayOneTimeByCat = useMemo(() => aggregateOneTimeByCategory(todayTx), [todayTx])
 
   // 今月の臨時費カテゴリ別 (月表示用)
-  const monthOneTimeByCat = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const t of monthTx) {
-      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
-    }
-    return map
-  }, [monthTx])
+  const monthOneTimeByCat = useMemo(() => aggregateOneTimeByCategory(monthTx), [monthTx])
 
   // 今月の日数
   const daysInMonth = useMemo(() => {
@@ -135,7 +129,7 @@ export function useSummaryCalculations({
       cat,
       icon: categoryInfo(cat).icon,
       spent: weekOneTimeByCat.get(cat) ?? 0,
-      weekBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / 4.33),
+      weekBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / WEEKS_PER_MONTH),
       daySpent: dayOneTimeByCat.get(cat) ?? 0,
       dayBudget: Math.round((budget.oneTimeByCategory[cat] ?? 0) / daysInMonth),
       monthSpent: monthOneTimeByCat.get(cat) ?? 0,
@@ -143,14 +137,10 @@ export function useSummaryCalculations({
     }))
   }, [budget.oneTimeByCategory, weekOneTimeByCat, dayOneTimeByCat, monthOneTimeByCat, daysInMonth])
 
-  const oneTimeByCat = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const t of monthTx) {
-      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
-      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
-    }
-    return [...map.entries()].sort(([, a], [, b]) => b - a)
-  }, [monthTx])
+  const oneTimeByCat = useMemo(
+    () => [...monthOneTimeByCat.entries()].sort(([, a], [, b]) => b - a),
+    [monthOneTimeByCat]
+  )
 
   const fixedByCat = useMemo(() => {
     const map = new Map<string, number>()
