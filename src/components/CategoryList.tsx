@@ -60,7 +60,7 @@ export default function CategoryList({ categories, onChange }: Props) {
               </button>
               <button
                 onClick={() => remove(i)}
-                className="text-xs text-slate-300 active:text-rose-400 px-1 py-1"
+                className="text-xs text-slate-300 active:text-danger-400 px-1 py-1"
               >
                 ✕
               </button>

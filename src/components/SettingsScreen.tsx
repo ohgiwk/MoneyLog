@@ -89,7 +89,7 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
               </div>
             </div>
             {(saving || saved) && (
-              <div className="text-xs text-emerald-500 text-right">
+              <div className="text-xs text-primary-500 text-right">
                 {saving ? '保存中...' : '保存しました'}
               </div>
             )}

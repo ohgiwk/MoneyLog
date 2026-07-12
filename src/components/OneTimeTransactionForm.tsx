@@ -113,7 +113,7 @@ export default function OneTimeTransactionForm({
               <button
                 type="button"
                 onClick={() => setShowSuccess(false)}
-                className="w-full py-3 rounded-xl bg-emerald-500 text-white font-semibold active:bg-emerald-600"
+                className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold active:bg-primary-600"
               >
                 続けて記録する
               </button>
@@ -137,7 +137,7 @@ export default function OneTimeTransactionForm({
             onClick={() => handleTypeChange('expense')}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-              (values.type === 'expense' ? 'bg-rose-500 text-white shadow' : 'text-slate-500')
+              (values.type === 'expense' ? 'bg-danger-500 text-white shadow' : 'text-slate-500')
             }
           >
             支出
@@ -147,7 +147,7 @@ export default function OneTimeTransactionForm({
             onClick={() => handleTypeChange('income')}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-              (values.type === 'income' ? 'bg-emerald-500 text-white shadow' : 'text-slate-500')
+              (values.type === 'income' ? 'bg-primary-500 text-white shadow' : 'text-slate-500')
             }
           >
             収入
@@ -171,7 +171,7 @@ export default function OneTimeTransactionForm({
                 className={
                   'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-emerald-400 bg-emerald-50'
+                    ? 'border-primary-400 bg-primary-50'
                     : 'border-slate-100 bg-slate-50')
                 }
               >
@@ -197,7 +197,7 @@ export default function OneTimeTransactionForm({
                   className={
                     'flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs border ' +
                     (values.mealType === m.name
-                      ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                      ? 'border-primary-400 bg-primary-50 text-primary-700'
                       : 'border-slate-100 bg-slate-50 text-slate-600')
                   }
                 >
@@ -222,11 +222,11 @@ export default function OneTimeTransactionForm({
                 setValue('amount', e.target.value)
                 if (amountError) setAmountError(null)
               }}
-              className={`flex-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
+              className={`flex-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-slate-200'}`}
             />
             <span className="text-sm text-slate-500 font-medium">円</span>
           </div>
-          {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
+          {amountError && <p className="text-xs text-danger-500 mt-1">{amountError}</p>}
         </div>
 
         {/* 店舗種別 */}
@@ -259,7 +259,7 @@ export default function OneTimeTransactionForm({
                     onClick={() => { setValue('storeType', ''); setStoreTypeOpen(false) }}
                     className={
                       'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                      (values.storeType === '' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 active:bg-slate-50')
+                      (values.storeType === '' ? 'bg-primary-50 text-primary-700' : 'text-slate-600 active:bg-slate-50')
                     }
                   >
                     <span className="text-lg">🏷️</span>
@@ -272,7 +272,7 @@ export default function OneTimeTransactionForm({
                       onClick={() => { setValue('storeType', s.name); setStoreTypeOpen(false) }}
                       className={
                         'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                        (values.storeType === s.name ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 active:bg-slate-50')
+                        (values.storeType === s.name ? 'bg-primary-50 text-primary-700' : 'text-slate-600 active:bg-slate-50')
                       }
                     >
                       <span className="text-lg">{s.icon}</span>
@@ -298,7 +298,7 @@ export default function OneTimeTransactionForm({
                   className={
                     'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border-2 transition ' +
                     (values.paymentType === p.type
-                      ? 'border-emerald-500 bg-emerald-50'
+                      ? 'border-primary-500 bg-primary-50'
                       : 'border-transparent bg-slate-100')
                   }
                 >
@@ -311,7 +311,7 @@ export default function OneTimeTransactionForm({
             </div>
 
             {values.paymentType && values.paymentType !== 'cash' && (
-              <div className="mt-2 pl-3 border-l-2 border-emerald-200 space-y-1.5">
+              <div className="mt-2 pl-3 border-l-2 border-primary-200 space-y-1.5">
                 <div className="text-[11px] text-slate-400">利用サービスを選択（任意）</div>
                 {paymentMethodsForType.length > 0 ? (
                   <div className="flex flex-wrap gap-1.5">
@@ -323,7 +323,7 @@ export default function OneTimeTransactionForm({
                         className={
                           'px-3 py-1 rounded-lg text-xs font-medium border ' +
                           (values.paymentMethod === m.name
-                            ? 'border-emerald-500 bg-emerald-500 text-white'
+                            ? 'border-primary-500 bg-primary-500 text-white'
                             : 'border-slate-200 bg-white text-slate-600')
                         }
                       >
@@ -349,11 +349,11 @@ export default function OneTimeTransactionForm({
             placeholder="例: スーパーで買い物"
             value={values.memo}
             onChange={(e) => setValue('memo', e.target.value)}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
           />
         </div>
 
-        {error && <p className="text-xs text-rose-500">{error}</p>}
+        {error && <p className="text-xs text-danger-500">{error}</p>}
       </form>
 
       {/* 保存ボタン（タブメニュー上にフローティング表示） */}
@@ -365,8 +365,8 @@ export default function OneTimeTransactionForm({
           className={
             'w-[60%] py-3.5 rounded-[2rem] text-white font-semibold text-sm shadow-lg disabled:opacity-50 ' +
             (values.type === 'expense'
-              ? 'bg-rose-500 active:bg-rose-600'
-              : 'bg-emerald-500 active:bg-emerald-600')
+              ? 'bg-danger-500 active:bg-danger-600'
+              : 'bg-primary-500 active:bg-primary-600')
           }
         >
           {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}

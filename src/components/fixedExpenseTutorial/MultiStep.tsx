@@ -38,7 +38,7 @@ export function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepPro
                           next[i] = { ...item, amount: e.target.value }
                           onChange(next)
                         }}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 pr-8"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
                         円
@@ -62,7 +62,7 @@ export function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepPro
                     next[i] = { ...item, amount: e.target.value }
                     onChange(next)
                   }}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 pr-8"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
                   円

@@ -258,7 +258,7 @@ export default function RecordTab({
       )}
 
       {fetchError && (
-        <div className="mx-4 mt-3 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}
         </div>
       )}

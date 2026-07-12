@@ -31,13 +31,13 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: 町内会費"
-          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+          className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
         <div className="flex gap-2">
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="flex-1 min-w-0 border border-slate-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
           >
             {FIXED_EXPENSE_CATEGORIES.map((c) => (
               <option key={c.name} value={c.name}>
@@ -70,7 +70,7 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
               placeholder="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 pr-8"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 pr-8"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">円</span>
           </div>
@@ -78,7 +78,7 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
             type="button"
             onClick={handleAdd}
             disabled={!name.trim()}
-            className="px-4 rounded-xl bg-emerald-500 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold active:bg-emerald-600 shrink-0"
+            className="px-4 rounded-xl bg-primary-500 disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold active:bg-primary-600 shrink-0"
           >
             追加
           </button>
@@ -108,7 +108,7 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
                 <button
                   type="button"
                   onClick={() => onRemove(i)}
-                  className="text-slate-300 active:text-rose-500 shrink-0 text-lg leading-none px-1"
+                  className="text-slate-300 active:text-danger-500 shrink-0 text-lg leading-none px-1"
                   aria-label="削除"
                 >
                   ×

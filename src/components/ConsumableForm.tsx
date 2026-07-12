@@ -141,7 +141,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
   return (
     <div className="space-y-4 pb-24">
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {error}
         </div>
       )}
@@ -153,9 +153,9 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); setFieldErrors((p) => ({ ...p, name: undefined })) }}
             placeholder="例: トイレットペーパー"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.name ? 'border-rose-400' : 'border-slate-200'}`}
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.name ? 'border-danger-400' : 'border-slate-200'}`}
           />
-          {fieldErrors.name && <p className="text-xs text-rose-500 mt-1">{fieldErrors.name}</p>}
+          {fieldErrors.name && <p className="text-xs text-danger-500 mt-1">{fieldErrors.name}</p>}
         </div>
 
         <div>
@@ -169,7 +169,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                 className={
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-emerald-400 bg-emerald-50'
+                    ? 'border-primary-400 bg-primary-50'
                     : 'border-slate-100 bg-slate-50')
                 }
               >
@@ -191,9 +191,9 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               value={values.amount}
               onChange={(e) => { setValue('amount', e.target.value); setFieldErrors((p) => ({ ...p, amount: undefined })) }}
               placeholder="0"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.amount ? 'border-rose-400' : 'border-slate-200'}`}
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.amount ? 'border-danger-400' : 'border-slate-200'}`}
             />
-            {fieldErrors.amount && <p className="text-xs text-rose-500 mt-1">{fieldErrors.amount}</p>}
+            {fieldErrors.amount && <p className="text-xs text-danger-500 mt-1">{fieldErrors.amount}</p>}
           </div>
           <div>
             <label className="text-xs text-slate-400">購入個数</label>
@@ -203,7 +203,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               value={values.quantity}
               onChange={(e) => setValue('quantity', e.target.value)}
               min="1"
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
             />
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                 className={
                   'px-3 py-1 rounded-lg text-xs font-medium border ' +
                   (values.cycleDays === p.days.toString()
-                    ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                    ? 'border-primary-400 bg-primary-50 text-primary-700'
                     : 'border-slate-200 text-slate-500')
                 }
               >
@@ -234,11 +234,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               value={values.cycleDays}
               onChange={(e) => { setValue('cycleDays', e.target.value); setFieldErrors((p) => ({ ...p, cycleDays: undefined })) }}
               min="1"
-              className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${fieldErrors.cycleDays ? 'border-rose-400' : 'border-slate-200'}`}
+              className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.cycleDays ? 'border-danger-400' : 'border-slate-200'}`}
             />
             <span className="text-sm text-slate-500">日おき</span>
           </div>
-          {fieldErrors.cycleDays && <p className="text-xs text-rose-500 mt-1">{fieldErrors.cycleDays}</p>}
+          {fieldErrors.cycleDays && <p className="text-xs text-danger-500 mt-1">{fieldErrors.cycleDays}</p>}
         </div>
 
         <div>
@@ -260,7 +260,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
             value={values.notes}
             onChange={(e) => setValue('notes', e.target.value)}
             rows={2}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
+            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
           />
         </div>
 
@@ -271,7 +271,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         <button
           onClick={save}
           disabled={isSubmitting}
-          className="w-[60%] py-3.5 rounded-[2rem] bg-emerald-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-emerald-600"
+          className="w-[60%] py-3.5 rounded-[2rem] bg-primary-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-primary-600"
         >
           {isSubmitting ? '保存中...' : '保存'}
         </button>

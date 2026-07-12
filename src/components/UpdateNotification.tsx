@@ -24,7 +24,7 @@ export default function UpdateNotification() {
           </button>
           <button
             onClick={() => updateServiceWorker(true)}
-            className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:bg-emerald-600"
+            className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600"
           >
             更新する
           </button>

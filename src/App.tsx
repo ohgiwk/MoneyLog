@@ -171,7 +171,7 @@ export default function App() {
                 disabled={headerBack.action.disabled}
                 className={
                   'justify-self-end px-1 text-sm font-semibold active:opacity-70 disabled:opacity-40 ' +
-                  (headerBack.action.tone === 'danger' ? 'text-rose-500' : 'text-emerald-600')
+                  (headerBack.action.tone === 'danger' ? 'text-danger-500' : 'text-primary-600')
                 }
               >
                 {headerBack.action.label}
@@ -251,7 +251,7 @@ export default function App() {
             }}
             className={
               'flex flex-col items-center gap-0.5 px-6 py-1 ' +
-              (tab === t.key ? 'text-emerald-600' : 'text-slate-400')
+              (tab === t.key ? 'text-primary-600' : 'text-slate-400')
             }
           >
             <span className="text-xl">{t.icon}</span>

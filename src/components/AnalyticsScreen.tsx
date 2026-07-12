@@ -95,7 +95,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
       <MonthSwitcher month={month} setMonth={setMonth} />
 
       {fetchError && (
-        <div className="mx-4 mt-3 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}
         </div>
       )}
@@ -104,19 +104,19 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
         {/* 収支サマリー */}
         <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2.5">
           <div className="text-sm font-semibold text-slate-700">収支</div>
-          <Row label="収入" value={formatYen(income)} valueColor="text-emerald-600" />
+          <Row label="収入" value={formatYen(income)} valueColor="text-primary-600" />
           <Row
             label="固定費"
             value={`-${formatYen(Math.round(totalFixed))}`}
             valueColor="text-slate-500"
           />
-          <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-rose-500" />
-          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-amber-500" />
+          <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-danger-500" />
+          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-warning-500" />
           <div className="h-px bg-slate-100" />
           <Row
             label="収支"
             value={(balance >= 0 ? '+' : '') + formatYen(balance)}
-            valueColor={balance >= 0 ? 'text-emerald-600' : 'text-rose-500'}
+            valueColor={balance >= 0 ? 'text-primary-600' : 'text-danger-500'}
             bold
           />
         </div>
@@ -125,7 +125,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
         {totalSaved > 0 && (
           <div className="bg-white rounded-2xl p-4 shadow-sm">
             <div className="text-sm font-semibold text-slate-700 mb-1">固定費の節約効果</div>
-            <div className="text-2xl font-bold text-emerald-600 mb-1">
+            <div className="text-2xl font-bold text-primary-600 mb-1">
               -{formatYen(Math.round(totalSaved))}
               <span className="text-sm font-normal text-slate-400">/月</span>
             </div>
@@ -169,8 +169,8 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
               <BreakdownBars
                 entries={oneTimeByCat}
                 total={oneTimeExpense}
-                barColor="bg-amber-400"
-                valueColor="text-amber-600"
+                barColor="bg-warning-400"
+                valueColor="text-warning-600"
               />
             )}
           </div>

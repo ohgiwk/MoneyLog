@@ -26,16 +26,16 @@ export default function ConsumableRow({
 
   const daysColor =
     days < 0
-      ? 'text-rose-500'
+      ? 'text-danger-500'
       : days <= 3
-        ? 'text-rose-400'
+        ? 'text-danger-400'
         : days <= 7
-          ? 'text-amber-500'
+          ? 'text-warning-500'
           : 'text-slate-400'
 
   return (
     <div
-      className={`flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer ${border ? 'border-t border-slate-50' : ''} ${urgent ? 'bg-amber-50/40' : ''}`}
+      className={`flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer ${border ? 'border-t border-slate-50' : ''} ${urgent ? 'bg-warning-50/40' : ''}`}
       onClick={onClick}
     >
       <span className="text-xl shrink-0">{cat?.icon ?? '📦'}</span>

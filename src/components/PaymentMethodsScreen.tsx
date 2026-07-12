@@ -51,13 +51,13 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
               className={
                 'w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-left border ' +
                 (isDefault('cash', null)
-                  ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                  ? 'border-primary-400 bg-primary-50 text-primary-700'
                   : 'border-slate-100 bg-slate-50 text-slate-600')
               }
             >
               <span className="text-lg">💵</span>
               <span className="flex-1">現金</span>
-              {isDefault('cash', null) && <span className="text-emerald-500 text-xs font-semibold">✓</span>}
+              {isDefault('cash', null) && <span className="text-primary-500 text-xs font-semibold">✓</span>}
             </button>
             {methods.length === 0 ? (
               <p className="text-xs text-slate-400 px-3 py-2">
@@ -73,7 +73,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                     className={
                       'w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-left border ' +
                       (isDefault(m.type, m.name)
-                        ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                        ? 'border-primary-400 bg-primary-50 text-primary-700'
                         : 'border-slate-100 bg-slate-50 text-slate-600')
                     }
                   >
@@ -81,7 +81,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                     <span className="flex-1">{m.name}</span>
                     <span className="text-xs text-slate-400">{typeInfo?.name}</span>
                     {isDefault(m.type, m.name) && (
-                      <span className="text-emerald-500 text-xs font-semibold">✓</span>
+                      <span className="text-primary-500 text-xs font-semibold">✓</span>
                     )}
                   </button>
                 )
@@ -110,7 +110,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                     <span className="flex-1">{m.name}</span>
                     <button
                       onClick={() => removeMethod(m.id)}
-                      className="text-slate-400 active:text-rose-500 text-xs px-1"
+                      className="text-slate-400 active:text-danger-500 text-xs px-1"
                       aria-label={`${m.name}を削除`}
                     >
                       削除
@@ -124,12 +124,12 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                     onChange={(e) => setNewNames((prev) => ({ ...prev, [t.type]: e.target.value }))}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(t.type) }}
                     placeholder={`例: ${t.type === 'credit_card' ? '楽天カード' : t.type === 'emoney' ? 'Suica' : 'PayPay'}`}
-                    className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                    className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
                   />
                   <button
                     onClick={() => handleAdd(t.type)}
                     disabled={!newNames[t.type].trim()}
-                    className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium active:bg-emerald-600 disabled:opacity-40"
+                    className="px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-medium active:bg-primary-600 disabled:opacity-40"
                   >
                     追加
                   </button>

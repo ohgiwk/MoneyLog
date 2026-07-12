@@ -147,7 +147,7 @@ export default function ConsumablesList({
               onClick={() => setSummaryPeriod('monthly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'monthly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
               }
             >
               月
@@ -157,7 +157,7 @@ export default function ConsumablesList({
               onClick={() => setSummaryPeriod('yearly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'yearly' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
               }
             >
               年
@@ -177,8 +177,8 @@ export default function ConsumablesList({
             <span
               className={
                 (summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12) < 0
-                  ? 'text-rose-500 font-semibold'
-                  : 'text-emerald-600 font-semibold'
+                  ? 'text-danger-500 font-semibold'
+                  : 'text-primary-600 font-semibold'
               }
             >
               {formatYen(summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12)}
@@ -192,7 +192,7 @@ export default function ConsumablesList({
       {/* そろそろ買い時 */}
       {!loading && urgent.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-amber-600 mt-2 mb-2 flex items-center gap-1">
+          <div className="text-xs font-semibold text-warning-600 mt-2 mb-2 flex items-center gap-1">
             <span>⚠️</span> そろそろ買い時（7日以内）
           </div>
           <div className="space-y-1.5">
@@ -209,7 +209,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
                 >
                   購入済
                 </button>
@@ -239,7 +239,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
                 >
                   購入済
                 </button>
@@ -266,7 +266,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-emerald-50 text-emerald-600 text-xs font-medium border border-emerald-200 active:bg-emerald-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
                 >
                   購入済
                 </button>
@@ -284,7 +284,7 @@ export default function ConsumablesList({
       <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
         <button
           onClick={() => openEditing('new')}
-          className="pointer-events-auto w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg active:bg-emerald-600 flex items-center justify-center"
+          className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg active:bg-primary-600 flex items-center justify-center"
           aria-label="定期購入を追加"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

@@ -45,23 +45,23 @@ export default function ExchangeRateScreen({ onBack }: Props) {
                 value={rate}
                 onChange={(e) => { setRate(e.target.value); setError(null) }}
                 placeholder="150"
-                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${error ? 'border-rose-300' : 'border-slate-200'}`}
+                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${error ? 'border-danger-300' : 'border-slate-200'}`}
               />
               <span className="text-sm text-slate-500 shrink-0">円</span>
             </div>
-            {error && <p className="text-xs text-rose-500 mt-1">{error}</p>}
+            {error && <p className="text-xs text-danger-500 mt-1">{error}</p>}
           </div>
 
           <button
             onClick={save}
-            className="w-full py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:bg-emerald-600"
+            className="w-full py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600"
           >
             {saved ? '保存しました ✓' : '保存'}
           </button>
         </div>
 
-        <div className="bg-amber-50 rounded-2xl p-4">
-          <div className="text-xs text-amber-700 leading-relaxed">
+        <div className="bg-warning-50 rounded-2xl p-4">
+          <div className="text-xs text-warning-700 leading-relaxed">
             <span className="font-semibold">ご注意：</span>
             レートを変更しても、既に登録済みの円換算額は自動更新されません。
             変更後は各固定費を再保存してください。

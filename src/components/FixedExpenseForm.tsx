@@ -186,7 +186,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
   return (
     <div className="space-y-4 pb-24">
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {error}
         </div>
       )}
@@ -198,9 +198,9 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); if (nameError) setNameError(null) }}
             placeholder="例: Netflix"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${nameError ? 'border-rose-300' : 'border-slate-200'}`}
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${nameError ? 'border-danger-300' : 'border-slate-200'}`}
           />
-          {nameError && <p className="text-xs text-rose-500 mt-1">{nameError}</p>}
+          {nameError && <p className="text-xs text-danger-500 mt-1">{nameError}</p>}
         </div>
 
         <div>
@@ -214,7 +214,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 className={
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-emerald-400 bg-emerald-50'
+                    ? 'border-primary-400 bg-primary-50'
                     : 'border-slate-100 bg-slate-50')
                 }
               >
@@ -234,7 +234,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               <select
                 value={values.subSubcategory}
                 onChange={(e) => setValue('subSubcategory', e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-slate-600"
               >
                 {SUBSCRIPTION_SUBCATEGORIES.map((s) => (
                   <option key={s.name} value={s.name}>
@@ -246,7 +246,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             <div>
               <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
               <select
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 text-slate-600"
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-slate-600"
                 value={values.name}
                 onChange={(e) => {
                   const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
@@ -295,7 +295,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                       setValue('amount', '')
                       setUsdRate(getUsdJpyRate())
                     }}
-                    className={`px-2 py-0.5 font-medium ${currency === c ? 'bg-emerald-500 text-white' : 'bg-white text-slate-400'}`}
+                    className={`px-2 py-0.5 font-medium ${currency === c ? 'bg-primary-500 text-white' : 'bg-white text-slate-400'}`}
                   >
                     {c}
                   </button>
@@ -312,7 +312,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 value={values.amount}
                 onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
                 placeholder="0"
-                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${amountError ? 'border-rose-300' : 'border-slate-200'}`}
+                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-slate-200'}`}
               />
             </div>
             {currency === 'USD' && values.amount && !isNaN(parseFloat(values.amount)) && (
@@ -321,14 +321,14 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 （1USD={usdRate}円）
               </p>
             )}
-            {amountError && <p className="text-xs text-rose-500 mt-1">{amountError}</p>}
+            {amountError && <p className="text-xs text-danger-500 mt-1">{amountError}</p>}
           </div>
           <div>
             <label className="text-xs text-slate-400">サイクル</label>
             <select
               value={values.cycle}
               onChange={(e) => setValue('cycle', e.target.value as FixedExpense['cycle'])}
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
             >
               <option value="monthly">毎月</option>
               <option value="yearly">毎年</option>
@@ -364,7 +364,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             onChange={(e) => setValue('notes', e.target.value)}
             placeholder=""
             rows={3}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
+            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
           />
         </div>
 
@@ -375,7 +375,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         <button
           onClick={save}
           disabled={isSubmitting}
-          className="w-[60%] py-3.5 rounded-[2rem] bg-emerald-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-emerald-600"
+          className="w-[60%] py-3.5 rounded-[2rem] bg-primary-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-primary-600"
         >
           {isSubmitting ? '保存中...' : '保存'}
         </button>

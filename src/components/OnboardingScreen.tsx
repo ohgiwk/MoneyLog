@@ -65,7 +65,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
 
   return (
     <div
-      className="h-screen bg-gradient-to-b from-emerald-50 to-white flex flex-col max-w-md mx-auto"
+      className="h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -75,7 +75,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
           <span
             key={i}
             className={`block rounded-full transition-all duration-300 ${
-              i === page ? 'w-6 h-2 bg-emerald-500' : 'w-2 h-2 bg-slate-300'
+              i === page ? 'w-6 h-2 bg-primary-500' : 'w-2 h-2 bg-slate-300'
             }`}
           />
         ))}
@@ -94,7 +94,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
               マネログへようこそ！
             </h1>
             <p className="text-slate-600 leading-relaxed mb-4">
-              このアプリは、<span className="text-emerald-600 font-semibold">節約</span>に特化した家計管理アプリです。
+              このアプリは、<span className="text-primary-600 font-semibold">節約</span>に特化した家計管理アプリです。
             </p>
             <p className="text-slate-500 text-sm leading-relaxed mb-4">
               むずかしい操作は一切なし。毎月の支出を記録するだけで、どこを削れるか一目でわかるようになります。
@@ -122,7 +122,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
                   value={wishName}
                   onChange={(e) => setWishName(e.target.value)}
                   placeholder="例：新しいスニーカー"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
                 />
               </div>
               <div>
@@ -133,7 +133,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
                   onChange={(e) => setWishPrice(e.target.value)}
                   placeholder="例：12000"
                   inputMode="numeric"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
                 />
               </div>
             </div>
@@ -157,7 +157,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
                 onChange={(e) => setIncome(e.target.value)}
                 placeholder="例：250000"
                 inputMode="numeric"
-                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
               />
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
             </p>
             <button
               onClick={onComplete}
-              className="w-full bg-emerald-500 active:bg-emerald-600 text-white font-semibold py-4 rounded-xl text-base transition-colors"
+              className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
               固定費を設定する →
             </button>
@@ -192,7 +192,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
             <button
               onClick={saveAndNext}
               disabled={!canProceed() || saving}
-              className="w-full bg-emerald-500 active:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl text-base transition-colors"
+              className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
               {saving ? '保存中...' : '次へ →'}
             </button>

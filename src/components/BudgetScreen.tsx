@@ -71,7 +71,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
         {fetchError && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+          <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
             {fetchError}
           </div>
         )}
@@ -124,7 +124,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
                 カテゴリ別出費
               </div>
               {oneTimeTotal > 0 && (
-                <span className="text-xs text-amber-600 font-medium">
+                <span className="text-xs text-warning-600 font-medium">
                   合計 {formatYen(oneTimeTotal)}/月
                 </span>
               )}
@@ -144,24 +144,24 @@ export default function BudgetScreen({ userId, onBack }: Props) {
 
         {/* 収入に対する予算使用率 */}
         {budget.income > 0 && (
-          <div className="bg-emerald-50 rounded-2xl p-4 shadow-sm space-y-2">
+          <div className="bg-primary-50 rounded-2xl p-4 shadow-sm space-y-2">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-emerald-700">予算使用率</div>
-              <span className={`text-sm font-bold ${overIncome ? 'text-rose-500' : 'text-emerald-700'}`}>
+              <div className="text-sm font-semibold text-primary-700">予算使用率</div>
+              <span className={`text-sm font-bold ${overIncome ? 'text-danger-500' : 'text-primary-700'}`}>
                 {Math.round((budgetTotal / budget.income) * 100)}%
               </span>
             </div>
-            <div className="h-2.5 bg-emerald-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-primary-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${overIncome ? 'bg-rose-400' : 'bg-emerald-500'}`}
+                className={`h-full rounded-full transition-all ${overIncome ? 'bg-danger-400' : 'bg-primary-500'}`}
                 style={{ width: `${usagePct}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-xs text-emerald-700/80">
+            <div className="flex justify-between items-center text-xs text-primary-700/80">
               <span>
                 予算合計 {formatYen(budgetTotal)} / 収入 {formatYen(budget.income)}
               </span>
-              <span className={overIncome ? 'text-rose-500 font-semibold' : 'text-emerald-700/80'}>
+              <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-primary-700/80'}>
                 {overIncome
                   ? `${formatYen(Math.abs(remaining))} オーバー`
                   : `残り ${formatYen(remaining)}`}
@@ -172,7 +172,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
 
         <button
           onClick={handleSave}
-          className="w-full bg-emerald-500 active:bg-emerald-600 text-white font-semibold rounded-2xl py-3.5 text-sm transition"
+          className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold rounded-2xl py-3.5 text-sm transition"
         >
           {saved ? '✓ 保存しました' : '保存する'}
         </button>
@@ -202,7 +202,7 @@ function BudgetField({
           value={value === 0 ? '' : value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="0"
-          className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
       </div>
     </div>

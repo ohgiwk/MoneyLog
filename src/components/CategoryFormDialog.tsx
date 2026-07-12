@@ -45,7 +45,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
             placeholder="例: 食費"
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
           />
         </div>
 
@@ -60,7 +60,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
                 className={
                   'w-9 h-9 rounded-lg text-lg flex items-center justify-center border ' +
                   (draft.icon === e
-                    ? 'border-emerald-400 bg-emerald-50'
+                    ? 'border-primary-400 bg-primary-50'
                     : 'border-slate-200 bg-white')
                 }
               >
@@ -90,7 +90,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
 
         <button
           onClick={handleSave}
-          className="w-full py-3 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:bg-emerald-600"
+          className="w-full py-3 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600"
         >
           保存
         </button>

@@ -244,7 +244,7 @@ export default function FixedExpenseTutorial({
   const totalSteps = STEPS.length
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-emerald-50 to-white flex flex-col max-w-md mx-auto">
+    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto">
       {/* 右上バツボタン */}
       <button
         onClick={onClose}
@@ -262,7 +262,7 @@ export default function FixedExpenseTutorial({
           <span
             key={i}
             className={`block rounded-full transition-all duration-300 ${
-              i === stepIndex ? 'w-6 h-2 bg-emerald-500' : 'w-2 h-2 bg-slate-300'
+              i === stepIndex ? 'w-6 h-2 bg-primary-500' : 'w-2 h-2 bg-slate-300'
             }`}
           />
         ))}
@@ -301,14 +301,14 @@ export default function FixedExpenseTutorial({
                         ? Math.ceil(wishItem.target_amount / (reviewingTotal / 12))
                         : null
                       return (
-                        <div className="shrink-0 mb-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white">
-                          <div className="text-xs font-medium text-emerald-100 mb-0.5">🎯 目標</div>
+                        <div className="shrink-0 mb-3 bg-gradient-to-br from-primary-500 to-teal-600 rounded-2xl p-4 text-white">
+                          <div className="text-xs font-medium text-primary-100 mb-0.5">🎯 目標</div>
                           <div className="flex items-baseline justify-between mb-3">
                             <span className="text-base font-bold">{wishItem.name}</span>
                             <span className="text-xl font-bold">¥{wishItem.target_amount.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-xs text-emerald-100">見直し削減効果（年間）</span>
+                            <span className="text-xs text-primary-100">見直し削減効果（年間）</span>
                             <span className="text-base font-bold text-yellow-300">¥{reviewingTotal.toLocaleString()}</span>
                           </div>
                           <div className="w-full bg-white/30 rounded-full h-2.5 overflow-hidden mb-1">
@@ -317,7 +317,7 @@ export default function FixedExpenseTutorial({
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <div className="flex items-center justify-between text-xs text-emerald-100">
+                          <div className="flex items-center justify-between text-xs text-primary-100">
                             <span>
                               {monthsNeeded != null
                                 ? `削減分で${monthsNeeded}ヶ月後に購入可能`
@@ -348,11 +348,11 @@ export default function FixedExpenseTutorial({
                                 })
                               }
                               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition ${
-                                checked ? 'border-amber-400 bg-amber-50' : 'border-slate-200 bg-white'
+                                checked ? 'border-warning-400 bg-warning-50' : 'border-slate-200 bg-white'
                               }`}
                             >
                               <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
-                                checked ? 'border-amber-500 bg-amber-500' : 'border-slate-300'
+                                checked ? 'border-warning-500 bg-warning-500' : 'border-slate-300'
                               }`}>
                                 {checked && <span className="text-white text-xs font-bold">✓</span>}
                               </span>
@@ -386,9 +386,9 @@ export default function FixedExpenseTutorial({
                       最後に、固定費画面の使い方を簡単にご紹介します 📖
                     </p>
                     {registeredMonthlyTotal > 0 && (
-                      <div className="bg-emerald-50 rounded-2xl px-5 py-4 w-full">
-                        <div className="text-xs text-emerald-600 font-medium mb-1">登録した固定費（月額換算）</div>
-                        <div className="text-2xl font-bold text-emerald-700">
+                      <div className="bg-primary-50 rounded-2xl px-5 py-4 w-full">
+                        <div className="text-xs text-primary-600 font-medium mb-1">登録した固定費（月額換算）</div>
+                        <div className="text-2xl font-bold text-primary-700">
                           ¥{Math.round(registeredMonthlyTotal).toLocaleString()}
                         </div>
                       </div>
@@ -465,7 +465,7 @@ export default function FixedExpenseTutorial({
         <button
           onClick={handleNext}
           disabled={saving}
-          className="w-full bg-emerald-500 active:bg-emerald-600 disabled:opacity-50 text-white font-semibold py-4 rounded-xl text-base transition-colors"
+          className="w-full bg-primary-500 active:bg-primary-600 disabled:opacity-50 text-white font-semibold py-4 rounded-xl text-base transition-colors"
         >
           {saving
             ? '保存中...'

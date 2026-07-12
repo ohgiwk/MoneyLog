@@ -182,7 +182,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 <span
                   className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     item.priority === 1
-                      ? 'bg-amber-400 text-white'
+                      ? 'bg-warning-400 text-white'
                       : item.priority === 2
                       ? 'bg-slate-300 text-white'
                       : item.priority === 3
@@ -220,7 +220,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
         <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6 flex justify-end pointer-events-none z-10">
           <button
             onClick={openNew}
-            className="w-14 h-14 rounded-full bg-emerald-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-emerald-600 pointer-events-auto"
+            className="w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-primary-600 pointer-events-auto"
             aria-label="目標を追加"
           >
             ＋
@@ -243,7 +243,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 <button onClick={closeForm} className="text-slate-400 active:text-slate-600 text-xl px-1">✕</button>
               </div>
 
-              {error && <p className="text-rose-500 text-xs mb-3">{error}</p>}
+              {error && <p className="text-danger-500 text-xs mb-3">{error}</p>}
 
               <div className="space-y-3">
                 <div>
@@ -253,7 +253,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     placeholder="例：新しいスニーカー"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
                 <div>
@@ -264,7 +264,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                     onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                     placeholder="例：12000"
                     inputMode="numeric"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="w-full bg-emerald-500 active:bg-emerald-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+                  className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
                 >
                   {saving ? '保存中...' : '保存する'}
                 </button>
@@ -281,7 +281,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                   <button
                     onClick={() => setConfirmDelete(true)}
                     disabled={saving}
-                    className="w-full text-rose-500 active:bg-rose-50 py-2.5 rounded-xl text-sm"
+                    className="w-full text-danger-500 active:bg-danger-50 py-2.5 rounded-xl text-sm"
                   >
                     削除する
                   </button>

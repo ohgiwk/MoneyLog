@@ -51,7 +51,7 @@ export default function SavingTipsScreen({ onBack }: Props) {
               key={i}
               className={`flex items-start gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-slate-50' : ''}`}
             >
-              <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold flex items-center justify-center mt-0.5">
+              <span className="shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-600 text-xs font-semibold flex items-center justify-center mt-0.5">
                 {i + 1}
               </span>
               <span className="text-sm text-slate-700 leading-relaxed">{tip}</span>

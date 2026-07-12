@@ -121,7 +121,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
   return (
     <div className="p-4 space-y-4">
       {fetchError && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}
         </div>
       )}
@@ -162,7 +162,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
                   aria-checked={carryOver}
                   onClick={() => handleCarryOverChange(!carryOver)}
                   className={`w-11 h-6 rounded-full transition-colors relative ${
-                    carryOver ? 'bg-emerald-500' : 'bg-slate-200'
+                    carryOver ? 'bg-primary-500' : 'bg-slate-200'
                   }`}
                 >
                   <span
@@ -178,7 +178,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
 
         <div className="text-sm font-semibold text-slate-500">本日のお小遣い</div>
         <div className="relative flex items-center justify-center gap-1.5">
-          <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+          <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-primary-600' : 'text-danger-500'}`}>
             {formatYen(todayAllowance)}
           </div>
           <button

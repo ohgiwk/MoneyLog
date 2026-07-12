@@ -53,7 +53,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
             type="date"
             value={date}
             onChange={e => setDate(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-emerald-400"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
           />
         </div>
 
@@ -68,7 +68,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
                 className={
                   'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
                   (category === cat.name
-                    ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                    ? 'border-primary-400 bg-primary-50 text-primary-700'
                     : 'border-slate-200 text-slate-600 active:bg-slate-50')
                 }
               >
@@ -90,7 +90,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
               value={amount}
               onChange={e => setAmount(e.target.value)}
               placeholder="0"
-              className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-emerald-400"
+              className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
             />
           </div>
         </div>
@@ -103,11 +103,11 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
             value={memo}
             onChange={e => setMemo(e.target.value)}
             placeholder="例：スーパーで購入"
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-emerald-400"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
           />
         </div>
 
-        {error && <p className="text-xs text-rose-500">{error}</p>}
+        {error && <p className="text-xs text-danger-500">{error}</p>}
 
         <div className="flex gap-2 pt-1">
           <button
@@ -119,7 +119,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex-1 py-3 rounded-xl bg-emerald-500 text-white text-sm font-medium active:bg-emerald-600 disabled:opacity-50"
+            className="flex-1 py-3 rounded-xl bg-primary-500 text-white text-sm font-medium active:bg-primary-600 disabled:opacity-50"
           >
             {submitting ? '記録中...' : '記録する'}
           </button>

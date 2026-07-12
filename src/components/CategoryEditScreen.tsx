@@ -45,7 +45,7 @@ export default function CategoryEditScreen({
               className={
                 'flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors ' +
                 (activeTab === t.key
-                  ? 'border-emerald-500 text-emerald-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-400')
               }
             >

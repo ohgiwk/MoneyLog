@@ -76,7 +76,7 @@ export default function DatePicker({ value, onChange, label }: Props) {
       <button
         type="button"
         onClick={openPicker}
-        className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-left bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300 flex items-center justify-between"
+        className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-left bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 flex items-center justify-between"
       >
         <span className={value ? 'text-slate-700' : 'text-slate-400'}>
           {formatDisplay(value)}
@@ -140,9 +140,9 @@ export default function DatePicker({ value, onChange, label }: Props) {
                     className={
                       'flex items-center justify-center h-10 text-sm rounded-full mx-0.5 my-0.5 transition-colors ' +
                       (isSelected
-                        ? 'bg-emerald-500 text-white font-bold'
+                        ? 'bg-primary-500 text-white font-bold'
                         : isToday
-                        ? 'border border-emerald-400 text-emerald-600 font-semibold'
+                        ? 'border border-primary-400 text-primary-600 font-semibold'
                         : col === 0
                         ? 'text-red-400 active:bg-red-50'
                         : col === 6
@@ -161,7 +161,7 @@ export default function DatePicker({ value, onChange, label }: Props) {
               <button
                 type="button"
                 onClick={() => { onChange(todayStr); setOpen(false) }}
-                className="w-full py-3 text-sm text-emerald-600 font-medium border border-emerald-200 active:bg-emerald-50 rounded-xl"
+                className="w-full py-3 text-sm text-primary-600 font-medium border border-primary-200 active:bg-primary-50 rounded-xl"
               >
                 今日
               </button>

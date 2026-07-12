@@ -34,7 +34,7 @@ export function SubscriptionStep({
               className={
                 'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition border ' +
                 (activeTab === sub.name
-                  ? 'bg-emerald-500 text-white border-emerald-500'
+                  ? 'bg-primary-500 text-white border-primary-500'
                   : 'bg-white text-slate-500 border-slate-200')
               }
             >
@@ -44,7 +44,7 @@ export function SubscriptionStep({
                 <span
                   className={
                     'w-1.5 h-1.5 rounded-full ' +
-                    (activeTab === sub.name ? 'bg-white' : 'bg-emerald-400')
+                    (activeTab === sub.name ? 'bg-white' : 'bg-primary-400')
                   }
                 />
               )}
@@ -62,7 +62,7 @@ export function SubscriptionStep({
               key={p.name}
               className={
                 'flex items-center gap-2 px-3 py-2.5 rounded-xl border transition ' +
-                (checked ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-white')
+                (checked ? 'border-primary-400 bg-primary-50' : 'border-slate-200 bg-white')
               }
             >
               <button
@@ -73,7 +73,7 @@ export function SubscriptionStep({
                 <span
                   className={
                     'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
-                    (checked ? 'border-emerald-500 bg-emerald-500' : 'border-slate-300')
+                    (checked ? 'border-primary-500 bg-primary-500' : 'border-slate-300')
                   }
                 >
                   {checked && <span className="text-white text-xs font-bold">✓</span>}

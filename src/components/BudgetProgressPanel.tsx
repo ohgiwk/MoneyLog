@@ -94,9 +94,9 @@ export default function BudgetProgressPanel({
               key={i}
               className={`rounded-full flex-1 h-2 ${
                 i === filledDots
-                  ? 'bg-amber-400'
+                  ? 'bg-warning-400'
                   : i < filledDots
-                    ? 'bg-emerald-500'
+                    ? 'bg-primary-500'
                     : 'bg-slate-100'
               }`}
             />
@@ -114,7 +114,7 @@ export default function BudgetProgressPanel({
           icon={icon}
           spent={spent}
           budget={budget}
-          color="bg-amber-400"
+          color="bg-warning-400"
         />
       ))}
 
@@ -130,7 +130,7 @@ export default function BudgetProgressPanel({
             className={
               (periodMode === 'week' ? weekTotalSpent : monthTotalSpent) >
               (periodMode === 'week' ? weekTotalBudget : monthTotalBudget)
-                ? 'text-rose-500 font-semibold'
+                ? 'text-danger-500 font-semibold'
                 : 'font-medium'
             }
           >
@@ -179,7 +179,7 @@ function BudgetProgress({
           {label}
         </span>
         <span className="text-xs text-slate-500">
-          <span className={over ? 'text-rose-500 font-semibold' : 'font-medium'}>
+          <span className={over ? 'text-danger-500 font-semibold' : 'font-medium'}>
             {formatYen(spent)}
           </span>
           {' / '}
@@ -188,12 +188,12 @@ function BudgetProgress({
       </div>
       <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${over ? 'bg-rose-400' : color}`}
+          className={`h-full rounded-full transition-all ${over ? 'bg-danger-400' : color}`}
           style={{ width: `${pct}%` }}
         />
       </div>
       {over && (
-        <div className="text-xs text-rose-500 mt-0.5 text-right">
+        <div className="text-xs text-danger-500 mt-0.5 text-right">
           {formatYen(spent - budget)} オーバー
         </div>
       )}

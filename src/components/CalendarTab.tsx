@@ -14,9 +14,9 @@ interface Props {
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
 const DAY_TYPE_LABELS: Record<WorkSchedule['day_type'], { label: string; color: string; cellBg: string }> = {
-  work:    { label: '勤務日', color: 'text-emerald-600 bg-emerald-50 border-emerald-200', cellBg: 'bg-emerald-50' },
+  work:    { label: '勤務日', color: 'text-primary-600 bg-primary-50 border-primary-200', cellBg: 'bg-primary-50' },
   off:     { label: '休暇',   color: 'text-sky-600 bg-sky-50 border-sky-200', cellBg: 'bg-sky-50' },
-  holiday: { label: 'その他', color: 'text-amber-600 bg-amber-50 border-amber-200', cellBg: 'bg-amber-50' },
+  holiday: { label: 'その他', color: 'text-warning-600 bg-warning-50 border-warning-200', cellBg: 'bg-warning-50' },
 }
 
 function todayStr() {
@@ -115,7 +115,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
       <MonthSwitcher month={month} setMonth={setMonth} />
 
       {fetchError && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}
         </div>
       )}
@@ -129,7 +129,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
               key={d}
               className={
                 'py-2 text-center text-xs font-semibold ' +
-                (i === 0 ? 'text-rose-400' : i === 6 ? 'text-sky-500' : 'text-slate-400')
+                (i === 0 ? 'text-danger-400' : i === 6 ? 'text-sky-500' : 'text-slate-400')
               }
             >
               {d}
@@ -154,16 +154,16 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                 className={
                   'relative h-14 flex flex-col items-center pt-1 border-b border-r border-slate-50 last:border-r-0 transition ' +
                   cellBg + ' ' +
-                  (isSelected ? 'ring-2 ring-inset ring-emerald-400' : cellBg ? '' : 'active:bg-slate-50')
+                  (isSelected ? 'ring-2 ring-inset ring-primary-400' : cellBg ? '' : 'active:bg-slate-50')
                 }
               >
                 <span
                   className={
                     'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
                     (isToday
-                      ? 'bg-emerald-500 text-white'
+                      ? 'bg-primary-500 text-white'
                       : dow === 0
-                      ? 'text-rose-400'
+                      ? 'text-danger-400'
                       : dow === 6
                       ? 'text-sky-500'
                       : 'text-slate-700')
@@ -191,7 +191,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
         </span>
         <button
           onClick={openAdd}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-emerald-500 text-white text-xs font-semibold active:bg-emerald-600"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-500 text-white text-xs font-semibold active:bg-primary-600"
         >
           <span className="text-base leading-none">＋</span>予定を追加
         </button>
@@ -200,7 +200,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
       {/* 選択日の区分設定 */}
       <div className="bg-white rounded-2xl shadow-sm px-4 py-3 space-y-2">
         <span className="text-xs text-slate-400">区分</span>
-        {dayTypeError && <p className="text-xs text-rose-500">{dayTypeError}</p>}
+        {dayTypeError && <p className="text-xs text-danger-500">{dayTypeError}</p>}
         <div className="flex gap-2">
           {(['work', 'off', 'holiday'] as const).map((t) => {
             const selected = dayTypeByDate.get(selectedDate) === t
@@ -247,7 +247,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                 {ev.memo && <div className="text-xs text-slate-400 mt-0.5 truncate">{ev.memo}</div>}
               </div>
               {ev.planned_expense > 0 && (
-                <span className="text-sm font-semibold text-rose-500 shrink-0">
+                <span className="text-sm font-semibold text-danger-500 shrink-0">
                   -{formatYen(ev.planned_expense)}
                 </span>
               )}
@@ -344,7 +344,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
           </div>
 
           {error && (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+            <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
               {error}
             </div>
           )}
@@ -356,9 +356,9 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
               value={title}
               onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null) }}
               placeholder="例: 会議、買い物"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 ${titleError ? 'border-rose-300' : 'border-slate-200'}`}
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${titleError ? 'border-danger-300' : 'border-slate-200'}`}
             />
-            {titleError && <p className="text-xs text-rose-500 mt-1">{titleError}</p>}
+            {titleError && <p className="text-xs text-danger-500 mt-1">{titleError}</p>}
           </div>
 
           {/* 開始・終了時間 */}
@@ -369,7 +369,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
             </div>
             <div>
@@ -378,7 +378,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
             </div>
           </div>
@@ -393,7 +393,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 placeholder="0"
                 value={plannedExpense}
                 onChange={(e) => setPlannedExpense(e.target.value)}
-                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
               <span className="text-sm text-slate-500">円</span>
             </div>
@@ -406,7 +406,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={2}
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-300 resize-none"
+              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
             />
           </div>
 
@@ -416,7 +416,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
               <button
                 onClick={handleDelete}
                 disabled={isSubmitting}
-                className="px-4 py-3 rounded-xl border border-rose-200 text-rose-500 text-sm font-semibold active:bg-rose-50 disabled:opacity-50"
+                className="px-4 py-3 rounded-xl border border-danger-200 text-danger-500 text-sm font-semibold active:bg-danger-50 disabled:opacity-50"
               >
                 削除
               </button>
@@ -431,7 +431,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
             <button
               onClick={handleSave}
               disabled={isSubmitting}
-              className="flex-1 py-3 rounded-xl bg-emerald-500 text-white text-sm font-semibold active:bg-emerald-600 disabled:opacity-50"
+              className="flex-1 py-3 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600 disabled:opacity-50"
             >
               {isSubmitting ? '保存中...' : '保存'}
             </button>

@@ -112,7 +112,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   return (
     <div className="p-4 space-y-4">
       {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 text-sm text-rose-600">
+        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {error}
         </div>
       )}
@@ -125,12 +125,12 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') void handleAdd() }}
           placeholder="商品名を入力..."
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-emerald-400 bg-white"
+          className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400 bg-white"
         />
         <button
           onClick={handleAdd}
           disabled={adding || !newName.trim()}
-          className="px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-medium active:bg-emerald-600 disabled:opacity-40"
+          className="px-4 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-medium active:bg-primary-600 disabled:opacity-40"
         >
           追加
         </button>
@@ -158,7 +158,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 className={
                   'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ' +
                   (selected.has(item.id)
-                    ? 'bg-emerald-500 border-emerald-500'
+                    ? 'bg-primary-500 border-primary-500'
                     : 'border-slate-300 bg-white')
                 }
               >
@@ -181,7 +181,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                     if (e.key === 'Escape') setEditingId(null)
                   }}
                   onBlur={() => void handleUpdate(item.id)}
-                  className="flex-1 text-sm text-slate-800 border-b border-emerald-400 outline-none bg-transparent"
+                  className="flex-1 text-sm text-slate-800 border-b border-primary-400 outline-none bg-transparent"
                 />
               ) : (
                 <span
@@ -199,7 +199,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                     if (editingId === item.id) { setEditingId(null) }
                     else { setEditingId(item.id); setEditingName(item.name) }
                   }}
-                  className="p-1.5 text-slate-400 active:text-emerald-500 rounded-lg"
+                  className="p-1.5 text-slate-400 active:text-primary-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -208,7 +208,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 </button>
                 <button
                   onClick={() => void handleDelete(item.id)}
-                  className="p-1.5 text-slate-400 active:text-rose-500 rounded-lg"
+                  className="p-1.5 text-slate-400 active:text-danger-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6"/>
@@ -228,7 +228,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
           <button
             onClick={() => setShowDialog(true)}
-            className="w-full py-3.5 rounded-2xl bg-emerald-500 text-white font-medium text-sm shadow-lg active:bg-emerald-600"
+            className="w-full py-3.5 rounded-2xl bg-primary-500 text-white font-medium text-sm shadow-lg active:bg-primary-600"
           >
             {selected.size}件を購入済みとして記録
           </button>
