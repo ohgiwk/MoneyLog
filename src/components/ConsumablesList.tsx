@@ -40,7 +40,7 @@ export default function ConsumablesList({
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [direction, setDirection] = useState<NavDirection>('forward')
-  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(true)
   const [purchasing, setPurchasing] = useState<Consumable | null>(null)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
@@ -290,7 +290,7 @@ export default function ConsumablesList({
         <div>
           <button
             onClick={() => setShowSuggestions((v) => !v)}
-            className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 mb-2 py-1"
+            className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 mt-2 mb-2 py-1"
           >
             <span>おすすめ品目（未登録）</span>
             <span>{showSuggestions ? '▲' : '▼'}</span>
