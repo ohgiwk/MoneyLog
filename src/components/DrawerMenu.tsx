@@ -1,3 +1,5 @@
+import { motion } from 'motion/react'
+
 interface Props {
   onSettings: () => void
   onBudget: () => void
@@ -13,9 +15,22 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
   return (
     <>
       {/* オーバーレイ */}
-      <div className="fixed inset-0 z-20 bg-black/30" onClick={onClose} />
+      <motion.div
+        className="fixed inset-0 z-20 bg-black/30"
+        onClick={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      />
       {/* ドロワー */}
-      <div className="fixed top-0 right-0 bottom-0 z-30 w-64 bg-surface shadow-xl flex flex-col">
+      <motion.div
+        className="fixed top-0 right-0 bottom-0 z-30 w-64 bg-surface shadow-xl flex flex-col"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.25 }}
+      >
         <div className="flex items-center justify-between px-4 py-4 border-b border-line-subtle">
           <span className="font-semibold text-ink">メニュー</span>
           <button
@@ -100,7 +115,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
             ログアウト
           </button>
         </div>
-      </div>
+      </motion.div>
     </>
   )
 }

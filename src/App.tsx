@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { AnimatePresence } from 'motion/react'
 import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
 import { useTheme } from './hooks/useTheme'
@@ -198,18 +199,21 @@ export default function App() {
       </div>
 
       {/* ドロワーメニュー */}
-      {drawerOpen && (
-        <DrawerMenu
-          onSettings={() => navigate('settings')}
-          onBudget={() => navigate('budget')}
-          onSetup={() => navigate('setup')}
-          onWishlist={() => navigate('wishlist')}
-          onAnalytics={() => navigate('analytics')}
-          onSavingTips={() => navigate('saving-tips')}
-          onSignOut={signOut}
-          onClose={() => setDrawerOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {drawerOpen && (
+          <DrawerMenu
+            key="drawer"
+            onSettings={() => navigate('settings')}
+            onBudget={() => navigate('budget')}
+            onSetup={() => navigate('setup')}
+            onWishlist={() => navigate('wishlist')}
+            onAnalytics={() => navigate('analytics')}
+            onSavingTips={() => navigate('saving-tips')}
+            onSignOut={signOut}
+            onClose={() => setDrawerOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* コンテンツ */}
       <div ref={scrollRef} className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto">
