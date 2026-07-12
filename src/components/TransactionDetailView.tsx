@@ -18,6 +18,10 @@ interface Props {
   setDateFrom?: (v: string) => void
   dateTo?: string
   setDateTo?: (v: string) => void
+  typeFilter?: 'all' | 'expense' | 'income'
+  setTypeFilter?: (v: 'all' | 'expense' | 'income') => void
+  categoryFilter?: string
+  setCategoryFilter?: (v: string) => void
 }
 
 export default function TransactionDetailView({
@@ -33,6 +37,10 @@ export default function TransactionDetailView({
   setDateFrom: controlledSetDateFrom,
   dateTo: controlledDateTo,
   setDateTo: controlledSetDateTo,
+  typeFilter: controlledTypeFilter,
+  setTypeFilter: controlledSetTypeFilter,
+  categoryFilter: controlledCategoryFilter,
+  setCategoryFilter: controlledSetCategoryFilter,
 }: Props) {
   const {
     typeFilter,
@@ -59,6 +67,14 @@ export default function TransactionDetailView({
           setDateFrom: controlledSetDateFrom,
           dateTo: controlledDateTo ?? '',
           setDateTo: controlledSetDateTo,
+        }
+      : undefined,
+    controlledSetTypeFilter && controlledSetCategoryFilter
+      ? {
+          typeFilter: controlledTypeFilter ?? 'all',
+          setTypeFilter: controlledSetTypeFilter,
+          categoryFilter: controlledCategoryFilter ?? 'all',
+          setCategoryFilter: controlledSetCategoryFilter,
         }
       : undefined
   )

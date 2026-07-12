@@ -9,14 +9,26 @@ interface ControlledDateRange {
   setDateTo: (v: string) => void
 }
 
+interface ControlledTypeCategoryFilter {
+  typeFilter: 'all' | 'expense' | 'income'
+  setTypeFilter: (v: 'all' | 'expense' | 'income') => void
+  categoryFilter: string
+  setCategoryFilter: (v: string) => void
+}
+
 export function useTransactionFilters(
   transactions: Transaction[],
   month: string,
   startDay = 1,
-  controlledDateRange?: ControlledDateRange
+  controlledDateRange?: ControlledDateRange,
+  controlledTypeCategoryFilter?: ControlledTypeCategoryFilter
 ) {
-  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [internalTypeFilter, setInternalTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
+  const [internalCategoryFilter, setInternalCategoryFilter] = useState<string>('all')
+  const typeFilter = controlledTypeCategoryFilter?.typeFilter ?? internalTypeFilter
+  const setTypeFilter = controlledTypeCategoryFilter?.setTypeFilter ?? setInternalTypeFilter
+  const categoryFilter = controlledTypeCategoryFilter?.categoryFilter ?? internalCategoryFilter
+  const setCategoryFilter = controlledTypeCategoryFilter?.setCategoryFilter ?? setInternalCategoryFilter
   const [internalDateFrom, setInternalDateFrom] = useState<string>('')
   const [internalDateTo, setInternalDateTo] = useState<string>('')
   const dateFrom = controlledDateRange?.dateFrom ?? internalDateFrom

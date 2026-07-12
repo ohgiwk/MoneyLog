@@ -77,6 +77,8 @@ export default function RecordTab({
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [rangeTransactions, setRangeTransactions] = useState<Transaction[] | null>(null)
+  const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
 
   // initialSub が指定されたときにサブページを切り替える
   // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
@@ -278,6 +280,10 @@ export default function RecordTab({
               setDateFrom={setDateFrom}
               dateTo={dateTo}
               setDateTo={setDateTo}
+              typeFilter={typeFilter}
+              setTypeFilter={setTypeFilter}
+              categoryFilter={categoryFilter}
+              setCategoryFilter={setCategoryFilter}
             />
           ) : (
             <div className="min-h-screen bg-slate-50 p-4 pb-28">

@@ -15,6 +15,10 @@ interface Props {
   setDateFrom?: (v: string) => void
   dateTo?: string
   setDateTo?: (v: string) => void
+  typeFilter?: 'all' | 'expense' | 'income'
+  setTypeFilter?: (v: 'all' | 'expense' | 'income') => void
+  categoryFilter?: string
+  setCategoryFilter?: (v: string) => void
 }
 
 export default function OneTimeTransactionList({
@@ -31,6 +35,10 @@ export default function OneTimeTransactionList({
   setDateFrom,
   dateTo,
   setDateTo,
+  typeFilter,
+  setTypeFilter,
+  categoryFilter,
+  setCategoryFilter,
 }: Props) {
   return (
     <>
@@ -48,6 +56,10 @@ export default function OneTimeTransactionList({
           setDateFrom={setDateFrom}
           dateTo={dateTo}
           setDateTo={setDateTo}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
         />
       </div>
 
