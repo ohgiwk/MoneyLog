@@ -41,6 +41,20 @@ export const transactionService = {
     cacheInvalidateTable(TABLE)
   },
 
+  fetchByYear: async (userId: string, year: string): Promise<Transaction[]> => {
+    return cachedFetch(`${TABLE}:year:${userId}:${year}`, async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', `${year}-01-01`)
+        .lte('date', `${year}-12-31`)
+        .order('date', { ascending: false })
+      if (error) throw new Error(error.message)
+      return data ?? []
+    })
+  },
+
   fetchAvailableMonths: async (userId: string, startDay = 1): Promise<string[]> => {
     return cachedFetch(`${TABLE}:months:${userId}:${startDay}`, async () => {
       const { data, error } = await supabase
