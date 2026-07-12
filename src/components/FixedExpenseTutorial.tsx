@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { SUBSCRIPTION_PRESETS } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import { wishlistService } from '../lib/services/wishlistService'
@@ -243,7 +244,7 @@ export default function FixedExpenseTutorial({
 
   const totalSteps = STEPS.length
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto">
       {/* 右上バツボタン */}
       <button
@@ -495,6 +496,7 @@ export default function FixedExpenseTutorial({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
