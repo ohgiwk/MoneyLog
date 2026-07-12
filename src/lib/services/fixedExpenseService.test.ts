@@ -44,8 +44,11 @@ describe('fixedExpenseService.fetchByUser', () => {
 })
 
 describe('fixedExpenseService.insert', () => {
-  it('fixed_expenses テーブルに insert を呼ぶ', async () => {
-    const insertMock = vi.fn().mockResolvedValue({ error: null })
+  it('fixed_expenses テーブルに insert し、作成された行を返す', async () => {
+    const createdRow = { id: 'fe-1', user_id: 'u1', name: '家賃', category: '住居費', amount: 80000 }
+    const singleMock = vi.fn().mockResolvedValue({ data: createdRow, error: null })
+    const selectMock = vi.fn().mockReturnValue({ single: singleMock })
+    const insertMock = vi.fn().mockReturnValue({ select: selectMock })
     vi.mocked(supabase.from).mockReturnValue({
       insert: insertMock,
     } as unknown as ReturnType<typeof supabase.from>)
@@ -62,10 +65,11 @@ describe('fixedExpenseService.insert', () => {
       billing_day: null,
       notes: null,
     }
-    await fixedExpenseService.insert(data)
+    const result = await fixedExpenseService.insert(data)
 
     expect(supabase.from).toHaveBeenCalledWith('fixed_expenses')
     expect(insertMock).toHaveBeenCalledWith(data)
+    expect(result).toEqual(createdRow)
   })
 })
 
