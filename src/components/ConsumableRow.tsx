@@ -31,17 +31,17 @@ export default function ConsumableRow({
         ? 'text-danger-400'
         : days <= 7
           ? 'text-warning-500'
-          : 'text-slate-400'
+          : 'text-ink-muted'
 
   return (
     <div
-      className={`flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer ${border ? 'border-t border-slate-50' : ''} ${urgent ? 'bg-warning-50/40' : ''}`}
+      className={`flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer ${border ? 'border-t border-line-subtle' : ''} ${urgent ? 'bg-warning-50/40' : ''}`}
       onClick={onClick}
     >
       <span className="text-xl shrink-0">{cat?.icon ?? '📦'}</span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-slate-700 truncate">{c.name}</div>
-        <div className="text-xs text-slate-400">
+        <div className="text-sm font-medium text-ink truncate">{c.name}</div>
+        <div className="text-xs text-ink-muted">
           {formatYen(c.amount)}
           {c.quantity > 1 ? ` × ${c.quantity}個` : ''} / {c.cycle_days}日サイクル
           {c.members_scale ? ` (${householdMembers}人)` : ''}
@@ -51,9 +51,9 @@ export default function ConsumableRow({
         <div className={`text-xs font-semibold ${daysColor}`}>
           {next.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })} ({daysLabel})
         </div>
-        <div className="text-xs text-slate-400">{formatYen(monthly)}/月</div>
+        <div className="text-xs text-ink-muted">{formatYen(monthly)}/月</div>
       </div>
-      <span className="text-slate-300 text-sm">›</span>
+      <span className="text-ink-subtle text-sm">›</span>
     </div>
   )
 }

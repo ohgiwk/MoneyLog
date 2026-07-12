@@ -146,20 +146,20 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-4">
+      <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
         <div>
-          <label className="text-xs text-slate-400">名前</label>
+          <label className="text-xs text-ink-muted">名前</label>
           <input
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); setFieldErrors((p) => ({ ...p, name: undefined })) }}
             placeholder="例: トイレットペーパー"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.name ? 'border-danger-400' : 'border-slate-200'}`}
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.name ? 'border-danger-400' : 'border-line'}`}
           />
           {fieldErrors.name && <p className="text-xs text-danger-500 mt-1">{fieldErrors.name}</p>}
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">カテゴリ</label>
+          <label className="text-xs text-ink-muted">カテゴリ</label>
           <div className="grid grid-cols-3 gap-2 mt-1">
             {expenseCategories.map((c) => (
               <button
@@ -170,11 +170,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
                     ? 'border-primary-400 bg-primary-50'
-                    : 'border-slate-100 bg-slate-50')
+                    : 'border-line-subtle bg-surface-subtle')
                 }
               >
                 <span className="text-base">{c.icon}</span>
-                <span className="text-[10px] text-slate-600 text-center leading-tight">
+                <span className="text-[10px] text-ink text-center leading-tight">
                   {c.name}
                 </span>
               </button>
@@ -184,32 +184,32 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-slate-400">単価（円）</label>
+            <label className="text-xs text-ink-muted">単価（円）</label>
             <input
               type="number"
               inputMode="numeric"
               value={values.amount}
               onChange={(e) => { setValue('amount', e.target.value); setFieldErrors((p) => ({ ...p, amount: undefined })) }}
               placeholder="0"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.amount ? 'border-danger-400' : 'border-slate-200'}`}
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.amount ? 'border-danger-400' : 'border-line'}`}
             />
             {fieldErrors.amount && <p className="text-xs text-danger-500 mt-1">{fieldErrors.amount}</p>}
           </div>
           <div>
-            <label className="text-xs text-slate-400">購入個数</label>
+            <label className="text-xs text-ink-muted">購入個数</label>
             <input
               type="number"
               inputMode="numeric"
               value={values.quantity}
               onChange={(e) => setValue('quantity', e.target.value)}
               min="1"
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
             />
           </div>
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">消費サイクル</label>
+          <label className="text-xs text-ink-muted">消費サイクル</label>
           <div className="flex flex-wrap gap-2 mt-1 mb-2">
             {CONSUMABLE_CYCLE_PRESETS.map((p) => (
               <button
@@ -220,7 +220,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                   'px-3 py-1 rounded-lg text-xs font-medium border ' +
                   (values.cycleDays === p.days.toString()
                     ? 'border-primary-400 bg-primary-50 text-primary-700'
-                    : 'border-slate-200 text-slate-500')
+                    : 'border-line text-ink-muted')
                 }
               >
                 {p.label}
@@ -234,9 +234,9 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               value={values.cycleDays}
               onChange={(e) => { setValue('cycleDays', e.target.value); setFieldErrors((p) => ({ ...p, cycleDays: undefined })) }}
               min="1"
-              className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.cycleDays ? 'border-danger-400' : 'border-slate-200'}`}
+              className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.cycleDays ? 'border-danger-400' : 'border-line'}`}
             />
-            <span className="text-sm text-slate-500">日おき</span>
+            <span className="text-sm text-ink-muted">日おき</span>
           </div>
           {fieldErrors.cycleDays && <p className="text-xs text-danger-500 mt-1">{fieldErrors.cycleDays}</p>}
         </div>
@@ -246,21 +246,21 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         </div>
 
         {previewMonthly > 0 && (
-          <div className="bg-slate-50 rounded-xl p-3 text-xs text-slate-500 space-y-0.5">
+          <div className="bg-surface-subtle rounded-xl p-3 text-xs text-ink-muted space-y-0.5">
             <div>実効サイクル: {previewEffectiveCycle}日おき</div>
-            <div className="font-semibold text-slate-700">
+            <div className="font-semibold text-ink">
               月額換算: {formatYen(previewMonthly)}
             </div>
           </div>
         )}
 
         <div>
-          <label className="text-xs text-slate-400">メモ</label>
+          <label className="text-xs text-ink-muted">メモ</label>
           <textarea
             value={values.notes}
             onChange={(e) => setValue('notes', e.target.value)}
             rows={2}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
           />
         </div>
 

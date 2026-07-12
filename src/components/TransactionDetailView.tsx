@@ -141,20 +141,20 @@ export default function TransactionDetailView({
   return (
     <div className="space-y-3">
       {/* 合計サマリー */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
-        <div className="text-sm font-semibold text-slate-700 mb-1">出費合計</div>
+      <div className="bg-surface rounded-2xl p-4 shadow-sm">
+        <div className="text-sm font-semibold text-ink mb-1">出費合計</div>
         <div className="flex items-baseline gap-1.5">
           <div className="text-2xl font-bold text-danger-500">
             {formatYen(totalExpense)}
           </div>
           {totalIncome > 0 && (
             <div className="text-sm font-semibold text-primary-600">
-              <span className="text-slate-400">/</span> 収入 +{formatYen(totalIncome)}
+              <span className="text-ink-muted">/</span> 収入 +{formatYen(totalIncome)}
             </div>
           )}
         </div>
         {budget > 0 && (
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-xs text-ink-muted mt-1">
             予算 {formatYen(budget)}
             {' / 残額 '}
             <span
@@ -179,15 +179,15 @@ export default function TransactionDetailView({
                 className={
                   'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition ' +
                   (yearOpen
-                    ? 'bg-slate-700 text-white border-slate-700'
-                    : 'bg-white text-slate-600 border-slate-200 active:bg-slate-50')
+                    ? 'bg-surface-strong text-white border-line-strong'
+                    : 'bg-surface text-ink border-line active:bg-surface-subtle')
                 }
               >
                 <span>{currentYear}年</span>
                 <span className="text-[10px]">{yearOpen ? '▲' : '▼'}</span>
               </button>
               {yearOpen && (
-                <div className="absolute top-full mt-1 left-0 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-30 min-w-[80px]">
+                <div className="absolute top-full mt-1 left-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-30 min-w-[80px]">
                   {availableYears.map((y) => (
                     <button
                       key={y}
@@ -195,8 +195,8 @@ export default function TransactionDetailView({
                       className={
                         'w-full text-left px-4 py-2.5 text-xs font-medium transition ' +
                         (y === currentYear
-                          ? 'bg-slate-700 text-white'
-                          : 'text-slate-600 active:bg-slate-50')
+                          ? 'bg-surface-strong text-white'
+                          : 'text-ink active:bg-surface-subtle')
                       }
                     >
                       {y}年
@@ -215,15 +215,15 @@ export default function TransactionDetailView({
                 className={
                   'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition ' +
                   (monthOpen
-                    ? 'bg-slate-700 text-white border-slate-700'
-                    : 'bg-white text-slate-600 border-slate-200 active:bg-slate-50')
+                    ? 'bg-surface-strong text-white border-line-strong'
+                    : 'bg-surface text-ink border-line active:bg-surface-subtle')
                 }
               >
                 <span>{Number(currentMonth)}月</span>
                 <span className="text-[10px]">{monthOpen ? '▲' : '▼'}</span>
               </button>
               {monthOpen && (
-                <div className="absolute top-full mt-1 left-0 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden z-30 min-w-[72px]">
+                <div className="absolute top-full mt-1 left-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-30 min-w-[72px]">
                   {availableMonthsForYear.map((m) => (
                     <button
                       key={m}
@@ -231,8 +231,8 @@ export default function TransactionDetailView({
                       className={
                         'w-full text-left px-4 py-2.5 text-xs font-medium transition ' +
                         (m === currentMonth
-                          ? 'bg-slate-700 text-white'
-                          : 'text-slate-600 active:bg-slate-50')
+                          ? 'bg-surface-strong text-white'
+                          : 'text-ink active:bg-surface-subtle')
                       }
                     >
                       {Number(m)}月
@@ -252,8 +252,8 @@ export default function TransactionDetailView({
             className={
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ' +
               (isFiltered
-                ? 'bg-slate-700 text-white border-slate-700'
-                : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                ? 'bg-surface-strong text-white border-line-strong'
+                : 'bg-surface text-ink-muted border-line active:bg-surface-subtle')
             }
           >
             <span>絞り込み</span>
@@ -271,10 +271,10 @@ export default function TransactionDetailView({
               />
               <div
                 style={{ top: filterPos.top, right: filterPos.right }}
-                className="fixed z-40 w-72 max-w-[85vw] max-h-[70vh] overflow-y-auto bg-white rounded-2xl p-3 shadow-lg border border-slate-100 space-y-3"
+                className="fixed z-40 w-72 max-w-[85vw] max-h-[70vh] overflow-y-auto bg-surface rounded-2xl p-3 shadow-lg border border-line-subtle space-y-3"
               >
                 <div className="space-y-1">
-                  <div className="text-[11px] font-semibold text-slate-400">種別</div>
+                  <div className="text-[11px] font-semibold text-ink-muted">種別</div>
                   <div className="flex gap-1.5">
                     {(['all', 'expense', 'income'] as const).map((v) => (
                       <button
@@ -283,8 +283,8 @@ export default function TransactionDetailView({
                         className={
                           'px-3 py-1 rounded-full text-xs font-medium border transition ' +
                           (typeFilter === v
-                            ? 'bg-slate-700 text-white border-slate-700'
-                            : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                            ? 'bg-surface-strong text-white border-line-strong'
+                            : 'bg-surface text-ink-muted border-line active:bg-surface-subtle')
                         }
                       >
                         {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
@@ -294,15 +294,15 @@ export default function TransactionDetailView({
                 </div>
                 {categories.length > 0 && (
                   <div className="space-y-1">
-                    <div className="text-[11px] font-semibold text-slate-400">カテゴリ</div>
+                    <div className="text-[11px] font-semibold text-ink-muted">カテゴリ</div>
                     <div className="flex flex-wrap gap-1.5">
                       <button
                         onClick={() => setCategoryFilter('all')}
                         className={
                           'px-3 py-1 rounded-full text-xs font-medium border transition ' +
                           (categoryFilter === 'all'
-                            ? 'bg-slate-700 text-white border-slate-700'
-                            : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                            ? 'bg-surface-strong text-white border-line-strong'
+                            : 'bg-surface text-ink-muted border-line active:bg-surface-subtle')
                         }
                       >
                         全カテゴリ
@@ -314,8 +314,8 @@ export default function TransactionDetailView({
                           className={
                             'px-3 py-1 rounded-full text-xs font-medium border transition ' +
                             (categoryFilter === cat
-                              ? 'bg-slate-700 text-white border-slate-700'
-                              : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                              ? 'bg-surface-strong text-white border-line-strong'
+                              : 'bg-surface text-ink-muted border-line active:bg-surface-subtle')
                           }
                         >
                           {categoryInfo(cat).icon} {cat}
@@ -325,20 +325,20 @@ export default function TransactionDetailView({
                   </div>
                 )}
                 <div className="space-y-1">
-                  <div className="text-[11px] font-semibold text-slate-400">期間</div>
+                  <div className="text-[11px] font-semibold text-ink-muted">期間</div>
                   <div className="flex items-center gap-1.5">
                     <input
                       type="date"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-slate-200 text-slate-600"
+                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-line text-ink"
                     />
-                    <span className="text-xs text-slate-400">〜</span>
+                    <span className="text-xs text-ink-muted">〜</span>
                     <input
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-slate-200 text-slate-600"
+                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-line text-ink"
                     />
                   </div>
                 </div>
@@ -350,7 +350,7 @@ export default function TransactionDetailView({
                       setDateFrom('')
                       setDateTo('')
                     }}
-                    className="w-full text-center py-1.5 rounded-lg text-xs font-medium text-slate-500 border border-slate-200 active:bg-slate-50"
+                    className="w-full text-center py-1.5 rounded-lg text-xs font-medium text-ink-muted border border-line active:bg-surface-subtle"
                   >
                     絞り込みをリセット
                   </button>
@@ -364,7 +364,7 @@ export default function TransactionDetailView({
       {loading ? (
         <Spinner />
       ) : grouped.length === 0 ? (
-        <div className="bg-white rounded-2xl p-4 shadow-sm text-sm text-slate-400">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted">
           記録がありません
         </div>
       ) : null}
@@ -373,15 +373,15 @@ export default function TransactionDetailView({
         const dayExpense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
         const dayIncome = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
         return (
-          <div key={date} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="flex justify-between items-center px-4 py-2.5 bg-slate-100 border-b border-slate-200">
-              <span className="text-xs font-semibold text-slate-600">{formatDateWithWeekday(date)}</span>
+          <div key={date} className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <div className="flex justify-between items-center px-4 py-2.5 bg-surface-hover border-b border-line">
+              <span className="text-xs font-semibold text-ink">{formatDateWithWeekday(date)}</span>
               <div className="flex gap-2 text-xs">
                 {dayIncome > 0 && <span className="text-primary-600">+{formatYen(dayIncome)}</span>}
                 {dayExpense > 0 && <span className="text-danger-400">-{formatYen(dayExpense)}</span>}
               </div>
             </div>
-            <div className="px-4 divide-y divide-slate-50">
+            <div className="px-4 divide-y divide-line-subtle">
               {txs.map((t) => {
                 const info = categoryInfo(t.category)
                 const store = t.store_type ? STORE_TYPES.find((s) => s.name === t.store_type) : undefined
@@ -389,14 +389,14 @@ export default function TransactionDetailView({
                   <button
                     key={t.id}
                     onClick={() => onEditTx?.(t)}
-                    className="w-full flex justify-between items-center py-3 text-left active:bg-slate-50"
+                    className="w-full flex justify-between items-center py-3 text-left active:bg-surface-subtle"
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="text-lg">{info.icon}</span>
                       <div>
-                        <div className="text-sm text-slate-700">{t.category}</div>
+                        <div className="text-sm text-ink">{t.category}</div>
                         {(store || t.memo) && (
-                          <div className="text-xs text-slate-400 flex items-center gap-1">
+                          <div className="text-xs text-ink-muted flex items-center gap-1">
                             {store && (
                               <span className="flex items-center gap-0.5">
                                 <span>{store.icon}</span>

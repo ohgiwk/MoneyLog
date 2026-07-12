@@ -34,8 +34,8 @@ export default function CategoryEditScreen({
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="カテゴリ編集" onBack={onBack} />
         <div className="flex px-4 gap-1 pb-0">
           {TABS.map((t) => (
@@ -46,7 +46,7 @@ export default function CategoryEditScreen({
                 'flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors ' +
                 (activeTab === t.key
                   ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-400')
+                  : 'border-transparent text-ink-muted')
               }
             >
               {t.label}

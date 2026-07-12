@@ -61,9 +61,9 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   const remaining = budget.income - budgetTotal
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-slate-100">
+      <div className="bg-surface border-b border-line-subtle">
         <ScreenHeader title="予算設定" onBack={onBack} />
       </div>
 
@@ -77,8 +77,8 @@ export default function BudgetScreen({ userId, onBack }: Props) {
         )}
 
         {/* 収入 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <span>💰</span>
             収入
           </div>
@@ -90,8 +90,8 @@ export default function BudgetScreen({ userId, onBack }: Props) {
         </div>
 
         {/* 固定費・定期購入・出費 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
             <span>💸</span>
             支出
           </div>
@@ -114,12 +114,12 @@ export default function BudgetScreen({ userId, onBack }: Props) {
             />
           </div>
 
-          <div className="h-px bg-slate-100" />
+          <div className="h-px bg-surface-hover" />
 
           {/* 出費（カテゴリ別） */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <div className="flex items-center gap-2 text-sm font-semibold text-ink">
                 <span>⚡</span>
                 カテゴリ別出費
               </div>
@@ -192,9 +192,9 @@ function BudgetField({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-slate-600 flex-1 min-w-0 truncate">{label}</span>
+      <span className="text-sm text-ink flex-1 min-w-0 truncate">{label}</span>
       <div className="flex items-center gap-1 shrink-0">
-        <span className="text-slate-400 text-xs">¥</span>
+        <span className="text-ink-muted text-xs">¥</span>
         <input
           type="number"
           inputMode="numeric"
@@ -202,7 +202,7 @@ function BudgetField({
           value={value === 0 ? '' : value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="0"
-          className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="w-28 border border-line rounded-xl px-3 py-2 text-sm text-right text-ink-strong focus:outline-none focus:ring-2 focus:ring-primary-400"
         />
       </div>
     </div>

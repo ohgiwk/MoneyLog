@@ -252,7 +252,7 @@ export default function RecordTab({
   return (
     <div>
       {showTabs && (
-        <div className="sticky top-0 z-10 bg-slate-50 px-4 pt-4 pb-2">
+        <div className="sticky top-0 z-10 bg-surface-subtle px-4 pt-4 pb-2">
           <TabGroup tabs={SUB_PAGE_TABS} active={sub} onChange={setSub} size="sm" />
         </div>
       )}
@@ -286,7 +286,7 @@ export default function RecordTab({
               setCategoryFilter={setCategoryFilter}
             />
           ) : (
-            <div className="min-h-screen bg-slate-50 p-4 pb-28">
+            <div className="min-h-screen bg-surface-subtle p-4 pb-28">
               <OneTimeTransactionForm
                 userId={userId}
                 expenseCategories={expenseCategories}

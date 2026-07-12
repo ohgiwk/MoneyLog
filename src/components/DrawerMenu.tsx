@@ -15,12 +15,12 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
       {/* オーバーレイ */}
       <div className="fixed inset-0 z-20 bg-black/30" onClick={onClose} />
       {/* ドロワー */}
-      <div className="fixed top-0 right-0 bottom-0 z-30 w-64 bg-white shadow-xl flex flex-col">
-        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-100">
-          <span className="font-semibold text-slate-700">メニュー</span>
+      <div className="fixed top-0 right-0 bottom-0 z-30 w-64 bg-surface shadow-xl flex flex-col">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-line-subtle">
+          <span className="font-semibold text-ink">メニュー</span>
           <button
             onClick={onClose}
-            className="text-slate-400 active:text-slate-600 text-xl px-1"
+            className="text-ink-muted active:text-ink text-xl px-1"
             aria-label="閉じる"
           >
             ✕
@@ -32,7 +32,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onSetup()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">🚀</span>
             セットアップ
@@ -42,7 +42,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onWishlist()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">🎯</span>
             目標・欲しいもの
@@ -52,7 +52,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onBudget()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">💰</span>
             予算
@@ -62,7 +62,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onAnalytics()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">📊</span>
             分析
@@ -72,7 +72,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onSavingTips()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">💡</span>
             節約のコツ
@@ -82,13 +82,13 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
               onSettings()
               onClose()
             }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-700 active:bg-slate-50 text-sm"
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
           >
             <span className="text-lg">⚙️</span>
             設定
           </button>
         </nav>
-        <div className="border-t border-slate-100 py-2">
+        <div className="border-t border-line-subtle py-2">
           <button
             onClick={() => {
               onSignOut()

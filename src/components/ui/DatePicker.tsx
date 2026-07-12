@@ -72,39 +72,39 @@ export default function DatePicker({ value, onChange, label }: Props) {
 
   return (
     <>
-      {label && <label className="text-xs text-slate-400">{label}</label>}
+      {label && <label className="text-xs text-ink-muted">{label}</label>}
       <button
         type="button"
         onClick={openPicker}
-        className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm text-left bg-white focus:outline-none focus:ring-2 focus:ring-primary-300 flex items-center justify-between"
+        className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm text-left bg-surface focus:outline-none focus:ring-2 focus:ring-primary-300 flex items-center justify-between"
       >
-        <span className={value ? 'text-slate-700' : 'text-slate-400'}>
+        <span className={value ? 'text-ink' : 'text-ink-muted'}>
           {formatDisplay(value)}
         </span>
-        <span className="text-slate-400 text-base">📅</span>
+        <span className="text-ink-muted text-base">📅</span>
       </button>
 
       {open && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
+          <div className="relative bg-surface rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
 
             {/* 月ナビゲーション */}
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-slate-100 text-slate-500"
+                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
               >
                 ‹
               </button>
-              <span className="font-bold text-slate-800">
+              <span className="font-bold text-ink-strong">
                 {viewYear}年{viewMonth}月
               </span>
               <button
                 type="button"
                 onClick={nextMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-slate-100 text-slate-500"
+                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
               >
                 ›
               </button>
@@ -115,7 +115,7 @@ export default function DatePicker({ value, onChange, label }: Props) {
               {WEEKDAYS.map((w, i) => (
                 <div
                   key={w}
-                  className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-slate-400'}`}
+                  className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-ink-muted'}`}
                 >
                   {w}
                 </div>
@@ -147,7 +147,7 @@ export default function DatePicker({ value, onChange, label }: Props) {
                         ? 'text-red-400 active:bg-red-50'
                         : col === 6
                         ? 'text-blue-400 active:bg-blue-50'
-                        : 'text-slate-700 active:bg-slate-100')
+                        : 'text-ink active:bg-surface-hover')
                     }
                   >
                     {day}

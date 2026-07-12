@@ -191,20 +191,20 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         </div>
       )}
 
-      <div className="bg-white rounded-2xl p-4 shadow-sm space-y-4">
+      <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
         <div>
-          <label className="text-xs text-slate-400">名前</label>
+          <label className="text-xs text-ink-muted">名前</label>
           <input
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); if (nameError) setNameError(null) }}
             placeholder="例: Netflix"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${nameError ? 'border-danger-300' : 'border-slate-200'}`}
+            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${nameError ? 'border-danger-300' : 'border-line'}`}
           />
           {nameError && <p className="text-xs text-danger-500 mt-1">{nameError}</p>}
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">カテゴリ</label>
+          <label className="text-xs text-ink-muted">カテゴリ</label>
           <div className="grid grid-cols-4 gap-2 mt-1">
             {fixedCategories.map((c) => (
               <button
@@ -215,11 +215,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                   'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
                     ? 'border-primary-400 bg-primary-50'
-                    : 'border-slate-100 bg-slate-50')
+                    : 'border-line-subtle bg-surface-subtle')
                 }
               >
                 <span className="text-base">{c.icon}</span>
-                <span className="text-[10px] text-slate-600 text-center leading-tight">
+                <span className="text-[10px] text-ink text-center leading-tight">
                   {c.name}
                 </span>
               </button>
@@ -230,11 +230,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         {values.category === 'サブスク' && (
           <div className="space-y-2">
             <div>
-              <label className="text-xs text-slate-400">サービスカテゴリ</label>
+              <label className="text-xs text-ink-muted">サービスカテゴリ</label>
               <select
                 value={values.subSubcategory}
                 onChange={(e) => setValue('subSubcategory', e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-slate-600"
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-ink"
               >
                 {SUBSCRIPTION_SUBCATEGORIES.map((s) => (
                   <option key={s.name} value={s.name}>
@@ -244,9 +244,9 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               </select>
             </div>
             <div>
-              <label className="text-xs text-slate-400">サービスから選ぶ（任意）</label>
+              <label className="text-xs text-ink-muted">サービスから選ぶ（任意）</label>
               <select
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-slate-600"
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-ink"
                 value={values.name}
                 onChange={(e) => {
                   const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
@@ -284,8 +284,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         <div className="grid grid-cols-2 gap-3">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-slate-400">金額</label>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+              <label className="text-xs text-ink-muted">金額</label>
+              <div className="flex rounded-lg overflow-hidden border border-line text-xs">
                 {(['JPY', 'USD'] as const).map((c) => (
                   <button
                     key={c}
@@ -295,7 +295,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                       setValue('amount', '')
                       setUsdRate(getUsdJpyRate())
                     }}
-                    className={`px-2 py-0.5 font-medium ${currency === c ? 'bg-primary-500 text-white' : 'bg-white text-slate-400'}`}
+                    className={`px-2 py-0.5 font-medium ${currency === c ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted'}`}
                   >
                     {c}
                   </button>
@@ -303,7 +303,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               </div>
             </div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 pointer-events-none select-none">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none select-none">
                 {currency === 'USD' ? '$' : '¥'}
               </span>
               <input
@@ -312,11 +312,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 value={values.amount}
                 onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
                 placeholder="0"
-                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-slate-200'}`}
+                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-line'}`}
               />
             </div>
             {currency === 'USD' && values.amount && !isNaN(parseFloat(values.amount)) && (
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-ink-muted mt-1">
                 ≈ {Math.round(parseFloat(values.amount) * usdRate).toLocaleString()}円
                 （1USD={usdRate}円）
               </p>
@@ -324,11 +324,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             {amountError && <p className="text-xs text-danger-500 mt-1">{amountError}</p>}
           </div>
           <div>
-            <label className="text-xs text-slate-400">サイクル</label>
+            <label className="text-xs text-ink-muted">サイクル</label>
             <select
               value={values.cycle}
               onChange={(e) => setValue('cycle', e.target.value as FixedExpense['cycle'])}
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
             >
               <option value="monthly">毎月</option>
               <option value="yearly">毎年</option>
@@ -337,7 +337,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">ステータス</label>
+          <label className="text-xs text-ink-muted">ステータス</label>
           <div className="flex gap-2 mt-1">
             {(['active', 'reviewing', 'unsubscribed', 'cancelled'] as const).map((s) => (
               <button
@@ -348,7 +348,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                   'flex-1 py-1.5 rounded-lg text-xs font-semibold border ' +
                   (values.status === s
                     ? `${STATUS_LABELS[s].color} border-current`
-                    : 'border-slate-100 text-slate-400')
+                    : 'border-line-subtle text-ink-muted')
                 }
               >
                 {STATUS_LABELS[s].label}
@@ -358,13 +358,13 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">メモ</label>
+          <label className="text-xs text-ink-muted">メモ</label>
           <textarea
             value={values.notes}
             onChange={(e) => setValue('notes', e.target.value)}
             placeholder=""
             rows={3}
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
           />
         </div>
 

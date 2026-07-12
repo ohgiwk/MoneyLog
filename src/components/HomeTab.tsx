@@ -126,12 +126,12 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
         </div>
       )}
 
-      <div className="relative bg-white rounded-2xl p-6 shadow-sm text-center space-y-4">
+      <div className="relative bg-surface rounded-2xl p-6 shadow-sm text-center space-y-4">
         <button
           type="button"
           aria-label="オプション"
           onClick={() => setOptionsOpen((v) => !v)}
-          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 active:bg-slate-100"
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover"
         >
           <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
             <circle cx="8" cy="7" r="2.5" fill="currentColor" />
@@ -154,19 +154,19 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
               className="fixed inset-0 z-10 cursor-default"
               onClick={() => setOptionsOpen(false)}
             />
-            <div className="absolute top-12 right-3 z-20 bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 text-left">
+            <div className="absolute top-12 right-3 z-20 bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left">
               <div className="flex items-center gap-3 whitespace-nowrap">
-                <span className="text-sm text-slate-600">お小遣い繰り越し</span>
+                <span className="text-sm text-ink">お小遣い繰り越し</span>
                 <button
                   role="switch"
                   aria-checked={carryOver}
                   onClick={() => handleCarryOverChange(!carryOver)}
                   className={`w-11 h-6 rounded-full transition-colors relative ${
-                    carryOver ? 'bg-primary-500' : 'bg-slate-200'
+                    carryOver ? 'bg-primary-500' : 'bg-surface-muted'
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full shadow transition-transform ${
                       carryOver ? 'translate-x-5' : ''
                     }`}
                   />
@@ -176,7 +176,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
           </>
         )}
 
-        <div className="text-sm font-semibold text-slate-500">本日のお小遣い</div>
+        <div className="text-sm font-semibold text-ink-muted">本日のお小遣い</div>
         <div className="relative flex items-center justify-center gap-1.5">
           <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-primary-600' : 'text-danger-500'}`}>
             {formatYen(todayAllowance)}
@@ -185,7 +185,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
             type="button"
             aria-label="本日のお小遣いの説明"
             onClick={() => setInfoOpen((v) => !v)}
-            className="w-5 h-5 flex items-center justify-center rounded-full text-slate-300 active:text-slate-500"
+            className="w-5 h-5 flex items-center justify-center rounded-full text-ink-subtle active:text-ink-muted"
           >
             <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
@@ -202,15 +202,15 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setInfoOpen(false)}
               />
-              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 text-left space-y-2">
-                <div className="text-sm font-semibold text-slate-700">本日のお小遣いとは</div>
-                <p className="text-xs text-slate-500 leading-relaxed">
+              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left space-y-2">
+                <div className="text-sm font-semibold text-ink">本日のお小遣いとは</div>
+                <p className="text-xs text-ink-muted leading-relaxed">
                   予算設定画面で設定した「定期購入」と「カテゴリ別出費」の合計額を、集計期間の日数で日割りした金額です。
                   {carryOver
                     ? '繰り越しがONのため、期間の経過日数分の日割り予算からその期間の累計出費を差し引いた金額が表示されます。'
                     : '繰り越しがOFFのため、日割り予算から本日の出費を差し引いた金額が表示されます。'}
                 </p>
-                <div className="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 space-y-1">
+                <div className="text-xs text-ink-muted bg-surface-subtle rounded-lg px-3 py-2 space-y-1">
                   <div>日割り予算 = (定期購入予算 + カテゴリ別出費予算) ÷ 日数</div>
                   <div>
                     {carryOver
@@ -223,7 +223,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
           )}
         </div>
 
-        <table className="w-full text-xs text-slate-500">
+        <table className="w-full text-xs text-ink-muted">
           <tbody>
             <tr>
               <td className="text-left py-0.5">日割り予算</td>
@@ -265,16 +265,16 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
       )}
 
       {upcomingEvents.length > 0 && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-slate-500">今後の予定出費</div>
-          <ul className="divide-y divide-slate-100">
+        <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="text-sm font-semibold text-ink-muted">今後の予定出費</div>
+          <ul className="divide-y divide-line-subtle">
             {upcomingEvents.map((event) => (
               <li key={event.id} className="flex items-center justify-between py-2 text-sm">
                 <div className="flex flex-col">
-                  <span className="text-slate-700">{event.title}</span>
-                  <span className="text-xs text-slate-400">{formatDateWithWeekday(event.date)}</span>
+                  <span className="text-ink">{event.title}</span>
+                  <span className="text-xs text-ink-muted">{formatDateWithWeekday(event.date)}</span>
                 </div>
-                <span className="font-semibold text-slate-700">{formatYen(event.planned_expense)}</span>
+                <span className="font-semibold text-ink">{formatYen(event.planned_expense)}</span>
               </li>
             ))}
           </ul>

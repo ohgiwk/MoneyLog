@@ -135,18 +135,18 @@ export default function WishlistScreen({ userId, onBack }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+      <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="🎯 目標・欲しいもの" onBack={onBack} />
       </div>
 
       {/* コンテンツ */}
       <div className="flex-1 px-4 py-4 pb-24 overflow-y-auto">
         {loading ? (
-          <div className="flex justify-center py-12 text-slate-400 text-sm">読み込み中...</div>
+          <div className="flex justify-center py-12 text-ink-muted text-sm">読み込み中...</div>
         ) : items.length === 0 ? (
-          <div className="text-center py-16 text-slate-400">
+          <div className="text-center py-16 text-ink-muted">
             <div className="text-4xl mb-3">🎁</div>
             <p className="text-sm">目標がまだありません</p>
             <p className="text-sm mt-1">下の＋ボタンから追加できます</p>
@@ -156,14 +156,14 @@ export default function WishlistScreen({ userId, onBack }: Props) {
             {items.map((item, index) => (
               <li
                 key={item.id}
-                className="bg-white rounded-xl shadow-sm flex items-center gap-2 overflow-hidden"
+                className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden"
               >
                 {/* 並び替えボタン */}
-                <div className="flex flex-col border-r border-slate-100 py-1">
+                <div className="flex flex-col border-r border-line-subtle py-1">
                   <button
                     onClick={() => moveItem(index, 'up')}
                     disabled={index === 0 || moving !== null}
-                    className="px-2 py-1.5 text-slate-400 disabled:text-slate-200 active:text-slate-600 text-base leading-none"
+                    className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
                     aria-label="上に移動"
                   >
                     ▲
@@ -171,7 +171,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                   <button
                     onClick={() => moveItem(index, 'down')}
                     disabled={index === items.length - 1 || moving !== null}
-                    className="px-2 py-1.5 text-slate-400 disabled:text-slate-200 active:text-slate-600 text-base leading-none"
+                    className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
                     aria-label="下に移動"
                   >
                     ▼
@@ -184,10 +184,10 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                     item.priority === 1
                       ? 'bg-warning-400 text-white'
                       : item.priority === 2
-                      ? 'bg-slate-300 text-white'
+                      ? 'bg-surface-muted text-white'
                       : item.priority === 3
                       ? 'bg-orange-300 text-white'
-                      : 'bg-slate-200 text-slate-500'
+                      : 'bg-surface-muted text-ink-muted'
                   }`}
                 >
                   {item.priority}
@@ -196,18 +196,18 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 {/* コンテンツ（タップで編集） */}
                 <button
                   onClick={() => openEdit(item)}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-slate-50"
+                  className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-surface-subtle"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-800 font-medium text-sm truncate">{item.name}</p>
+                    <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
                     {item.notes && (
-                      <p className="text-slate-400 text-xs truncate">{item.notes}</p>
+                      <p className="text-ink-muted text-xs truncate">{item.notes}</p>
                     )}
                   </div>
-                  <span className="text-slate-700 font-semibold text-sm flex-shrink-0">
+                  <span className="text-ink font-semibold text-sm flex-shrink-0">
                     ¥{item.target_amount.toLocaleString()}
                   </span>
-                  <span className="text-slate-300 text-lg flex-shrink-0">›</span>
+                  <span className="text-ink-subtle text-lg flex-shrink-0">›</span>
                 </button>
               </li>
             ))}
@@ -233,38 +233,38 @@ export default function WishlistScreen({ userId, onBack }: Props) {
         <>
           <div className="fixed inset-0 bg-black/40 z-20 flex items-center justify-center px-4" onClick={closeForm}>
             <div
-              className="w-full max-w-sm bg-white rounded-2xl shadow-2xl px-5 pt-5 pb-6"
+              className="w-full max-w-sm bg-surface rounded-2xl shadow-2xl px-5 pt-5 pb-6"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-slate-800 text-base">
+                <h2 className="font-semibold text-ink-strong text-base">
                   {editing === 'new' ? '目標を追加' : '目標を編集'}
                 </h2>
-                <button onClick={closeForm} className="text-slate-400 active:text-slate-600 text-xl px-1">✕</button>
+                <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
               </div>
 
               {error && <p className="text-danger-500 text-xs mb-3">{error}</p>}
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">商品名</label>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">商品名</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     placeholder="例：新しいスニーカー"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-500 mb-1">金額（円）</label>
+                  <label className="block text-xs font-medium text-ink-muted mb-1">金額（円）</label>
                   <input
                     type="number"
                     value={form.price}
                     onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                     placeholder="例：12000"
                     inputMode="numeric"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                   />
                 </div>
               </div>
@@ -273,7 +273,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-slate-200 disabled:text-slate-400 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+                  className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-surface-muted disabled:text-ink-muted text-white font-semibold py-3 rounded-xl text-sm transition-colors"
                 >
                   {saving ? '保存中...' : '保存する'}
                 </button>

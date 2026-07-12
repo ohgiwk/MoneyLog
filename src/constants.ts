@@ -183,7 +183,7 @@ export const CONSUMABLE_CYCLE_PRESETS = [
 export const STATUS_LABELS = {
   active: { label: '契約中', color: 'text-primary-600 bg-primary-50' },
   reviewing: { label: '見直し中', color: 'text-warning-600 bg-warning-50' },
-  cancelled: { label: '解約済み', color: 'text-slate-400 bg-slate-100' },
+  cancelled: { label: '解約済み', color: 'text-ink-muted bg-surface-hover' },
   unsubscribed: { label: '未契約', color: 'text-blue-500 bg-blue-50' },
 } as const
 

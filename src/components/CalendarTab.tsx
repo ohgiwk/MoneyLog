@@ -121,15 +121,15 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
       )}
 
       {/* カレンダーグリッド */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
         {/* 曜日ヘッダー */}
-        <div className="grid grid-cols-7 border-b border-slate-100">
+        <div className="grid grid-cols-7 border-b border-line-subtle">
           {DAY_LABELS.map((d, i) => (
             <div
               key={d}
               className={
                 'py-2 text-center text-xs font-semibold ' +
-                (i === 0 ? 'text-danger-400' : i === 6 ? 'text-sky-500' : 'text-slate-400')
+                (i === 0 ? 'text-danger-400' : i === 6 ? 'text-sky-500' : 'text-ink-muted')
               }
             >
               {d}
@@ -139,7 +139,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
         {/* 日付セル */}
         <div className="grid grid-cols-7">
           {calendarDays.map((date, i) => {
-            if (!date) return <div key={i} className="h-14 border-b border-r border-slate-50 last:border-r-0" />
+            if (!date) return <div key={i} className="h-14 border-b border-r border-line-subtle last:border-r-0" />
             const dayEvents = eventsByDate.get(date) ?? []
             const isSelected = date === selectedDate
             const isToday = date === todayStr()
@@ -152,9 +152,9 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                 key={date}
                 onClick={() => setSelectedDate(date)}
                 className={
-                  'relative h-14 flex flex-col items-center pt-1 border-b border-r border-slate-50 last:border-r-0 transition ' +
+                  'relative h-14 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
                   cellBg + ' ' +
-                  (isSelected ? 'ring-2 ring-inset ring-primary-400' : cellBg ? '' : 'active:bg-slate-50')
+                  (isSelected ? 'ring-2 ring-inset ring-primary-400' : cellBg ? '' : 'active:bg-surface-subtle')
                 }
               >
                 <span
@@ -166,17 +166,17 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                       ? 'text-danger-400'
                       : dow === 6
                       ? 'text-sky-500'
-                      : 'text-slate-700')
+                      : 'text-ink')
                   }
                 >
                   {dayNum}
                 </span>
                 {/* 予定ドット */}
                 {dayEvents.length > 0 && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-0.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-surface-muted mt-0.5" />
                 )}
                 {dayEvents.length > 1 && (
-                  <span className="text-[9px] text-slate-400">{dayEvents.length}件</span>
+                  <span className="text-[9px] text-ink-muted">{dayEvents.length}件</span>
                 )}
               </button>
             )
@@ -186,7 +186,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
 
       {/* 選択日のヘッダー + 追加ボタン */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-slate-700">
+        <span className="text-sm font-semibold text-ink">
           {formatDateWithWeekday(selectedDate)}
         </span>
         <button
@@ -198,8 +198,8 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
       </div>
 
       {/* 選択日の区分設定 */}
-      <div className="bg-white rounded-2xl shadow-sm px-4 py-3 space-y-2">
-        <span className="text-xs text-slate-400">区分</span>
+      <div className="bg-surface rounded-2xl shadow-sm px-4 py-3 space-y-2">
+        <span className="text-xs text-ink-muted">区分</span>
         {dayTypeError && <p className="text-xs text-danger-500">{dayTypeError}</p>}
         <div className="flex gap-2">
           {(['work', 'off', 'holiday'] as const).map((t) => {
@@ -211,7 +211,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
                 onClick={() => void handleDayTypeChange(selected ? null : t)}
                 className={
                   'flex-1 py-2 rounded-xl text-xs font-semibold border transition ' +
-                  (selected ? DAY_TYPE_LABELS[t].color : 'border-slate-100 text-slate-400 bg-slate-50')
+                  (selected ? DAY_TYPE_LABELS[t].color : 'border-line-subtle text-ink-muted bg-surface-subtle')
                 }
               >
                 {DAY_TYPE_LABELS[t].label}
@@ -223,7 +223,7 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
 
       {/* 選択日の予定リスト */}
       {selectedEvents.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-slate-400">
+        <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
           予定はありません
         </div>
       ) : (
@@ -232,19 +232,19 @@ export default function CalendarTab({ userId, month, setMonth }: Props) {
             <button
               key={ev.id}
               onClick={() => openEdit(ev)}
-              className="w-full bg-white rounded-2xl shadow-sm px-4 py-3 flex items-start justify-between gap-3 text-left active:bg-slate-50"
+              className="w-full bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-start justify-between gap-3 text-left active:bg-surface-subtle"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-slate-700 truncate">{ev.title}</span>
+                  <span className="text-sm font-semibold text-ink truncate">{ev.title}</span>
                 </div>
                 {(ev.start_time || ev.end_time) && (
-                  <div className="text-xs text-slate-400 mt-0.5">
+                  <div className="text-xs text-ink-muted mt-0.5">
                     {ev.start_time ? ev.start_time.slice(0, 5) : ''}
                     {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
                   </div>
                 )}
-                {ev.memo && <div className="text-xs text-slate-400 mt-0.5 truncate">{ev.memo}</div>}
+                {ev.memo && <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>}
               </div>
               {ev.planned_expense > 0 && (
                 <span className="text-sm font-semibold text-danger-500 shrink-0">
@@ -334,13 +334,13 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-surface rounded-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
         <div className="px-5 pt-5 pb-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-slate-700">
+            <h2 className="text-base font-semibold text-ink">
               {event ? '予定を編集' : '予定を追加'}
             </h2>
-            <span className="text-xs text-slate-400">{formatDateWithWeekday(date)}</span>
+            <span className="text-xs text-ink-muted">{formatDateWithWeekday(date)}</span>
           </div>
 
           {error && (
@@ -351,12 +351,12 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
 
           {/* 予定名 */}
           <div>
-            <label className="text-xs text-slate-400">予定名</label>
+            <label className="text-xs text-ink-muted">予定名</label>
             <input
               value={title}
               onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null) }}
               placeholder="例: 会議、買い物"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${titleError ? 'border-danger-300' : 'border-slate-200'}`}
+              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${titleError ? 'border-danger-300' : 'border-line'}`}
             />
             {titleError && <p className="text-xs text-danger-500 mt-1">{titleError}</p>}
           </div>
@@ -364,28 +364,28 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
           {/* 開始・終了時間 */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-400">開始時間</label>
+              <label className="text-xs text-ink-muted">開始時間</label>
               <input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
             </div>
             <div>
-              <label className="text-xs text-slate-400">終了時間</label>
+              <label className="text-xs text-ink-muted">終了時間</label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
             </div>
           </div>
 
           {/* 予定出費 */}
           <div>
-            <label className="text-xs text-slate-400">予定出費</label>
+            <label className="text-xs text-ink-muted">予定出費</label>
             <div className="flex items-center gap-2 mt-1">
               <input
                 type="number"
@@ -393,20 +393,20 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 placeholder="0"
                 value={plannedExpense}
                 onChange={(e) => setPlannedExpense(e.target.value)}
-                className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="flex-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
               />
-              <span className="text-sm text-slate-500">円</span>
+              <span className="text-sm text-ink-muted">円</span>
             </div>
           </div>
 
           {/* メモ */}
           <div>
-            <label className="text-xs text-slate-400">メモ（任意）</label>
+            <label className="text-xs text-ink-muted">メモ（任意）</label>
             <textarea
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={2}
-              className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
             />
           </div>
 
@@ -424,7 +424,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
             <button
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-semibold active:bg-slate-50 disabled:opacity-50"
+              className="px-4 py-3 rounded-xl border border-line text-ink-muted text-sm font-semibold active:bg-surface-subtle disabled:opacity-50"
             >
               キャンセル
             </button>

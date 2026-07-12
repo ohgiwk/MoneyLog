@@ -39,22 +39,22 @@ const TIPS: string[] = [
 
 export default function SavingTipsScreen({ onBack }: Props) {
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="節約のコツ" onBack={onBack} />
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto pb-8">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
           {TIPS.map((tip, i) => (
             <div
               key={i}
-              className={`flex items-start gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-slate-50' : ''}`}
+              className={`flex items-start gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-line-subtle' : ''}`}
             >
               <span className="shrink-0 w-6 h-6 rounded-full bg-primary-50 text-primary-600 text-xs font-semibold flex items-center justify-center mt-0.5">
                 {i + 1}
               </span>
-              <span className="text-sm text-slate-700 leading-relaxed">{tip}</span>
+              <span className="text-sm text-ink leading-relaxed">{tip}</span>
             </div>
           ))}
         </div>

@@ -125,7 +125,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           onChange={e => setNewName(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') void handleAdd() }}
           placeholder="商品名を入力..."
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400 bg-white"
+          className="flex-1 border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400 bg-surface"
         />
         <button
           onClick={handleAdd}
@@ -138,9 +138,9 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
 
       {/* リスト */}
       {loading ? (
-        <div className="text-center py-8 text-slate-400 text-sm">読み込み中...</div>
+        <div className="text-center py-8 text-ink-muted text-sm">読み込み中...</div>
       ) : items.length === 0 ? (
-        <div className="text-center py-10 text-slate-400 text-sm">
+        <div className="text-center py-10 text-ink-muted text-sm">
           <p className="text-3xl mb-2">🛒</p>
           <p>買い物メモがありません</p>
           <p className="text-xs mt-1">商品名を入力して追加してください</p>
@@ -150,7 +150,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           {items.map(item => (
             <div
               key={item.id}
-              className="bg-white rounded-xl border border-slate-100 px-3 py-3 flex items-center gap-3 shadow-sm"
+              className="bg-surface rounded-xl border border-line-subtle px-3 py-3 flex items-center gap-3 shadow-sm"
             >
               {/* チェックボックス */}
               <button
@@ -159,7 +159,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                   'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ' +
                   (selected.has(item.id)
                     ? 'bg-primary-500 border-primary-500'
-                    : 'border-slate-300 bg-white')
+                    : 'border-line-strong bg-surface')
                 }
               >
                 {selected.has(item.id) && (
@@ -181,11 +181,11 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                     if (e.key === 'Escape') setEditingId(null)
                   }}
                   onBlur={() => void handleUpdate(item.id)}
-                  className="flex-1 text-sm text-slate-800 border-b border-primary-400 outline-none bg-transparent"
+                  className="flex-1 text-sm text-ink-strong border-b border-primary-400 outline-none bg-transparent"
                 />
               ) : (
                 <span
-                  className="flex-1 text-sm text-slate-800"
+                  className="flex-1 text-sm text-ink-strong"
                   onDoubleClick={() => { setEditingId(item.id); setEditingName(item.name) }}
                 >
                   {item.name}
@@ -199,7 +199,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                     if (editingId === item.id) { setEditingId(null) }
                     else { setEditingId(item.id); setEditingName(item.name) }
                   }}
-                  className="p-1.5 text-slate-400 active:text-primary-500 rounded-lg"
+                  className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -208,7 +208,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 </button>
                 <button
                   onClick={() => void handleDelete(item.id)}
-                  className="p-1.5 text-slate-400 active:text-danger-500 rounded-lg"
+                  className="p-1.5 text-ink-muted active:text-danger-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6"/>

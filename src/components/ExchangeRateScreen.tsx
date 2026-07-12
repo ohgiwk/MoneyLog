@@ -25,29 +25,29 @@ export default function ExchangeRateScreen({ onBack }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="為替レート設定" onBack={onBack} />
       </div>
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-        <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
+        <div className="bg-surface rounded-2xl shadow-sm p-4 space-y-4">
           <div>
-            <div className="text-sm font-medium text-slate-700 mb-1">USD / JPY レート</div>
-            <div className="text-xs text-slate-400 mb-3">
+            <div className="text-sm font-medium text-ink mb-1">USD / JPY レート</div>
+            <div className="text-xs text-ink-muted mb-3">
               固定費をドル（USD）で入力した際に円換算に使用されます
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-500 shrink-0">1 USD =</span>
+              <span className="text-sm text-ink-muted shrink-0">1 USD =</span>
               <input
                 type="number"
                 inputMode="decimal"
                 value={rate}
                 onChange={(e) => { setRate(e.target.value); setError(null) }}
                 placeholder="150"
-                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${error ? 'border-danger-300' : 'border-slate-200'}`}
+                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${error ? 'border-danger-300' : 'border-line'}`}
               />
-              <span className="text-sm text-slate-500 shrink-0">円</span>
+              <span className="text-sm text-ink-muted shrink-0">円</span>
             </div>
             {error && <p className="text-xs text-danger-500 mt-1">{error}</p>}
           </div>

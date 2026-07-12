@@ -20,25 +20,25 @@ export default function AuthScreen() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">💰</div>
-          <h1 className="text-2xl font-bold text-slate-800">マネログ</h1>
-          <p className="text-xs text-slate-400">MoneyLog</p>
-          <p className="text-sm text-slate-500 mt-1 font-medium">本気の節約家計簿</p>
+          <h1 className="text-2xl font-bold text-ink-strong">マネログ</h1>
+          <p className="text-xs text-ink-muted">MoneyLog</p>
+          <p className="text-sm text-ink-muted mt-1 font-medium">本気の節約家計簿</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+        <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
           {/* モード切り替え */}
-          <div className="flex rounded-xl bg-slate-100 p-1" role="tablist" aria-label="認証モード">
+          <div className="flex rounded-xl bg-surface-hover p-1" role="tablist" aria-label="認証モード">
             <button
               role="tab"
               aria-selected={mode === 'signin'}
               onClick={() => setMode('signin')}
               className={
                 'flex-1 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-300 ' +
-                (mode === 'signin' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
+                (mode === 'signin' ? 'bg-surface shadow text-ink-strong' : 'text-ink-muted')
               }
             >
               ログイン
@@ -49,7 +49,7 @@ export default function AuthScreen() {
               onClick={() => setMode('signup')}
               className={
                 'flex-1 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-primary-300 ' +
-                (mode === 'signup' ? 'bg-white shadow text-slate-800' : 'text-slate-400')
+                (mode === 'signup' ? 'bg-surface shadow text-ink-strong' : 'text-ink-muted')
               }
             >
               新規登録
@@ -68,7 +68,7 @@ export default function AuthScreen() {
                 aria-label="メールアドレス"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
                 required
               />
             </div>
@@ -83,7 +83,7 @@ export default function AuthScreen() {
                 aria-label="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
                 required
               />
             </div>
@@ -98,14 +98,14 @@ export default function AuthScreen() {
           </form>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-xs text-slate-400">または</span>
-            <div className="flex-1 h-px bg-slate-100" />
+            <div className="flex-1 h-px bg-surface-hover" />
+            <span className="text-xs text-ink-muted">または</span>
+            <div className="flex-1 h-px bg-surface-hover" />
           </div>
 
           <button
             onClick={() => signInWithGoogle()}
-            className="w-full py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 flex items-center justify-center gap-2 active:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="w-full py-3 rounded-xl border border-line text-sm font-semibold text-ink flex items-center justify-center gap-2 active:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-300"
           >
             <span aria-hidden="true">G</span> Googleでログイン
           </button>

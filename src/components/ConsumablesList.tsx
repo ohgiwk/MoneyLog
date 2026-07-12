@@ -120,7 +120,7 @@ export default function ConsumablesList({
   if (editing !== null) {
     const isPreset = typeof editing === 'object' && editing !== null && 'preset' in (editing as object)
     content = (
-      <div className="-m-4 p-4 min-h-screen bg-slate-50">
+      <div className="-m-4 p-4 min-h-screen bg-surface-subtle">
         <ConsumableForm
           userId={userId}
           consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
@@ -136,18 +136,18 @@ export default function ConsumablesList({
     content = (
     <>
       {/* 月額/年額コストサマリー */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
+      <div className="bg-surface rounded-2xl p-4 shadow-sm">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-sm font-semibold text-slate-700 mb-1">
+          <div className="text-sm font-semibold text-ink mb-1">
             定期購入合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
           </div>
-          <div className="shrink-0 flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <div className="shrink-0 flex rounded-lg border border-line overflow-hidden text-xs font-medium">
             <button
               type="button"
               onClick={() => setSummaryPeriod('monthly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
               }
             >
               月
@@ -157,21 +157,21 @@ export default function ConsumablesList({
               onClick={() => setSummaryPeriod('yearly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
               }
             >
               年
             </button>
           </div>
         </div>
-        <div className="text-2xl font-bold text-slate-700">
+        <div className="text-2xl font-bold text-ink">
           {formatYen(summaryPeriod === 'monthly' ? totalMonthly : totalMonthly * 12)}
-          <span className="text-sm font-normal text-slate-400">
+          <span className="text-sm font-normal text-ink-muted">
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
         {budget > 0 && (
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-xs text-ink-muted mt-1">
             予算 {formatYen(summaryPeriod === 'monthly' ? budget : budget * 12)}
             {' / 残額 '}
             <span
@@ -198,7 +198,7 @@ export default function ConsumablesList({
           <div className="space-y-1.5">
             {urgent.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
@@ -222,14 +222,14 @@ export default function ConsumablesList({
       {/* カテゴリ別一覧 */}
       {!loading && byCategory.map(({ cat, items }) => (
         <div key={cat.name}>
-          <div className="text-xs font-semibold text-slate-500 mt-2 mb-2 flex items-center gap-1.5">
+          <div className="text-xs font-semibold text-ink-muted mt-2 mb-2 flex items-center gap-1.5">
             <span>{cat.icon}</span>
             <span>{cat.name}</span>
           </div>
           <div className="space-y-1.5">
             {items.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
@@ -252,11 +252,11 @@ export default function ConsumablesList({
       {/* 未知カテゴリ */}
       {!loading && uncategorized.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-slate-400 mt-2 mb-2">その他</div>
+          <div className="text-xs font-semibold text-ink-muted mt-2 mb-2">その他</div>
           <div className="space-y-1.5">
             {uncategorized.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
@@ -277,7 +277,7 @@ export default function ConsumablesList({
       )}
 
       {!loading && consumables.length === 0 && (
-        <div className="text-sm text-slate-400 text-center py-4">登録された定期購入がありません</div>
+        <div className="text-sm text-ink-muted text-center py-4">登録された定期購入がありません</div>
       )}
 
       {/* FAB */}
@@ -309,7 +309,7 @@ export default function ConsumablesList({
         <div>
           <button
             onClick={() => setShowSuggestions((v) => !v)}
-            className="w-full flex items-center justify-between text-xs font-semibold text-slate-400 mt-2 mb-2 py-1"
+            className="w-full flex items-center justify-between text-xs font-semibold text-ink-muted mt-2 mb-2 py-1"
           >
             <span>おすすめ品目（未登録）</span>
             <span>{showSuggestions ? '▲' : '▼'}</span>
@@ -319,7 +319,7 @@ export default function ConsumablesList({
             <div className="space-y-3">
               {suggestionsByCategory.map(({ cat, items }) => (
                 <div key={cat.name}>
-                  <div className="text-xs text-slate-400 mb-1.5 flex items-center gap-1">
+                  <div className="text-xs text-ink-muted mb-1.5 flex items-center gap-1">
                     <span>{cat.icon}</span>
                     <span>{cat.name}</span>
                   </div>
@@ -328,7 +328,7 @@ export default function ConsumablesList({
                       <button
                         key={d.name}
                         onClick={() => openEditing({ preset: d })}
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-600 active:bg-slate-50 flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-xl border border-line bg-surface text-xs text-ink active:bg-surface-subtle flex items-center gap-1"
                       >
                         <span>+</span>
                         <span>{d.name}</span>

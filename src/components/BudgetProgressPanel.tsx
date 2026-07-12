@@ -65,16 +65,16 @@ export default function BudgetProgressPanel({
   const monthTotalSpent = oneTimeCategoryRows.reduce((sum, r) => sum + r.monthSpent, 0)
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+    <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
       {/* ヘッダー行 */}
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-slate-700">予算進捗</div>
-        <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+        <div className="text-sm font-semibold text-ink">予算進捗</div>
+        <div className="flex rounded-lg overflow-hidden border border-line text-xs">
           {(['week', 'month'] as PeriodMode[]).map((m) => (
             <button
               key={m}
               onClick={() => setPeriodMode(m)}
-              className={`px-2 py-1 ${periodMode === m ? 'bg-slate-700 text-white' : 'bg-white text-slate-500'}`}
+              className={`px-2 py-1 ${periodMode === m ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
             >
               {m === 'week' ? '週' : '月'}
             </button>
@@ -85,8 +85,8 @@ export default function BudgetProgressPanel({
       {/* 期間進捗バー */}
       <div>
         <div className="flex justify-between items-center mb-1">
-          <span className="text-xs text-slate-400">{rangeLabel}</span>
-          <span className="text-xs text-slate-400">{periodLabel}</span>
+          <span className="text-xs text-ink-muted">{rangeLabel}</span>
+          <span className="text-xs text-ink-muted">{periodLabel}</span>
         </div>
         <div className="flex gap-[3px] items-center">
           {Array.from({ length: totalDots }).map((_, i) => (
@@ -97,14 +97,14 @@ export default function BudgetProgressPanel({
                   ? 'bg-warning-400'
                   : i < filledDots
                     ? 'bg-primary-500'
-                    : 'bg-slate-100'
+                    : 'bg-surface-hover'
               }`}
             />
           ))}
         </div>
       </div>
 
-      <div className="h-px bg-slate-100" />
+      <div className="h-px bg-surface-hover" />
 
       {/* カテゴリ別予算進捗 */}
       {rows.length > 0 && rows.map(({ cat, icon, spent, budget }) => (
@@ -118,14 +118,14 @@ export default function BudgetProgressPanel({
         />
       ))}
 
-      <div className="h-px bg-slate-100" />
+      <div className="h-px bg-surface-hover" />
 
       {/* 予算合計/出費合計 */}
       <div className="text-right">
-        <div className="text-xs text-slate-400 mb-1">
+        <div className="text-xs text-ink-muted mb-1">
           {periodMode === 'week' ? '週の予算合計' : '月の予算合計'}
         </div>
-        <div className="text-base text-slate-600">
+        <div className="text-base text-ink">
           <span
             className={
               (periodMode === 'week' ? weekTotalSpent : monthTotalSpent) >
@@ -137,7 +137,7 @@ export default function BudgetProgressPanel({
             {formatYen(periodMode === 'week' ? weekTotalSpent : monthTotalSpent)}
           </span>
             {' / '}
-            <span className="text-slate-400">
+            <span className="text-ink-muted">
               {formatYen(periodMode === 'week' ? weekTotalBudget : monthTotalBudget)}
             </span>
         </div>
@@ -147,7 +147,7 @@ export default function BudgetProgressPanel({
         <div className="pt-2">
           <button
             onClick={onManageBudget}
-            className="w-full text-center py-2 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-600 active:bg-slate-50"
+            className="w-full text-center py-2 rounded-xl border border-line bg-surface text-sm font-medium text-ink active:bg-surface-subtle"
           >
             予算を管理
           </button>
@@ -174,19 +174,19 @@ function BudgetProgress({
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-slate-600 flex items-center gap-1">
+        <span className="text-xs text-ink flex items-center gap-1">
           <span>{icon}</span>
           {label}
         </span>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-ink-muted">
           <span className={over ? 'text-danger-500 font-semibold' : 'font-medium'}>
             {formatYen(spent)}
           </span>
           {' / '}
-          <span className="text-slate-400">{formatYen(budget)}</span>
+          <span className="text-ink-muted">{formatYen(budget)}</span>
         </span>
       </div>
-      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-surface-hover rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all ${over ? 'bg-danger-400' : color}`}
           style={{ width: `${pct}%` }}

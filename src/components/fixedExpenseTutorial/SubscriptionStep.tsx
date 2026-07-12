@@ -35,7 +35,7 @@ export function SubscriptionStep({
                 'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition border ' +
                 (activeTab === sub.name
                   ? 'bg-primary-500 text-white border-primary-500'
-                  : 'bg-white text-slate-500 border-slate-200')
+                  : 'bg-surface text-ink-muted border-line')
               }
             >
               <span>{sub.icon}</span>
@@ -44,7 +44,7 @@ export function SubscriptionStep({
                 <span
                   className={
                     'w-1.5 h-1.5 rounded-full ' +
-                    (activeTab === sub.name ? 'bg-white' : 'bg-primary-400')
+                    (activeTab === sub.name ? 'bg-surface' : 'bg-primary-400')
                   }
                 />
               )}
@@ -62,7 +62,7 @@ export function SubscriptionStep({
               key={p.name}
               className={
                 'flex items-center gap-2 px-3 py-2.5 rounded-xl border transition ' +
-                (checked ? 'border-primary-400 bg-primary-50' : 'border-slate-200 bg-white')
+                (checked ? 'border-primary-400 bg-primary-50' : 'border-line bg-surface')
               }
             >
               <button
@@ -73,22 +73,22 @@ export function SubscriptionStep({
                 <span
                   className={
                     'w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ' +
-                    (checked ? 'border-primary-500 bg-primary-500' : 'border-slate-300')
+                    (checked ? 'border-primary-500 bg-primary-500' : 'border-line-strong')
                   }
                 >
                   {checked && <span className="text-white text-xs font-bold">✓</span>}
                 </span>
-                <span className="flex-1 text-sm text-slate-700 truncate">{p.name}</span>
+                <span className="flex-1 text-sm text-ink truncate">{p.name}</span>
               </button>
               {/* 月/年トグル（年額プランがある場合のみ表示） */}
               {(p.yearlyAmount != null || p.cycle === 'yearly') && (
-                <div className="flex rounded-lg overflow-hidden border border-slate-200 shrink-0 text-xs">
+                <div className="flex rounded-lg overflow-hidden border border-line shrink-0 text-xs">
                   <button
                     type="button"
                     onClick={() => onCycleChange(p.name, 'monthly')}
                     className={
                       'px-2 py-1 transition ' +
-                      (cycle === 'monthly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
+                      (cycle === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
                     }
                   >
                     月
@@ -97,15 +97,15 @@ export function SubscriptionStep({
                     type="button"
                     onClick={() => onCycleChange(p.name, 'yearly')}
                     className={
-                      'px-2 py-1 transition border-l border-slate-200 ' +
-                      (cycle === 'yearly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-400')
+                      'px-2 py-1 transition border-l border-line ' +
+                      (cycle === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
                     }
                   >
                     年
                   </button>
                 </div>
               )}
-              <span className="text-xs text-slate-400 shrink-0 w-24 text-right">
+              <span className="text-xs text-ink-muted shrink-0 w-24 text-right">
                 {p.currency === 'USD'
                   ? cycle === 'yearly'
                     ? `$${(p.usdYearlyAmount ?? p.usdAmount ?? 0).toLocaleString()}/年`

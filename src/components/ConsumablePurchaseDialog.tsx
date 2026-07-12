@@ -46,32 +46,32 @@ export default function ConsumablePurchaseDialog({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center sm:items-center">
-      <div className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl">
-        <h2 className="text-base font-bold text-slate-800">購入済みとして記録</h2>
+      <div className="bg-surface w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl">
+        <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
 
         {/* 品目情報 */}
-        <div className="bg-slate-50 rounded-xl px-4 py-3">
-          <p className="text-xs text-slate-500 mb-0.5">定期購入品目</p>
-          <p className="text-sm font-semibold text-slate-800">{c.name}</p>
-          <p className="text-xs text-slate-400 mt-0.5">
+        <div className="bg-surface-subtle rounded-xl px-4 py-3">
+          <p className="text-xs text-ink-muted mb-0.5">定期購入品目</p>
+          <p className="text-sm font-semibold text-ink-strong">{c.name}</p>
+          <p className="text-xs text-ink-muted mt-0.5">
             {c.amount}円 × {c.quantity}個{c.members_scale ? ` × ${householdMembers}人` : ''} = ¥{defaultAmount.toLocaleString()}
           </p>
         </div>
 
         {/* 購入日 */}
         <div>
-          <label className="block text-xs text-slate-500 mb-1">購入日</label>
+          <label className="block text-xs text-ink-muted mb-1">購入日</label>
           <input
             type="date"
             value={date}
             onChange={e => setDate(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
+            className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
           />
         </div>
 
         {/* カテゴリ */}
         <div>
-          <label className="block text-xs text-slate-500 mb-1">カテゴリ</label>
+          <label className="block text-xs text-ink-muted mb-1">カテゴリ</label>
           <div className="grid grid-cols-3 gap-2">
             {expenseCategories.map(cat => (
               <button
@@ -81,7 +81,7 @@ export default function ConsumablePurchaseDialog({
                   'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
                   (category === cat.name
                     ? 'border-primary-400 bg-primary-50 text-primary-700'
-                    : 'border-slate-200 text-slate-600 active:bg-slate-50')
+                    : 'border-line text-ink active:bg-surface-subtle')
                 }
               >
                 <span>{cat.icon}</span>
@@ -93,27 +93,27 @@ export default function ConsumablePurchaseDialog({
 
         {/* 金額 */}
         <div>
-          <label className="block text-xs text-slate-500 mb-1">金額</label>
+          <label className="block text-xs text-ink-muted mb-1">金額</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">¥</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
             <input
               type="number"
               inputMode="numeric"
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="w-full border border-slate-200 rounded-xl pl-7 pr-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
+              className="w-full border border-line rounded-xl pl-7 pr-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
             />
           </div>
         </div>
 
         {/* メモ */}
         <div>
-          <label className="block text-xs text-slate-500 mb-1">メモ（任意）</label>
+          <label className="block text-xs text-ink-muted mb-1">メモ（任意）</label>
           <input
             type="text"
             value={memo}
             onChange={e => setMemo(e.target.value)}
-            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:border-primary-400"
+            className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
           />
         </div>
 
@@ -122,7 +122,7 @@ export default function ConsumablePurchaseDialog({
         <div className="flex gap-2 pt-1">
           <button
             onClick={onCancel}
-            className="flex-1 py-3 rounded-xl border border-slate-200 text-sm text-slate-600 active:bg-slate-50"
+            className="flex-1 py-3 rounded-xl border border-line text-sm text-ink active:bg-surface-subtle"
           >
             キャンセル
           </button>

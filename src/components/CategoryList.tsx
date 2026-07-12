@@ -41,8 +41,8 @@ export default function CategoryList({ categories, onChange }: Props) {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <ul className="divide-y divide-slate-50">
+      <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <ul className="divide-y divide-line-subtle">
           {categories.map((c, i) => (
             <li key={i} className="flex items-center gap-3 px-4 py-3">
               <span
@@ -51,26 +51,26 @@ export default function CategoryList({ categories, onChange }: Props) {
               >
                 {c.icon}
               </span>
-              <span className="flex-1 text-sm text-slate-700">{c.name}</span>
+              <span className="flex-1 text-sm text-ink">{c.name}</span>
               <button
                 onClick={() => openEdit(i)}
-                className="text-xs text-slate-400 active:text-slate-600 px-2 py-1"
+                className="text-xs text-ink-muted active:text-ink px-2 py-1"
               >
                 編集
               </button>
               <button
                 onClick={() => remove(i)}
-                className="text-xs text-slate-300 active:text-danger-400 px-1 py-1"
+                className="text-xs text-ink-subtle active:text-danger-400 px-1 py-1"
               >
                 ✕
               </button>
             </li>
           ))}
         </ul>
-        <div className="px-4 py-3 border-t border-slate-50">
+        <div className="px-4 py-3 border-t border-line-subtle">
           <button
             onClick={openAdd}
-            className="w-full py-2 rounded-xl border border-dashed border-slate-300 text-sm text-slate-400 active:bg-slate-50"
+            className="w-full py-2 rounded-xl border border-dashed border-line-strong text-sm text-ink-muted active:bg-surface-subtle"
           >
             ＋ カテゴリを追加
           </button>

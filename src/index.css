@@ -2,16 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * ニュートラルカラーのテーマトークン（RGB値はスペース区切りで保持し、
+ * tailwind.config.js側で rgb(var(--x) / <alpha-value>) として参照する）
+ * .dark クラスが html/body に付くとダークモード配色に切り替わる
+ */
+:root {
+  color-scheme: light;
+  --color-surface: 255 255 255; /* white */
+  --color-surface-subtle: 248 250 252; /* slate-50 */
+  --color-surface-hover: 241 245 249; /* slate-100 */
+  --color-surface-muted: 226 232 240; /* slate-200 */
+  --color-surface-strong: 51 65 85; /* slate-700 */
+  --color-line: 226 232 240; /* slate-200 */
+  --color-line-subtle: 241 245 249; /* slate-100 */
+  --color-line-strong: 100 116 139; /* slate-500 */
+  --color-ink-strong: 30 41 59; /* slate-800 */
+  --color-ink: 51 65 85; /* slate-700 */
+  --color-ink-muted: 100 116 139; /* slate-500 */
+  --color-ink-subtle: 203 213 225; /* slate-300 */
+}
+
+.dark {
+  color-scheme: dark;
+  --color-surface: 30 41 59; /* slate-800 */
+  --color-surface-subtle: 15 23 42; /* slate-900 */
+  --color-surface-hover: 51 65 85; /* slate-700 */
+  --color-surface-muted: 71 85 105; /* slate-600 */
+  --color-surface-strong: 51 65 85; /* slate-700（白文字と組む前提のため明暗共通） */
+  --color-line: 51 65 85; /* slate-700 */
+  --color-line-subtle: 30 41 59; /* slate-800 */
+  --color-line-strong: 100 116 139; /* slate-500 */
+  --color-ink-strong: 248 250 252; /* slate-50 */
+  --color-ink: 203 213 225; /* slate-300 */
+  --color-ink-muted: 148 163 184; /* slate-400 */
+  --color-ink-subtle: 71 85 105; /* slate-600 */
+}
+
 body {
   font-family: 'Hiragino Sans', 'Yu Gothic', 'Helvetica Neue', Arial, sans-serif;
-  background: #f1f3f6;
+  background: rgb(var(--color-surface-subtle));
 }
 
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgb(var(--color-line-strong));
   border-radius: 3px;
 }
 

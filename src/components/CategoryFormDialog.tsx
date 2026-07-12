@@ -30,27 +30,27 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white rounded-t-2xl p-5 space-y-4 pb-8">
+      <div className="relative w-full max-w-md bg-surface rounded-t-2xl p-5 space-y-4 pb-8">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-slate-700">カテゴリ編集</span>
-          <button onClick={onClose} className="text-slate-400 active:text-slate-600 px-1 text-xl">
+          <span className="font-semibold text-ink">カテゴリ編集</span>
+          <button onClick={onClose} className="text-ink-muted active:text-ink px-1 text-xl">
             ✕
           </button>
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">カテゴリ名</label>
+          <label className="text-xs text-ink-muted">カテゴリ名</label>
           <input
             type="text"
             value={draft.name}
             onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
             placeholder="例: 食費"
-            className="w-full mt-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
           />
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">アイコン</label>
+          <label className="text-xs text-ink-muted">アイコン</label>
           <div className="flex flex-wrap gap-2 mt-1">
             {EMOJI_SUGGESTIONS.map((e) => (
               <button
@@ -61,7 +61,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
                   'w-9 h-9 rounded-lg text-lg flex items-center justify-center border ' +
                   (draft.icon === e
                     ? 'border-primary-400 bg-primary-50'
-                    : 'border-slate-200 bg-white')
+                    : 'border-line bg-surface')
                 }
               >
                 {e}
@@ -71,7 +71,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
         </div>
 
         <div>
-          <label className="text-xs text-slate-400">カラー</label>
+          <label className="text-xs text-ink-muted">カラー</label>
           <div className="flex flex-wrap gap-2 mt-1">
             {COLOR_SUGGESTIONS.map((col) => (
               <button
@@ -80,7 +80,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
                 onClick={() => setDraft((d) => ({ ...d, color: col }))}
                 className={
                   'w-7 h-7 rounded-full border-2 transition-transform ' +
-                  (draft.color === col ? 'border-slate-600 scale-110' : 'border-transparent')
+                  (draft.color === col ? 'border-line-strong scale-110' : 'border-transparent')
                 }
                 style={{ backgroundColor: col }}
               />

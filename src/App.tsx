@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
+import { useTheme } from './hooks/useTheme'
 import { todayStr } from './utils'
 import AuthScreen from './components/AuthScreen'
 import HomeTab from './components/HomeTab'
@@ -34,6 +35,7 @@ const TABS: { key: TabKey; label: string; icon: string }[] = [
 export default function App() {
   const { user, loading, signOut } = useAuth()
   const categories = useCategories()
+  const theme = useTheme()
   const [tab, setTab] = useState<TabKey>('home')
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -80,8 +82,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-slate-400 text-sm">読み込み中...</div>
+      <div className="min-h-screen bg-surface-subtle flex items-center justify-center">
+        <div className="text-ink-muted text-sm">読み込み中...</div>
       </div>
     )
   }
@@ -113,6 +115,8 @@ export default function App() {
     content = (
       <SettingsScreen
         userId={user.id}
+        themeMode={theme.mode}
+        onThemeModeChange={theme.setMode}
         onCategoryEdit={() => navigate('category-edit')}
         onExchangeRate={() => navigate('exchange-rate')}
         onPaymentMethods={() => navigate('payment-methods')}
@@ -133,15 +137,15 @@ export default function App() {
     )
   } else {
     content = (
-    <div className="max-w-md mx-auto h-full bg-slate-50 flex flex-col overflow-hidden">
+    <div className="max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
       <UpdateNotification />
       {/* ヘッダー */}
-      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-b border-slate-100 pt-[env(safe-area-inset-top)]">
+      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface border-b border-line-subtle pt-[env(safe-area-inset-top)]">
         <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
           {headerBack ? (
             <button
               onClick={headerBack.onBack}
-              className="text-slate-500 active:text-slate-700 justify-self-start p-1"
+              className="text-ink-muted active:text-ink justify-self-start p-1"
               aria-label="戻る"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -154,12 +158,12 @@ export default function App() {
 
           <div className="flex items-center justify-center gap-2 min-w-0">
             {headerBack ? (
-              <span className="font-semibold text-slate-800 truncate">{headerBack.title}</span>
+              <span className="font-semibold text-ink-strong truncate">{headerBack.title}</span>
             ) : (
               <>
                 <span className="text-2xl">💰</span>
-                <span className="font-bold text-lg text-slate-800">マネログ</span>
-                <span className="text-xs text-slate-400">MoneyLog</span>
+                <span className="font-bold text-lg text-ink-strong">マネログ</span>
+                <span className="text-xs text-ink-muted">MoneyLog</span>
               </>
             )}
           </div>
@@ -185,9 +189,9 @@ export default function App() {
               className="flex flex-col gap-1 p-2 active:opacity-60 justify-self-end"
               aria-label="メニューを開く"
             >
-              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
-              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
-              <span className="block w-5 h-0.5 bg-slate-500 rounded" />
+              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
+              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
+              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
             </button>
           )}
         </div>
@@ -241,7 +245,7 @@ export default function App() {
       </div>
 
       {/* ボトムナビ */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-white border-t border-slate-100 flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface border-t border-line-subtle flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -251,7 +255,7 @@ export default function App() {
             }}
             className={
               'flex flex-col items-center gap-0.5 px-6 py-1 ' +
-              (tab === t.key ? 'text-primary-600' : 'text-slate-400')
+              (tab === t.key ? 'text-primary-600' : 'text-ink-muted')
             }
           >
             <span className="text-xl">{t.icon}</span>

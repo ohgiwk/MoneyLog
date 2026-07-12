@@ -86,9 +86,9 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
   } = useSummaryCalculations({ transactions, fixedExpenses, consumables, householdMembers, budget, month })
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
+    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-slate-100">
+      <div className="bg-surface border-b border-line-subtle">
         <ScreenHeader title="分析" onBack={onBack} />
       </div>
 
@@ -102,17 +102,17 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
         {/* 収支サマリー */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-2.5">
-          <div className="text-sm font-semibold text-slate-700">収支</div>
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
+          <div className="text-sm font-semibold text-ink">収支</div>
           <Row label="収入" value={formatYen(income)} valueColor="text-primary-600" />
           <Row
             label="固定費"
             value={`-${formatYen(Math.round(totalFixed))}`}
-            valueColor="text-slate-500"
+            valueColor="text-ink-muted"
           />
           <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-danger-500" />
           <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-warning-500" />
-          <div className="h-px bg-slate-100" />
+          <div className="h-px bg-surface-hover" />
           <Row
             label="収支"
             value={(balance >= 0 ? '+' : '') + formatYen(balance)}
@@ -123,13 +123,13 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
 
         {/* 節約進捗 */}
         {totalSaved > 0 && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm">
-            <div className="text-sm font-semibold text-slate-700 mb-1">固定費の節約効果</div>
+          <div className="bg-surface rounded-2xl p-4 shadow-sm">
+            <div className="text-sm font-semibold text-ink mb-1">固定費の節約効果</div>
             <div className="text-2xl font-bold text-primary-600 mb-1">
               -{formatYen(Math.round(totalSaved))}
-              <span className="text-sm font-normal text-slate-400">/月</span>
+              <span className="text-sm font-normal text-ink-muted">/月</span>
             </div>
-            <div className="text-xs text-slate-400">
+            <div className="text-xs text-ink-muted">
               累計節約 {formatYen(Math.round(totalSaved * 12))}/年換算
             </div>
           </div>
@@ -137,8 +137,8 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
 
         {/* カテゴリ別内訳 */}
         {hasBreakdown ? (
-          <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-            <div className="text-sm font-semibold text-slate-700">カテゴリ別内訳</div>
+          <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+            <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
             <TabGroup
               tabs={[
                 { key: 'fixed', label: '固定費' },
@@ -153,8 +153,8 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
               <BreakdownBars
                 entries={fixedByCat}
                 total={Math.round(totalFixed)}
-                barColor="bg-slate-400"
-                valueColor="text-slate-600"
+                barColor="bg-surface-muted"
+                valueColor="text-ink"
               />
             )}
             {breakdownTab === 'consumable' && (
@@ -175,25 +175,25 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
             )}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl p-4 shadow-sm text-sm text-slate-400 text-center">
+          <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
             この月のデータがありません
           </div>
         )}
 
         {/* 店舗種別の記録数 */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-slate-700">店舗種別の記録数</div>
-            <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
+            <div className="text-sm font-semibold text-ink">店舗種別の記録数</div>
+            <div className="flex rounded-lg overflow-hidden border border-line text-xs">
               <button
                 onClick={() => setStorePeriod('monthly')}
-                className={`px-2.5 py-1 ${storePeriod === 'monthly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-500'}`}
+                className={`px-2.5 py-1 ${storePeriod === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
               >
                 月間
               </button>
               <button
                 onClick={() => setStorePeriod('yearly')}
-                className={`px-2.5 py-1 ${storePeriod === 'yearly' ? 'bg-slate-700 text-white' : 'bg-white text-slate-500'}`}
+                className={`px-2.5 py-1 ${storePeriod === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
               >
                 年間
               </button>
@@ -210,7 +210,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
 
 function StoreCountBars({ entries }: { entries: [string, number][] }) {
   if (entries.length === 0) {
-    return <div className="text-sm text-slate-400 py-1">データがありません</div>
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
   const max = Math.max(...entries.map(([, count]) => count))
   const total = entries.reduce((s, [, count]) => s + count, 0)
@@ -222,12 +222,12 @@ function StoreCountBars({ entries }: { entries: [string, number][] }) {
         return (
           <div key={storeName}>
             <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-slate-600 flex items-center gap-1">
+              <span className="text-xs text-ink flex items-center gap-1">
                 <span>{info?.icon ?? '🏷️'}</span>{storeName}
               </span>
-              <span className="text-xs font-semibold text-slate-600">{count}件</span>
+              <span className="text-xs font-semibold text-ink">{count}件</span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
               <div
                 className="h-full bg-indigo-400 rounded-full transition-all"
                 style={{ width: `${pct}%` }}
@@ -236,9 +236,9 @@ function StoreCountBars({ entries }: { entries: [string, number][] }) {
           </div>
         )
       })}
-      <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-        <span className="text-xs text-slate-400">合計</span>
-        <span className="text-sm font-semibold text-slate-600">{total}件</span>
+      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
+        <span className="text-xs text-ink-muted">合計</span>
+        <span className="text-sm font-semibold text-ink">{total}件</span>
       </div>
     </div>
   )
@@ -258,7 +258,7 @@ function BreakdownBars({
   valueColor: string
 }) {
   if (entries.length === 0) {
-    return <div className="text-sm text-slate-400 py-1">データがありません</div>
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
   return (
     <div className="space-y-2">
@@ -268,12 +268,12 @@ function BreakdownBars({
         return (
           <div key={cat}>
             <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-slate-600 flex items-center gap-1">
+              <span className="text-xs text-ink flex items-center gap-1">
                 <span>{info.icon}</span>{cat}
               </span>
               <span className={`text-xs font-semibold ${valueColor}`}>-{formatYen(Math.round(amt))}</span>
             </div>
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
               <div
                 className={`h-full ${barColor} rounded-full transition-all`}
                 style={{ width: `${pct}%` }}
@@ -282,8 +282,8 @@ function BreakdownBars({
           </div>
         )
       })}
-      <div className="flex justify-between items-center pt-1 border-t border-slate-100">
-        <span className="text-xs text-slate-400">合計</span>
+      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
+        <span className="text-xs text-ink-muted">合計</span>
         <span className={`text-sm font-semibold ${valueColor}`}>-{formatYen(Math.round(total))}</span>
       </div>
     </div>

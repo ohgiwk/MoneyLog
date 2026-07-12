@@ -103,7 +103,7 @@ export default function FixedExpenseList({
 
   if (editing !== null) {
     content = (
-      <div className="-m-4 p-4 min-h-screen bg-slate-50">
+      <div className="-m-4 p-4 min-h-screen bg-surface-subtle">
         <FixedExpenseForm
           userId={userId}
           expense={editing === 'new' ? undefined : editing}
@@ -129,18 +129,18 @@ export default function FixedExpenseList({
       )}
 
       {/* 節約サマリー */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
+      <div className="bg-surface rounded-2xl p-4 shadow-sm">
         <div className="flex items-start justify-between gap-2">
-          <div className="text-sm font-semibold text-slate-700 mb-1">
+          <div className="text-sm font-semibold text-ink mb-1">
             固定費合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
           </div>
-          <div className="shrink-0 flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+          <div className="shrink-0 flex rounded-lg border border-line overflow-hidden text-xs font-medium">
             <button
               type="button"
               onClick={() => setSummaryPeriod('monthly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
               }
             >
               月
@@ -150,16 +150,16 @@ export default function FixedExpenseList({
               onClick={() => setSummaryPeriod('yearly')}
               className={
                 'px-2.5 py-1 ' +
-                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-white text-slate-500')
+                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
               }
             >
               年
             </button>
           </div>
         </div>
-        <div className="text-2xl font-bold text-slate-700">
+        <div className="text-2xl font-bold text-ink">
           {formatYen(summaryPeriod === 'monthly' ? totalAmount : totalAmount * 12)}
-          <span className="text-sm font-normal text-slate-400">
+          <span className="text-sm font-normal text-ink-muted">
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
@@ -169,7 +169,7 @@ export default function FixedExpenseList({
           </div>
         )}
         {fixedBudget > 0 && (
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-xs text-ink-muted mt-1">
             予算 {formatYen(summaryPeriod === 'monthly' ? fixedBudget : fixedBudget * 12)}
             {' / 差額 '}
             <span
@@ -190,8 +190,8 @@ export default function FixedExpenseList({
 
       {/* 固定費一覧 */}
       {loading ? <Spinner /> : (filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="text-sm text-slate-400 text-center py-6">該当する固定費がありません</div>
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+          <div className="text-sm text-ink-muted text-center py-6">該当する固定費がありません</div>
         </div>
       ) : filter === 'active' ? (
         (() => {
@@ -206,10 +206,10 @@ export default function FixedExpenseList({
                 rows.push(
                   <div
                     key={`header-${f.category}-${f.status}`}
-                    className={`flex items-center gap-2 px-4 py-1.5 bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-1.5 bg-surface-subtle ${i > 0 ? 'border-t border-line-subtle' : ''}`}
                   >
                     {cat && <span className="text-sm">{cat.icon}</span>}
-                    <span className="text-xs font-semibold text-slate-400">{f.category}</span>
+                    <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
                   </div>
                 )
                 prevCategory = f.category
@@ -217,11 +217,11 @@ export default function FixedExpenseList({
               rows.push(
                 <div
                   key={f.id}
-                  className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer border-t border-slate-50"
+                  className="flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer border-t border-line-subtle"
                   onClick={() => openEditing(f)}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                    <div className="text-sm font-medium text-ink truncate">{f.name}</div>
                     {f.cycle === 'yearly' && (
                       <div className="text-xs text-indigo-400 font-medium">年払い</div>
                     )}
@@ -237,11 +237,11 @@ export default function FixedExpenseList({
                       if (meta?.currency === 'USD') {
                         return (
                           <>
-                            <div className="text-sm font-semibold text-slate-700">
+                            <div className="text-sm font-semibold text-ink">
                               ${meta.usdAmount.toLocaleString()}
                               {f.cycle === 'yearly' ? '/年' : ''}
                             </div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-ink-muted">
                               {f.cycle === 'yearly'
                                 ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
                                 : formatYen(f.amount ?? 0)}
@@ -251,11 +251,11 @@ export default function FixedExpenseList({
                       }
                       return (
                         <>
-                          <div className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}>
+                          <div className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}>
                             {f.amount == null ? '未入力' : f.cycle === 'yearly' ? `${formatYen(f.amount)}/年` : formatYen(f.amount)}
                           </div>
                           {f.cycle === 'yearly' && f.amount != null && (
-                            <div className="text-xs text-slate-400">月換算 {formatYen(Math.round(f.amount / 12))}</div>
+                            <div className="text-xs text-ink-muted">月換算 {formatYen(Math.round(f.amount / 12))}</div>
                           )}
                           {f.cycle !== 'yearly' && f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
                             <div className="text-xs text-primary-500">-{formatYen(f.baseline_amount - f.amount)}</div>
@@ -267,7 +267,7 @@ export default function FixedExpenseList({
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
                     {STATUS_LABELS[f.status].label}
                   </span>
-                  <span className="text-slate-300 text-sm">›</span>
+                  <span className="text-ink-subtle text-sm">›</span>
                 </div>
               )
             })
@@ -278,20 +278,20 @@ export default function FixedExpenseList({
               {reviewingList.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-warning-600 px-1 pb-1">見直し中</div>
-                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">{renderGroup(reviewingList)}</div>
+                  <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">{renderGroup(reviewingList)}</div>
                 </div>
               )}
               {activeList.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-slate-400 px-1 pb-1">契約中</div>
-                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden">{renderGroup(activeList)}</div>
+                  <div className="text-xs font-semibold text-ink-muted px-1 pb-1">契約中</div>
+                  <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">{renderGroup(activeList)}</div>
                 </div>
               )}
             </div>
           )
         })()
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
         {((() => {
           const rows: ReactNode[] = []
           let prevCategory = ''
@@ -301,10 +301,10 @@ export default function FixedExpenseList({
               rows.push(
                 <div
                   key={`header-${f.category}`}
-                  className={`flex items-center gap-2 px-4 py-1.5 bg-slate-50 ${i > 0 ? 'border-t border-slate-100' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-1.5 bg-surface-subtle ${i > 0 ? 'border-t border-line-subtle' : ''}`}
                 >
                   {cat && <span className="text-sm">{cat.icon}</span>}
-                    <span className="text-xs font-semibold text-slate-400">{f.category}</span>
+                    <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
                   </div>
                 )
                 prevCategory = f.category
@@ -312,11 +312,11 @@ export default function FixedExpenseList({
               rows.push(
                 <div
                   key={f.id}
-                  className="flex items-center px-4 py-3 gap-3 active:bg-slate-50 cursor-pointer border-t border-slate-50"
+                  className="flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer border-t border-line-subtle"
                   onClick={() => openEditing(f)}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-slate-700 truncate">{f.name}</div>
+                    <div className="text-sm font-medium text-ink truncate">{f.name}</div>
                     {f.cycle === 'yearly' && (
                       <div className="text-xs text-indigo-400 font-medium">年払い</div>
                     )}
@@ -327,11 +327,11 @@ export default function FixedExpenseList({
                       if (meta?.currency === 'USD') {
                         return (
                           <>
-                            <div className="text-sm font-semibold text-slate-700">
+                            <div className="text-sm font-semibold text-ink">
                               ${meta.usdAmount.toLocaleString()}
                               {f.cycle === 'yearly' ? '/年' : ''}
                             </div>
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-ink-muted">
                               {f.cycle === 'yearly'
                                 ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
                                 : formatYen(f.amount ?? 0)}
@@ -342,7 +342,7 @@ export default function FixedExpenseList({
                       return (
                         <>
                           <div
-                            className={`text-sm font-semibold ${f.amount == null ? 'text-slate-300' : 'text-slate-700'}`}
+                            className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}
                           >
                             {f.amount == null
                               ? '未入力'
@@ -351,7 +351,7 @@ export default function FixedExpenseList({
                                 : formatYen(f.amount)}
                           </div>
                           {f.cycle === 'yearly' && f.amount != null && (
-                            <div className="text-xs text-slate-400">
+                            <div className="text-xs text-ink-muted">
                               月換算 {formatYen(Math.round(f.amount / 12))}
                             </div>
                           )}
@@ -372,7 +372,7 @@ export default function FixedExpenseList({
                   >
                     {STATUS_LABELS[f.status].label}
                   </span>
-                  <span className="text-slate-300 text-sm">›</span>
+                  <span className="text-ink-subtle text-sm">›</span>
                 </div>
               )
             })
@@ -384,7 +384,7 @@ export default function FixedExpenseList({
 
       <button
         onClick={() => setTutorialOpen(true)}
-        className="w-full py-3 rounded-xl border border-slate-200 bg-white text-sm text-slate-500 font-medium active:bg-slate-50 flex items-center justify-center gap-2"
+        className="w-full py-3 rounded-xl border border-line bg-surface text-sm text-ink-muted font-medium active:bg-surface-subtle flex items-center justify-center gap-2"
       >
         <span>🧭</span> 初期設定ウィザードを起動
       </button>
