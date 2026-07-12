@@ -186,7 +186,9 @@ export default function FixedExpenseList({
       </div>
 
       {/* フィルター */}
-      <TabGroup tabs={STATUS_FILTER_TABS} active={filter} onChange={setFilter} size="sm" />
+      <div className="py-4">
+        <TabGroup tabs={STATUS_FILTER_TABS} active={filter} onChange={setFilter} size="sm" />
+      </div>
 
       {/* 固定費一覧 */}
       {loading ? <Spinner /> : (filtered.length === 0 ? (
@@ -206,7 +208,7 @@ export default function FixedExpenseList({
                 rows.push(
                   <div
                     key={`header-${f.category}-${f.status}`}
-                    className={`flex items-center gap-2 px-4 py-1.5 bg-surface-subtle ${i > 0 ? 'border-t border-line-subtle' : ''}`}
+                    className={`flex items-center gap-2 px-4 py-1.5 bg-surface-hover ${i > 0 ? 'border-t border-line-subtle' : ''}`}
                   >
                     {cat && <span className="text-sm">{cat.icon}</span>}
                     <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
@@ -267,7 +269,6 @@ export default function FixedExpenseList({
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
                     {STATUS_LABELS[f.status].label}
                   </span>
-                  <span className="text-ink-subtle text-sm">›</span>
                 </div>
               )
             })
@@ -301,7 +302,7 @@ export default function FixedExpenseList({
               rows.push(
                 <div
                   key={`header-${f.category}`}
-                  className={`flex items-center gap-2 px-4 py-1.5 bg-surface-subtle ${i > 0 ? 'border-t border-line-subtle' : ''}`}
+                  className={`flex items-center gap-2 px-4 py-1.5 bg-surface-hover ${i > 0 ? 'border-t border-line-subtle' : ''}`}
                 >
                   {cat && <span className="text-sm">{cat.icon}</span>}
                     <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
@@ -372,7 +373,6 @@ export default function FixedExpenseList({
                   >
                     {STATUS_LABELS[f.status].label}
                   </span>
-                  <span className="text-ink-subtle text-sm">›</span>
                 </div>
               )
             })
