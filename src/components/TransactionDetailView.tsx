@@ -13,9 +13,10 @@ interface Props {
   loading?: boolean
   onEditTx?: (tx: Transaction) => void
   startDay?: number
+  budget?: number
 }
 
-export default function TransactionDetailView({ transactions, month, setMonth, availableMonths, loading, onEditTx, startDay = 1 }: Props) {
+export default function TransactionDetailView({ transactions, month, setMonth, availableMonths, loading, onEditTx, startDay = 1, budget = 0 }: Props) {
   const {
     typeFilter,
     setTypeFilter,
@@ -88,6 +89,19 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
         {totalIncome > 0 && (
           <div className="text-sm font-semibold text-emerald-600 mt-1">
             収入 +{formatYen(totalIncome)}
+          </div>
+        )}
+        {budget > 0 && (
+          <div className="text-xs text-slate-400 mt-1">
+            予算 {formatYen(budget)}
+            {' / 残額 '}
+            <span
+              className={
+                budget - totalExpense < 0 ? 'text-rose-500 font-semibold' : 'text-emerald-600 font-semibold'
+              }
+            >
+              {formatYen(budget - totalExpense)}
+            </span>
           </div>
         )}
       </div>

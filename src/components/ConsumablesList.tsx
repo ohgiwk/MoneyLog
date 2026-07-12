@@ -25,6 +25,7 @@ interface Props {
   onEditingChange: (state: HeaderState | null) => void
   loading?: boolean
   onTransactionAdded?: () => void
+  budget?: number
 }
 
 type EditingState = Consumable | null | 'new' | { preset: DefaultConsumable }
@@ -38,6 +39,7 @@ export default function ConsumablesList({
   onEditingChange,
   loading,
   onTransactionAdded,
+  budget = 0,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [direction, setDirection] = useState<NavDirection>('forward')
@@ -168,6 +170,21 @@ export default function ConsumablesList({
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
+        {budget > 0 && (
+          <div className="text-xs text-slate-400 mt-1">
+            予算 {formatYen(summaryPeriod === 'monthly' ? budget : budget * 12)}
+            {' / 残額 '}
+            <span
+              className={
+                (summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12) < 0
+                  ? 'text-rose-500 font-semibold'
+                  : 'text-emerald-600 font-semibold'
+              }
+            >
+              {formatYen(summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12)}
+            </span>
+          </div>
+        )}
       </div>
 
       {loading && <Spinner />}

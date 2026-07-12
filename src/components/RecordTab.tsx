@@ -3,6 +3,7 @@ import type { CategoryInfo } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
 import { transactionService } from '../lib/services/transactionService'
+import { budgetService, oneTimeBudgetTotal } from '../lib/services/budgetService'
 import type { Consumable, Transaction } from '../lib/database.types'
 import { periodKey, todayStr } from '../utils'
 import { TabGroup } from './ui/TabGroup'
@@ -68,6 +69,8 @@ export default function RecordTab({
   const [monthStartDay, setMonthStartDay] = useState(1)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [availableMonths, setAvailableMonths] = useState<string[]>([])
+  const [oneTimeBudget, setOneTimeBudget] = useState(0)
+  const [consumableBudget, setConsumableBudget] = useState(0)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const periodInitialized = useRef(false)
@@ -133,14 +136,17 @@ export default function RecordTab({
           }
         }
 
-        const [consumablesData, months, txs] = await Promise.all([
+        const [consumablesData, months, txs, budget] = await Promise.all([
           consumableService.fetchByUser(userId),
           transactionService.fetchAvailableMonths(userId, startDay),
           transactionService.fetchByMonth(userId, effectiveMonth, startDay),
+          budgetService.fetchByMonth(userId, effectiveMonth),
         ])
         setConsumables(consumablesData)
         setAvailableMonths(months)
         setTransactions(txs)
+        setOneTimeBudget(oneTimeBudgetTotal(budget))
+        setConsumableBudget(budget.consumable)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       } finally {
@@ -150,11 +156,14 @@ export default function RecordTab({
     void load()
   }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 月が変わったらトランザクションを再取得
+  // 月が変わったらトランザクションと予算を再取得
   useEffect(() => {
     if (!periodInitialized.current) return
     transactionService.fetchByMonth(userId, month, monthStartDay)
       .then(setTransactions)
+      .catch(() => {})
+    budgetService.fetchByMonth(userId, month)
+      .then((budget) => setOneTimeBudget(oneTimeBudgetTotal(budget)))
       .catch(() => {})
   }, [userId, month, monthStartDay])
 
@@ -250,6 +259,7 @@ export default function RecordTab({
               onAdd={() => openForm()}
               onEditTx={(tx) => openForm(tx)}
               startDay={monthStartDay}
+              budget={oneTimeBudget}
             />
           ) : (
             <div className="min-h-screen bg-slate-50 p-4 pb-28">
@@ -277,6 +287,7 @@ export default function RecordTab({
             onEditingChange={handleConsumableEditingChange}
             loading={loading}
             onTransactionAdded={fetchTransactions}
+            budget={consumableBudget}
           />
         </div>
       )}
