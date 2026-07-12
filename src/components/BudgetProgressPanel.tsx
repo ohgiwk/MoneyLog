@@ -1,13 +1,12 @@
 import { useMemo } from 'react'
 import { formatYen } from '../utils'
 
-export type PeriodMode = 'day' | 'week' | 'month'
+export type PeriodMode = 'week' | 'month'
 
 export default function BudgetProgressPanel({
   periodMode,
   setPeriodMode,
   weekRange,
-  dayRange,
   daysInMonth,
   month,
   oneTimeCategoryRows,
@@ -16,7 +15,6 @@ export default function BudgetProgressPanel({
   periodMode: PeriodMode
   setPeriodMode: (m: PeriodMode) => void
   weekRange: { start: string; end: string }
-  dayRange: { start: string; end: string }
   daysInMonth: number
   month: string
   oneTimeCategoryRows: {
@@ -35,17 +33,6 @@ export default function BudgetProgressPanel({
 
   // 期間ラベルと進捗率
   const { rangeLabel, filledDots, totalDots, periodLabel } = useMemo(() => {
-    if (periodMode === 'day') {
-      const d = dayRange.start
-      const label = d.slice(5).replace('-', '/')
-      const hours = today.getHours()
-      return {
-        rangeLabel: label,
-        filledDots: hours,
-        totalDots: 24,
-        periodLabel: `${today.getHours()}:${String(today.getMinutes()).padStart(2, '0')} / 24:00`,
-      }
-    }
     if (periodMode === 'week') {
       const label = `${weekRange.start.slice(5).replace('-', '/')} 〜 ${weekRange.end.slice(5).replace('-', '/')}`
       const dow = (today.getDay() + 6) % 7 // 0=Mon
@@ -66,29 +53,26 @@ export default function BudgetProgressPanel({
       totalDots: daysInMonth,
       periodLabel: `${dayOfMonth}日 / ${daysInMonth}日`,
     }
-  }, [periodMode, dayRange, weekRange, month, daysInMonth, today])
+  }, [periodMode, weekRange, month, daysInMonth, today])
 
   const rows = oneTimeCategoryRows.map((r) => {
-    if (periodMode === 'day') return { ...r, spent: r.daySpent, budget: r.dayBudget }
     if (periodMode === 'week') return { ...r, spent: r.spent, budget: r.weekBudget }
     return { ...r, spent: r.monthSpent, budget: r.monthBudget }
   })
-
-  const modeLabel = periodMode === 'day' ? '日割り' : periodMode === 'week' ? '週割り' : '月'
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
       {/* ヘッダー行 */}
       <div className="flex items-center justify-between">
-        <div className="text-sm font-semibold text-slate-700">{modeLabel}予算進捗</div>
+        <div className="text-sm font-semibold text-slate-700">予算進捗</div>
         <div className="flex rounded-lg overflow-hidden border border-slate-200 text-xs">
-          {(['day', 'week', 'month'] as PeriodMode[]).map((m) => (
+          {(['week', 'month'] as PeriodMode[]).map((m) => (
             <button
               key={m}
               onClick={() => setPeriodMode(m)}
               className={`px-2 py-1 ${periodMode === m ? 'bg-slate-700 text-white' : 'bg-white text-slate-500'}`}
             >
-              {m === 'day' ? '日' : m === 'week' ? '週' : '月'}
+              {m === 'week' ? '週' : '月'}
             </button>
           ))}
         </div>

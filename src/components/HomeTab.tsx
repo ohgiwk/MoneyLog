@@ -111,7 +111,6 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
   const {
     hasBudget,
     weekRange,
-    dayRange,
     daysInMonth: budgetDaysInMonth,
     oneTimeCategoryRows,
   } = useSummaryCalculations({
@@ -220,7 +219,6 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
           periodMode={periodMode}
           setPeriodMode={setPeriodMode}
           weekRange={weekRange}
-          dayRange={dayRange}
           daysInMonth={budgetDaysInMonth}
           month={calendarMonth}
           oneTimeCategoryRows={oneTimeCategoryRows}
