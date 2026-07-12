@@ -83,14 +83,16 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
       {/* 合計サマリー */}
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="text-sm font-semibold text-slate-700 mb-1">出費合計</div>
-        <div className="text-2xl font-bold text-rose-500">
-          {formatYen(totalExpense)}
-        </div>
-        {totalIncome > 0 && (
-          <div className="text-sm font-semibold text-emerald-600 mt-1">
-            収入 +{formatYen(totalIncome)}
+        <div className="flex items-baseline gap-1.5">
+          <div className="text-2xl font-bold text-rose-500">
+            {formatYen(totalExpense)}
           </div>
-        )}
+          {totalIncome > 0 && (
+            <div className="text-sm font-semibold text-emerald-600">
+              <span className="text-slate-400">/</span> 収入 +{formatYen(totalIncome)}
+            </div>
+          )}
+        </div>
         {budget > 0 && (
           <div className="text-xs text-slate-400 mt-1">
             予算 {formatYen(budget)}
