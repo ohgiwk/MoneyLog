@@ -32,6 +32,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
   })
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
+  const [infoOpen, setInfoOpen] = useState(false)
 
   const today = todayStr()
   const period = periodKey(today, monthStartDay)
@@ -73,19 +74,14 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
     localStorage.setItem(carryOverKey(userId), String(next))
   }
 
-  const totalFixed = useMemo(() => {
-    const activeFixed = fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing')
-    return activeFixed.reduce((s, f) => s + (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1), 0)
-  }, [fixedExpenses])
-
-  const monthlyBudgetTotal = budget.fixed + budget.consumable + oneTimeBudgetTotal(budget)
+  const dailyBudgetTotal = budget.consumable + oneTimeBudgetTotal(budget)
 
   const daysInMonth = useMemo(
     () => periodDayCount(period, monthStartDay),
     [period, monthStartDay]
   )
 
-  const dailyAllowance = (monthlyBudgetTotal - totalFixed) / daysInMonth
+  const dailyAllowance = dailyBudgetTotal / daysInMonth
 
   const oneTimeExpenseOn = (dateStr: string) =>
     transactions
@@ -181,8 +177,50 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
         )}
 
         <div className="text-sm font-semibold text-slate-500">本日のお小遣い</div>
-        <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-          {formatYen(todayAllowance)}
+        <div className="relative flex items-center justify-center gap-1.5">
+          <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
+            {formatYen(todayAllowance)}
+          </div>
+          <button
+            type="button"
+            aria-label="本日のお小遣いの説明"
+            onClick={() => setInfoOpen((v) => !v)}
+            className="w-5 h-5 flex items-center justify-center rounded-full text-slate-300 active:text-slate-500"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="12" cy="8" r="1" fill="currentColor" />
+            </svg>
+          </button>
+
+          {infoOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="閉じる"
+                className="fixed inset-0 z-10 cursor-default"
+                onClick={() => setInfoOpen(false)}
+              />
+              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-white rounded-xl shadow-lg border border-slate-100 px-4 py-3 text-left space-y-2">
+                <div className="text-sm font-semibold text-slate-700">本日のお小遣いとは</div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  予算設定画面で設定した「定期購入」と「カテゴリ別出費」の合計額を、集計期間の日数で日割りした金額です。
+                  {carryOver
+                    ? '繰り越しがONのため、期間の経過日数分の日割り予算からその期間の累計出費を差し引いた金額が表示されます。'
+                    : '繰り越しがOFFのため、日割り予算から本日の出費を差し引いた金額が表示されます。'}
+                </p>
+                <div className="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 space-y-1">
+                  <div>日割り予算 = (定期購入予算 + カテゴリ別出費予算) ÷ 日数</div>
+                  <div>
+                    {carryOver
+                      ? '本日のお小遣い = 日割り予算 × 経過日数 − 期間内の累計出費'
+                      : '本日のお小遣い = 日割り予算 − 本日の出費'}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         <table className="w-full text-xs text-slate-500">
