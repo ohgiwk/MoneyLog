@@ -157,11 +157,11 @@ export default function DatePicker({ value, onChange, label }: Props) {
             </div>
 
             {/* 今日ボタン */}
-            <div className="mt-3 flex justify-center">
+            <div className="mt-3">
               <button
                 type="button"
                 onClick={() => { onChange(todayStr); setOpen(false) }}
-                className="px-5 py-2 text-sm text-emerald-600 font-medium active:bg-emerald-50 rounded-xl"
+                className="w-full py-3 text-sm text-emerald-600 font-medium border border-emerald-200 active:bg-emerald-50 rounded-xl"
               >
                 今日
               </button>
