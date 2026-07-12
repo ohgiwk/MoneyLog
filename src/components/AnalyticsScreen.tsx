@@ -138,7 +138,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
         {/* カテゴリ別内訳 */}
         {hasBreakdown ? (
           <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-            <div className="text-sm font-semibold text-slate-700">内訳</div>
+            <div className="text-sm font-semibold text-slate-700">カテゴリ別内訳</div>
             <TabGroup
               tabs={[
                 { key: 'fixed', label: '固定費' },
