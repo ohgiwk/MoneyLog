@@ -4,12 +4,13 @@ import { cachedFetch, cacheSet } from '../cache'
 const TABLE = 'budgets'
 
 export interface BudgetSettings {
+  income: number
   fixed: number
   consumable: number
   oneTimeByCategory: Record<string, number>
 }
 
-const empty = (): BudgetSettings => ({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
+const empty = (): BudgetSettings => ({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
 
 export const budgetService = {
   fetchByMonth: async (userId: string, month: string): Promise<BudgetSettings> => {
@@ -23,6 +24,7 @@ export const budgetService = {
       if (error) throw new Error(error.message)
       if (!data) return empty()
       return {
+        income: data.income ?? 0,
         fixed: data.fixed,
         consumable: data.consumable,
         oneTimeByCategory: (data.one_time_by_category as Record<string, number>) ?? {},
@@ -34,6 +36,7 @@ export const budgetService = {
     const { error } = await supabase.from('budgets').upsert({
       user_id: userId,
       month,
+      income: budget.income,
       fixed: budget.fixed,
       consumable: budget.consumable,
       one_time_by_category: budget.oneTimeByCategory,

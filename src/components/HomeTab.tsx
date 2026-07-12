@@ -23,7 +23,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([])
-  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
+  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [monthStartDay, setMonthStartDay] = useState(1)
   const [householdMembers, setHouseholdMembers] = useState(1)
   const [fetchError, setFetchError] = useState<string | null>(null)

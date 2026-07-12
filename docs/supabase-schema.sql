@@ -264,3 +264,6 @@ update public.budgets set month = to_char(now(), 'YYYY-MM') where month is null;
 alter table public.budgets alter column month set not null;
 alter table public.budgets drop constraint if exists budgets_pkey;
 alter table public.budgets add primary key (user_id, month);
+
+-- budgets に月の収入カラムを追加（予算設定画面で収入に対する予算使用率を表示するために使用）
+alter table public.budgets add column if not exists income numeric not null default 0;

@@ -213,6 +213,7 @@ export interface Database {
         Row: {
           user_id: string
           month: string
+          income: number
           fixed: number
           consumable: number
           one_time_by_category: Json

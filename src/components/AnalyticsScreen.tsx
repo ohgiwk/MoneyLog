@@ -24,7 +24,7 @@ interface Props {
 export default function AnalyticsScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
-  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
+  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
   const [transactions, setTransactions] = useState<Transaction[]>([])

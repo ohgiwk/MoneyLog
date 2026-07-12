@@ -13,7 +13,7 @@ interface Props {
 export default function BudgetScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
-  const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
+  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [saved, setSaved] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
@@ -30,7 +30,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
     void load()
   }, [userId, month])
 
-  function handleChange(field: 'fixed' | 'consumable', value: string) {
+  function handleChange(field: 'income' | 'fixed' | 'consumable', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
     setBudget((prev) => ({ ...prev, [field]: isNaN(n) ? 0 : n }))
     setSaved(false)
@@ -56,10 +56,10 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   }
 
   const oneTimeTotal = oneTimeBudgetTotal(budget)
-  const weeklyFixed = Math.round(budget.fixed / 4.33)
-  const weeklyConsumable = Math.round(budget.consumable / 4.33)
-  const weeklyOneTime = Math.round(oneTimeTotal / 4.33)
-  const weeklyTotal = weeklyFixed + weeklyConsumable + weeklyOneTime
+  const budgetTotal = budget.fixed + budget.consumable + oneTimeTotal
+  const usagePct = budget.income > 0 ? Math.min((budgetTotal / budget.income) * 100, 100) : 0
+  const overIncome = budgetTotal > budget.income && budget.income > 0
+  const remaining = budget.income - budgetTotal
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-slate-50 flex flex-col overflow-hidden">
@@ -77,53 +77,99 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           </div>
         )}
 
-        {/* 固定費 */}
-        <Section title="固定費" icon="🏠">
-          <BudgetField
-            label="固定費（月）"
-            value={budget.fixed}
-            onChange={(v) => handleChange('fixed', v)}
-          />
-        </Section>
-
-        {/* 定期購入 */}
-        <Section title="定期購入" icon="🛒">
-          <BudgetField
-            label="定期購入（月）"
-            value={budget.consumable}
-            onChange={(v) => handleChange('consumable', v)}
-          />
-        </Section>
-
-        {/* 出費（カテゴリ別） */}
-        <Section
-          title="出費"
-          icon="⚡"
-          subtitle={oneTimeTotal > 0 ? `合計 ${formatYen(oneTimeTotal)}/月` : undefined}
-        >
-          <div className="space-y-3">
-            {EXPENSE_CATEGORIES.map((cat) => (
-              <BudgetField
-                key={cat.name}
-                label={`${cat.icon} ${cat.name}`}
-                value={budget.oneTimeByCategory[cat.name] ?? 0}
-                onChange={(v) => handleCategoryChange(cat.name, v)}
-              />
-            ))}
+        {/* 収入 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <span>💰</span>
+            収入
           </div>
-        </Section>
+          <BudgetField
+            label="収入（月）"
+            value={budget.income}
+            onChange={(v) => handleChange('income', v)}
+          />
+        </div>
 
-        {/* 週予算プレビュー */}
-        <div className="bg-emerald-50 rounded-2xl p-4 shadow-sm">
-          <div className="text-sm font-semibold text-emerald-700 mb-2">週あたりの予算（目安）</div>
-          <div className="space-y-1.5">
-            <WeeklyRow label="固定費" amount={weeklyFixed} color="text-slate-600" />
-            <WeeklyRow label="定期購入" amount={weeklyConsumable} color="text-blue-600" />
-            <WeeklyRow label="出費" amount={weeklyOneTime} color="text-amber-600" />
-            <div className="h-px bg-emerald-200 my-1" />
-            <WeeklyRow label="合計" amount={weeklyTotal} color="text-emerald-700" bold />
+        {/* 固定費・定期購入・出費 */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm space-y-5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <span>💸</span>
+            支出
+          </div>
+
+          {/* 固定費 */}
+          <div className="space-y-3">
+            <BudgetField
+              label="固定費"
+              value={budget.fixed}
+              onChange={(v) => handleChange('fixed', v)}
+            />
+          </div>
+
+          {/* 定期購入 */}
+          <div className="space-y-3">
+            <BudgetField
+              label="定期購入"
+              value={budget.consumable}
+              onChange={(v) => handleChange('consumable', v)}
+            />
+          </div>
+
+          <div className="h-px bg-slate-100" />
+
+          {/* 出費（カテゴリ別） */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <span>⚡</span>
+                カテゴリ別出費
+              </div>
+              {oneTimeTotal > 0 && (
+                <span className="text-xs text-amber-600 font-medium">
+                  合計 {formatYen(oneTimeTotal)}/月
+                </span>
+              )}
+            </div>
+            <div className="space-y-3">
+              {EXPENSE_CATEGORIES.map((cat) => (
+                <BudgetField
+                  key={cat.name}
+                  label={`${cat.icon} ${cat.name}`}
+                  value={budget.oneTimeByCategory[cat.name] ?? 0}
+                  onChange={(v) => handleCategoryChange(cat.name, v)}
+                />
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* 収入に対する予算使用率 */}
+        {budget.income > 0 && (
+          <div className="bg-emerald-50 rounded-2xl p-4 shadow-sm space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold text-emerald-700">予算使用率</div>
+              <span className={`text-sm font-bold ${overIncome ? 'text-rose-500' : 'text-emerald-700'}`}>
+                {Math.round((budgetTotal / budget.income) * 100)}%
+              </span>
+            </div>
+            <div className="h-2.5 bg-emerald-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${overIncome ? 'bg-rose-400' : 'bg-emerald-500'}`}
+                style={{ width: `${usagePct}%` }}
+              />
+            </div>
+            <div className="flex justify-between items-center text-xs text-emerald-700/80">
+              <span>
+                予算合計 {formatYen(budgetTotal)} / 収入 {formatYen(budget.income)}
+              </span>
+              <span className={overIncome ? 'text-rose-500 font-semibold' : 'text-emerald-700/80'}>
+                {overIncome
+                  ? `${formatYen(Math.abs(remaining))} オーバー`
+                  : `残り ${formatYen(remaining)}`}
+              </span>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={handleSave}
@@ -132,31 +178,6 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           {saved ? '✓ 保存しました' : '保存する'}
         </button>
       </div>
-    </div>
-  )
-}
-
-function Section({
-  title,
-  icon,
-  subtitle,
-  children,
-}: {
-  title: string
-  icon: string
-  subtitle?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-          <span>{icon}</span>
-          {title}
-        </div>
-        {subtitle && <span className="text-xs text-amber-600 font-medium">{subtitle}</span>}
-      </div>
-      {children}
     </div>
   )
 }
@@ -185,27 +206,6 @@ function BudgetField({
           className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
         />
       </div>
-    </div>
-  )
-}
-
-function WeeklyRow({
-  label,
-  amount,
-  color,
-  bold,
-}: {
-  label: string
-  amount: number
-  color: string
-  bold?: boolean
-}) {
-  return (
-    <div className="flex justify-between items-center">
-      <span className={`text-xs ${bold ? 'font-semibold' : ''} text-slate-600`}>{label}</span>
-      <span className={`text-sm ${bold ? 'font-bold' : 'font-medium'} ${color}`}>
-        ¥{amount.toLocaleString('ja-JP')}
-      </span>
     </div>
   )
 }
