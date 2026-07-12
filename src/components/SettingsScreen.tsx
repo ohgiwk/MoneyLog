@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
 import {
-  HOUSEHOLD_MEMBERS_MIN,
-  HOUSEHOLD_MEMBERS_MAX,
   MONTH_START_DAY_MIN,
   MONTH_START_DAY_MAX,
   SAVE_SUCCESS_DISPLAY_MS,
@@ -19,7 +17,6 @@ interface Props {
 }
 
 export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate, onPaymentMethods, onBack }: Props) {
-  const [householdMembers, setHouseholdMembers] = useState(1)
   const [monthStartDay, setMonthStartDay] = useState(1)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -29,19 +26,10 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
   useEffect(() => {
     profileService.fetchById(userId).then((p) => {
       if (p) {
-        setHouseholdMembers(p.household_members ?? 1)
         setMonthStartDay(p.month_start_day ?? 1)
       }
     })
   }, [userId])
-
-  async function saveHouseholdMembers(value: number) {
-    setSaving(true)
-    await profileService.update(userId, { household_members: value })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
-  }
 
   async function saveMonthStartDay(value: number) {
     setSaving(true)
@@ -93,53 +81,6 @@ export default function SettingsScreen({ userId, onCategoryEdit, onExchangeRate,
                     const v = Math.min(MONTH_START_DAY_MAX, monthStartDay + 1)
                     setMonthStartDay(v)
                     saveMonthStartDay(v)
-                  }}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
-                >
-                  ＋
-                </button>
-              </div>
-            </div>
-            {(saving || saved) && (
-              <div className="text-xs text-emerald-500 text-right">
-                {saving ? '保存中...' : '保存しました'}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 定期購入の設定 */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              定期購入
-            </span>
-          </div>
-          <div className="px-4 py-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-slate-700">同居人数</div>
-                <div className="text-xs text-slate-400">定期購入の消費サイクル計算に使用</div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const v = Math.max(HOUSEHOLD_MEMBERS_MIN, householdMembers - 1)
-                    setHouseholdMembers(v)
-                    saveHouseholdMembers(v)
-                  }}
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
-                >
-                  −
-                </button>
-                <span className="text-lg font-semibold text-slate-700 w-6 text-center">
-                  {householdMembers}
-                </span>
-                <button
-                  onClick={() => {
-                    const v = Math.min(HOUSEHOLD_MEMBERS_MAX, householdMembers + 1)
-                    setHouseholdMembers(v)
-                    saveHouseholdMembers(v)
                   }}
                   className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold active:bg-slate-200"
                 >
