@@ -59,6 +59,11 @@ export default function BudgetProgressPanel({
     return { ...r, spent: r.monthSpent, budget: r.monthBudget }
   })
 
+  const weekTotalBudget = oneTimeCategoryRows.reduce((sum, r) => sum + r.weekBudget, 0)
+  const weekTotalSpent = oneTimeCategoryRows.reduce((sum, r) => sum + r.spent, 0)
+  const monthTotalBudget = oneTimeCategoryRows.reduce((sum, r) => sum + r.monthBudget, 0)
+  const monthTotalSpent = oneTimeCategoryRows.reduce((sum, r) => sum + r.monthSpent, 0)
+
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm space-y-3">
       {/* ヘッダー行 */}
@@ -112,6 +117,31 @@ export default function BudgetProgressPanel({
           color="bg-amber-400"
         />
       ))}
+
+      <div className="h-px bg-slate-100" />
+
+      {/* 予算合計/出費合計 */}
+      <div className="text-right">
+        <div className="text-xs text-slate-400 mb-1">
+          {periodMode === 'week' ? '週の予算合計' : '月の予算合計'}
+        </div>
+        <div className="text-base text-slate-600">
+          <span
+            className={
+              (periodMode === 'week' ? weekTotalSpent : monthTotalSpent) >
+              (periodMode === 'week' ? weekTotalBudget : monthTotalBudget)
+                ? 'text-rose-500 font-semibold'
+                : 'font-medium'
+            }
+          >
+            {formatYen(periodMode === 'week' ? weekTotalSpent : monthTotalSpent)}
+          </span>
+            {' / '}
+            <span className="text-slate-400">
+              {formatYen(periodMode === 'week' ? weekTotalBudget : monthTotalBudget)}
+            </span>
+        </div>
+      </div>
 
       {onManageBudget && (
         <div className="pt-2">
