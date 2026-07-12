@@ -104,7 +104,7 @@ export default function BudgetProgressPanel({
           {Array.from({ length: totalDots }).map((_, i) => (
             <div
               key={i}
-              className={`rounded-full flex-1 h-2 ${i < filledDots ? 'bg-slate-400' : 'bg-slate-100'}`}
+              className={`rounded-full flex-1 h-2 ${i < filledDots ? 'bg-emerald-500' : 'bg-slate-100'}`}
             />
           ))}
         </div>
