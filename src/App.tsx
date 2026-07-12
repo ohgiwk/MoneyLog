@@ -163,8 +163,7 @@ export default function App() {
             ) : (
               <>
                 <span className="text-2xl">💰</span>
-                <span className="font-bold text-lg text-ink-strong">マネログ</span>
-                <span className="text-xs text-ink-muted">MoneyLog</span>
+                <span className="font-bold text-lg text-ink-strong">キンカク手帖</span>
               </>
             )}
           </div>

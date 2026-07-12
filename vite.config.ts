@@ -15,8 +15,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
       manifest: {
-        name: 'MoneyLog',
-        short_name: 'MoneyLog',
+        name: 'キンカク手帖',
+        short_name: 'キンカク手帖',
         description: '家計管理アプリ',
         theme_color: '#10b981',
         background_color: '#ffffff',

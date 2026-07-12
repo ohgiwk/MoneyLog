@@ -91,7 +91,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
           <div className="flex flex-col items-center justify-center px-8 text-center h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 0 ? { inert: '' } : {})}>
             <div className="text-6xl mb-6">🌱</div>
             <h1 className="text-2xl font-bold text-ink-strong mb-4">
-              マネログへようこそ！
+              キンカク手帖へようこそ！
             </h1>
             <p className="text-ink leading-relaxed mb-4">
               このアプリは、<span className="text-primary-600 font-semibold">節約</span>に特化した家計管理アプリです。

@@ -34,7 +34,7 @@ beforeEach(() => {
 describe('AuthScreen — 表示', () => {
   it('ログインモードで初期表示される', () => {
     render(<AuthScreen />)
-    expect(screen.getByText('マネログ')).toBeInTheDocument()
+    expect(screen.getByText('キンカク手帖')).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'ログイン' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: '新規登録' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'メールアドレス' })).toBeInTheDocument()

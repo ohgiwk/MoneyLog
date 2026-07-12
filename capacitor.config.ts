@@ -3,7 +3,7 @@ import { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard'
 
 const config: CapacitorConfig = {
   appId: 'com.keiya.moneylog',
-  appName: 'マネログ',
+  appName: 'キンカク手帖',
   webDir: 'dist',
   plugins: {
     Keyboard: {
