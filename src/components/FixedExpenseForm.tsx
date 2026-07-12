@@ -7,7 +7,7 @@ import {
 } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
-import { useForm } from '../hooks/useForm'
+import { useForm, useIsDirty } from '../hooks/useForm'
 import {
   getUsdJpyRate,
   getExpenseCurrencyMeta,
@@ -80,9 +80,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
     notes: expense?.notes ?? '',
   })
 
-  // 未編集かどうかの判定基準（マウント時の初期状態のスナップショット）
-  const [initialSnapshot] = useState(() => JSON.stringify({ ...values, currency }))
-  const isDirty = JSON.stringify({ ...values, currency }) !== initialSnapshot
+  const { isDirty } = useIsDirty({ ...values, currency })
 
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ

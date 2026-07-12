@@ -3,7 +3,7 @@ import { CONSUMABLE_CYCLE_PRESETS, type CategoryInfo, type DefaultConsumable } f
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
-import { useForm } from '../hooks/useForm'
+import { useForm, useIsDirty } from '../hooks/useForm'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
 
@@ -49,9 +49,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     notes: consumable?.notes ?? '',
   })
 
-  // 未編集かどうかの判定基準（マウント時の初期状態のスナップショット）
-  const [initialSnapshot] = useState(() => JSON.stringify(values))
-  const isDirty = JSON.stringify(values) !== initialSnapshot
+  const { isDirty } = useIsDirty(values)
 
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ

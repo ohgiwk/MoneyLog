@@ -4,7 +4,7 @@ import type { Transaction } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
 import { getDefaultPayment } from './usePaymentMethods'
 import { todayStr } from '../utils'
-import { useForm } from './useForm'
+import { useForm, useIsDirty } from './useForm'
 
 interface OneTimeFormValues {
   type: 'expense' | 'income'
@@ -55,9 +55,7 @@ export function useOneTimeForm({
   const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
     useForm<OneTimeFormValues>(buildDefaultValues())
 
-  // フォームが未編集かどうかの判定基準（最後に読み込んだ／保存した状態のスナップショット）
-  const [initialSnapshot, setInitialSnapshot] = useState(() => JSON.stringify(values))
-  const isDirty = JSON.stringify(values) !== initialSnapshot
+  const { isDirty, resetSnapshot } = useIsDirty(values)
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
 
@@ -79,7 +77,7 @@ export function useOneTimeForm({
         paymentMethod: editingTx.payment_method ?? '',
       }
       setValues(loaded)
-      setInitialSnapshot(JSON.stringify(loaded))
+      resetSnapshot(loaded)
     }
   }
 
@@ -87,7 +85,7 @@ export function useOneTimeForm({
     reset()
     const next = buildDefaultValues()
     setValues(next)
-    setInitialSnapshot(JSON.stringify(next))
+    resetSnapshot(next)
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {

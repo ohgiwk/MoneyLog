@@ -11,6 +11,14 @@ interface UseFormReturn<T> {
   reset: () => void
 }
 
+// フォームが未編集かどうかの判定基準（スナップショットとの比較）
+export function useIsDirty<T>(values: T) {
+  const [snapshot, setSnapshot] = useState(() => JSON.stringify(values))
+  const isDirty = JSON.stringify(values) !== snapshot
+  const resetSnapshot = (v: T = values) => setSnapshot(JSON.stringify(v))
+  return { isDirty, resetSnapshot }
+}
+
 export function useForm<T>(initialValues: T): UseFormReturn<T> {
   const [values, setValues] = useState<T>(initialValues)
   const [isSubmitting, setIsSubmitting] = useState(false)
