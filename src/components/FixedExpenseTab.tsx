@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
+import { budgetService } from '../lib/services/budgetService'
 import type { FixedExpense } from '../lib/database.types'
+import { todayStr } from '../utils'
 import FixedExpenseList from './FixedExpenseList'
 
 interface Props {
@@ -21,6 +23,7 @@ interface Props {
 
 export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen, onNavigate, onHeaderChange }: Props) {
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
+  const [fixedBudget, setFixedBudget] = useState(0)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
 
@@ -29,8 +32,12 @@ export default function FixedExpenseTab({ userId, fixedCategories, fromOnboardin
       setLoading(true)
       setFetchError(null)
       try {
-        const data = await fixedExpenseService.fetchByUser(userId)
+        const [data, budget] = await Promise.all([
+          fixedExpenseService.fetchByUser(userId),
+          budgetService.fetchByMonth(userId, todayStr().slice(0, 7)),
+        ])
         setFixedExpenses(data)
+        setFixedBudget(budget.fixed)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       } finally {
@@ -59,6 +66,7 @@ export default function FixedExpenseTab({ userId, fixedCategories, fromOnboardin
       <FixedExpenseList
         userId={userId}
         fixedExpenses={fixedExpenses}
+        fixedBudget={fixedBudget}
         fixedCategories={fixedCategories}
         reload={reload}
         onEditingChange={(state) => { onNavigate?.(); onHeaderChange?.(state) }}

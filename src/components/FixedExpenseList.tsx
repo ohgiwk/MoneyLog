@@ -25,6 +25,7 @@ interface HeaderState {
 interface Props {
   userId: string
   fixedExpenses: FixedExpense[]
+  fixedBudget?: number
   fixedCategories: CategoryInfo[]
   reload: () => void
   onEditingChange: (state: HeaderState | null) => void
@@ -36,6 +37,7 @@ interface Props {
 export default function FixedExpenseList({
   userId,
   fixedExpenses,
+  fixedBudget = 0,
   fixedCategories,
   reload,
   onEditingChange,
@@ -164,6 +166,21 @@ export default function FixedExpenseList({
         {totalSaved > 0 && (
           <div className="text-xs text-emerald-600 font-semibold mt-1">
             初回登録時より -{formatYen(totalSaved)}/月（年間 -{formatYen(totalSaved * 12)}）
+          </div>
+        )}
+        {fixedBudget > 0 && (
+          <div className="text-xs text-slate-400 mt-1">
+            予算 {formatYen(summaryPeriod === 'monthly' ? fixedBudget : fixedBudget * 12)}
+            {' / 差額 '}
+            <span
+              className={
+                (summaryPeriod === 'monthly' ? fixedBudget - totalAmount : (fixedBudget - totalAmount) * 12) < 0
+                  ? 'text-rose-500 font-semibold'
+                  : 'text-emerald-600 font-semibold'
+              }
+            >
+              {formatYen(summaryPeriod === 'monthly' ? fixedBudget - totalAmount : (fixedBudget - totalAmount) * 12)}
+            </span>
           </div>
         )}
       </div>
