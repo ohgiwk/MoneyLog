@@ -1,6 +1,5 @@
-import { CONSUMABLE_CATEGORIES } from '../constants'
 import type { Consumable } from '../lib/database.types'
-import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
+import { categoryInfo, formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 
 interface Props {
   consumable: Consumable
@@ -20,7 +19,7 @@ export default function ConsumableRow({
   const next = nextPurchaseDate(c, householdMembers)
   const days = daysUntil(next)
   const monthly = monthlyConsumableCost(c, householdMembers)
-  const cat = CONSUMABLE_CATEGORIES.find((cat) => cat.name === c.category)
+  const cat = categoryInfo(c.category)
 
   const daysLabel =
     days < 0 ? `${Math.abs(days)}日超過` : days === 0 ? '今日' : days === 1 ? '明日' : `${days}日後`

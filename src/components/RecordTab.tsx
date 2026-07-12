@@ -260,6 +260,7 @@ export default function RecordTab({
             userId={userId}
             consumables={consumables}
             householdMembers={householdMembers}
+            expenseCategories={expenseCategories}
             reload={fetchConsumables}
             onEditingChange={handleConsumableEditingChange}
             loading={loading}

@@ -11,15 +11,6 @@ interface Props {
   onCancel: () => void
 }
 
-// 定期購入カテゴリ → 臨時出費カテゴリへの対応マップ
-const CATEGORY_MAP: Record<string, string> = {
-  '衛生・清潔': '日用品',
-  'トイレ・洗剤': '日用品',
-  'サプリ・医療': '医療費',
-  '食品・調味料': '食費',
-  'その他': 'その他',
-}
-
 export default function ConsumablePurchaseDialog({
   consumable: c,
   householdMembers,
@@ -27,8 +18,9 @@ export default function ConsumablePurchaseDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const defaultCategory =
-    CATEGORY_MAP[c.category] ?? expenseCategories[0]?.name ?? ''
+  const defaultCategory = expenseCategories.some((cat) => cat.name === c.category)
+    ? c.category
+    : expenseCategories[0]?.name ?? ''
   const defaultAmount = c.amount * c.quantity * (c.members_scale ? householdMembers : 1)
 
   const [date, setDate] = useState(todayStr())

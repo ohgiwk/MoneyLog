@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { CONSUMABLE_URGENT_THRESHOLD_DAYS, CONSUMABLE_CATEGORIES, DEFAULT_CONSUMABLES, type DefaultConsumable } from '../constants'
-import { EXPENSE_CATEGORIES } from '../constants'
+import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 import { consumableService } from '../lib/services/consumableService'
@@ -21,6 +20,7 @@ interface Props {
   userId: string
   consumables: Consumable[]
   householdMembers: number
+  expenseCategories: CategoryInfo[]
   reload: () => void
   onEditingChange: (state: HeaderState | null) => void
   loading?: boolean
@@ -33,6 +33,7 @@ export default function ConsumablesList({
   userId,
   consumables,
   householdMembers,
+  expenseCategories,
   reload,
   onEditingChange,
   loading,
@@ -90,13 +91,13 @@ export default function ConsumablesList({
   )
 
   // カテゴリ別グループ化
-  const byCategory = CONSUMABLE_CATEGORIES.map((cat) => ({
+  const byCategory = expenseCategories.map((cat) => ({
     cat,
     items: rest.filter((c) => c.category === cat.name),
   })).filter((g) => g.items.length > 0)
 
   // その他（未知カテゴリ）
-  const knownCategoryNames = new Set(CONSUMABLE_CATEGORIES.map((c) => c.name))
+  const knownCategoryNames = new Set(expenseCategories.map((c) => c.name))
   const uncategorized = rest.filter((c) => !knownCategoryNames.has(c.category))
 
   const totalMonthly = consumables.reduce(
@@ -107,7 +108,7 @@ export default function ConsumablesList({
   // 未登録のデフォルト品目
   const registeredNames = new Set(consumables.map((c) => c.name))
   const unregisteredDefaults = DEFAULT_CONSUMABLES.filter((d) => !registeredNames.has(d.name))
-  const suggestionsByCategory = CONSUMABLE_CATEGORIES.map((cat) => ({
+  const suggestionsByCategory = expenseCategories.map((cat) => ({
     cat,
     items: unregisteredDefaults.filter((d) => d.category === cat.name),
   })).filter((g) => g.items.length > 0)
@@ -123,6 +124,7 @@ export default function ConsumablesList({
           consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
           preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
           householdMembers={householdMembers}
+          expenseCategories={expenseCategories}
           onClose={closeEditing}
           onHeaderChange={onEditingChange}
         />
@@ -280,7 +282,7 @@ export default function ConsumablesList({
         <ConsumablePurchaseDialog
           consumable={purchasing}
           householdMembers={householdMembers}
-          expenseCategories={EXPENSE_CATEGORIES}
+          expenseCategories={expenseCategories}
           onConfirm={handlePurchaseConfirm}
           onCancel={() => setPurchasing(null)}
         />

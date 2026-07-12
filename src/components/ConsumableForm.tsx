@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CONSUMABLE_CATEGORIES, CONSUMABLE_CYCLE_PRESETS, type DefaultConsumable } from '../constants'
+import { CONSUMABLE_CYCLE_PRESETS, type CategoryInfo, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays } from '../utils'
@@ -23,6 +23,7 @@ interface Props {
   consumable?: Consumable
   preset?: DefaultConsumable
   householdMembers: number
+  expenseCategories: CategoryInfo[]
   onClose: () => void
   onHeaderChange?: (
     state: {
@@ -33,13 +34,13 @@ interface Props {
   ) => void
 }
 
-export default function ConsumableForm({ userId, consumable, preset, householdMembers, onClose, onHeaderChange }: Props) {
+export default function ConsumableForm({ userId, consumable, preset, householdMembers, expenseCategories, onClose, onHeaderChange }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: consumable?.name ?? preset?.name ?? '',
-    category: consumable?.category ?? preset?.category ?? CONSUMABLE_CATEGORIES[0].name,
+    category: consumable?.category ?? preset?.category ?? expenseCategories[0]?.name ?? '',
     amount: consumable?.amount.toString() ?? preset?.amount.toString() ?? '',
     quantity: consumable?.quantity.toString() ?? preset?.quantity.toString() ?? '1',
     cycleDays: consumable?.cycle_days.toString() ?? preset?.cycle_days.toString() ?? '30',
@@ -162,7 +163,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         <div>
           <label className="text-xs text-slate-400">カテゴリ</label>
           <div className="grid grid-cols-3 gap-2 mt-1">
-            {CONSUMABLE_CATEGORIES.map((c) => (
+            {expenseCategories.map((c) => (
               <button
                 key={c.name}
                 type="button"
