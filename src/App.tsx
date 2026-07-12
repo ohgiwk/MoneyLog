@@ -16,12 +16,13 @@ import PaymentMethodsScreen from './components/PaymentMethodsScreen'
 import OnboardingScreen from './components/OnboardingScreen'
 import WishlistScreen from './components/WishlistScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
+import SavingTipsScreen from './components/SavingTipsScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 import PageTransition, { type NavDirection } from './components/PageTransition'
 
 type TabKey = 'home' | 'record' | 'fixed' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'wishlist' | 'analytics'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'wishlist' | 'analytics' | 'saving-tips'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'home', label: 'ホーム', icon: '🏠' },
@@ -94,6 +95,8 @@ export default function App() {
     content = <WishlistScreen userId={user.id} onBack={() => navigate('main', 'back')} />
   } else if (screen === 'analytics') {
     content = <AnalyticsScreen userId={user.id} onBack={() => navigate('main', 'back')} />
+  } else if (screen === 'saving-tips') {
+    content = <SavingTipsScreen onBack={() => navigate('main', 'back')} />
   } else if (screen === 'setup') {
     content = (
       <OnboardingScreen
@@ -199,6 +202,7 @@ export default function App() {
           onSetup={() => navigate('setup')}
           onWishlist={() => navigate('wishlist')}
           onAnalytics={() => navigate('analytics')}
+          onSavingTips={() => navigate('saving-tips')}
           onSignOut={signOut}
           onClose={() => setDrawerOpen(false)}
         />
