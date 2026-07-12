@@ -14,34 +14,78 @@ interface Props {
   onEditTx?: (tx: Transaction) => void
   startDay?: number
   budget?: number
+  dateFrom?: string
+  setDateFrom?: (v: string) => void
+  dateTo?: string
+  setDateTo?: (v: string) => void
 }
 
-export default function TransactionDetailView({ transactions, month, setMonth, availableMonths, loading, onEditTx, startDay = 1, budget = 0 }: Props) {
+export default function TransactionDetailView({
+  transactions,
+  month,
+  setMonth,
+  availableMonths,
+  loading,
+  onEditTx,
+  startDay = 1,
+  budget = 0,
+  dateFrom: controlledDateFrom,
+  setDateFrom: controlledSetDateFrom,
+  dateTo: controlledDateTo,
+  setDateTo: controlledSetDateTo,
+}: Props) {
   const {
     typeFilter,
     setTypeFilter,
     categoryFilter,
     setCategoryFilter,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
     filterOpen,
     setFilterOpen,
     isFiltered,
     categories,
+    filtered,
     grouped,
-  } = useTransactionFilters(transactions, month, startDay)
+  } = useTransactionFilters(
+    transactions,
+    month,
+    startDay,
+    controlledSetDateFrom && controlledSetDateTo
+      ? {
+          dateFrom: controlledDateFrom ?? '',
+          setDateFrom: controlledSetDateFrom,
+          dateTo: controlledDateTo ?? '',
+          setDateTo: controlledSetDateTo,
+        }
+      : undefined
+  )
 
   const totalExpense = useMemo(
-    () => transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-    [transactions]
+    () => filtered.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+    [filtered]
   )
   const totalIncome = useMemo(
-    () => transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-    [transactions]
+    () => filtered.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+    [filtered]
   )
 
   const [yearOpen, setYearOpen] = useState(false)
   const [monthOpen, setMonthOpen] = useState(false)
   const yearRef = useRef<HTMLDivElement>(null)
   const monthRef = useRef<HTMLDivElement>(null)
+  const filterBtnRef = useRef<HTMLButtonElement>(null)
+  const [filterPos, setFilterPos] = useState<{ top: number; right: number } | null>(null)
+
+  function toggleFilterOpen() {
+    if (!filterOpen && filterBtnRef.current) {
+      const rect = filterBtnRef.current.getBoundingClientRect()
+      setFilterPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    }
+    setFilterOpen((v) => !v)
+  }
 
   const currentYear = month.slice(0, 4)
   const currentMonth = month.slice(5, 7)
@@ -185,70 +229,121 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
         </div>
 
         {/* 絞り込みボタン */}
-        <button
-          onClick={() => setFilterOpen((v) => !v)}
-          className={
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ' +
-            (isFiltered
-              ? 'bg-slate-700 text-white border-slate-700'
-              : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-          }
-        >
-          <span>絞り込み</span>
-          {isFiltered && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />}
-          <span className="text-[10px]">{filterOpen ? '▲' : '▼'}</span>
-        </button>
-      </div>
+        <div className="relative">
+          <button
+            ref={filterBtnRef}
+            onClick={toggleFilterOpen}
+            className={
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition ' +
+              (isFiltered
+                ? 'bg-slate-700 text-white border-slate-700'
+                : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+            }
+          >
+            <span>絞り込み</span>
+            {isFiltered && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />}
+            <span className="text-[10px]">{filterOpen ? '▲' : '▼'}</span>
+          </button>
 
-      {filterOpen && (
-        <div className="bg-white rounded-2xl p-3 shadow-sm space-y-2">
-          <div className="flex gap-1.5">
-            {(['all', 'expense', 'income'] as const).map((v) => (
+          {filterOpen && filterPos && (
+            <>
               <button
-                key={v}
-                onClick={() => setTypeFilter(v)}
-                className={
-                  'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                  (typeFilter === v
-                    ? 'bg-slate-700 text-white border-slate-700'
-                    : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-                }
+                type="button"
+                aria-label="閉じる"
+                className="fixed inset-0 z-30 cursor-default"
+                onClick={() => setFilterOpen(false)}
+              />
+              <div
+                style={{ top: filterPos.top, right: filterPos.right }}
+                className="fixed z-40 w-72 max-w-[85vw] max-h-[70vh] overflow-y-auto bg-white rounded-2xl p-3 shadow-lg border border-slate-100 space-y-3"
               >
-                {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
-              </button>
-            ))}
-          </div>
-          {categories.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                onClick={() => setCategoryFilter('all')}
-                className={
-                  'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                  (categoryFilter === 'all'
-                    ? 'bg-slate-700 text-white border-slate-700'
-                    : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-                }
-              >
-                全カテゴリ
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat)}
-                  className={
-                    'px-3 py-1 rounded-full text-xs font-medium border transition ' +
-                    (categoryFilter === cat
-                      ? 'bg-slate-700 text-white border-slate-700'
-                      : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
-                  }
-                >
-                  {categoryInfo(cat).icon} {cat}
-                </button>
-              ))}
-            </div>
+                <div className="space-y-1">
+                  <div className="text-[11px] font-semibold text-slate-400">種別</div>
+                  <div className="flex gap-1.5">
+                    {(['all', 'expense', 'income'] as const).map((v) => (
+                      <button
+                        key={v}
+                        onClick={() => setTypeFilter(v)}
+                        className={
+                          'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                          (typeFilter === v
+                            ? 'bg-slate-700 text-white border-slate-700'
+                            : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                        }
+                      >
+                        {v === 'all' ? 'すべて' : v === 'expense' ? '支出' : '収入'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {categories.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-semibold text-slate-400">カテゴリ</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        onClick={() => setCategoryFilter('all')}
+                        className={
+                          'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                          (categoryFilter === 'all'
+                            ? 'bg-slate-700 text-white border-slate-700'
+                            : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                        }
+                      >
+                        全カテゴリ
+                      </button>
+                      {categories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setCategoryFilter(cat)}
+                          className={
+                            'px-3 py-1 rounded-full text-xs font-medium border transition ' +
+                            (categoryFilter === cat
+                              ? 'bg-slate-700 text-white border-slate-700'
+                              : 'bg-white text-slate-500 border-slate-200 active:bg-slate-50')
+                          }
+                        >
+                          {categoryInfo(cat).icon} {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <div className="text-[11px] font-semibold text-slate-400">期間</div>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-slate-200 text-slate-600"
+                    />
+                    <span className="text-xs text-slate-400">〜</span>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="flex-1 min-w-0 px-2 py-1 rounded-lg text-xs border border-slate-200 text-slate-600"
+                    />
+                  </div>
+                </div>
+                {isFiltered && (
+                  <button
+                    onClick={() => {
+                      setTypeFilter('all')
+                      setCategoryFilter('all')
+                      setDateFrom('')
+                      setDateTo('')
+                    }}
+                    className="w-full text-center py-1.5 rounded-lg text-xs font-medium text-slate-500 border border-slate-200 active:bg-slate-50"
+                  >
+                    絞り込みをリセット
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
-      )}
+      </div>
 
       {loading ? (
         <Spinner />

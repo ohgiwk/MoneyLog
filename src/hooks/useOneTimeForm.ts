@@ -52,8 +52,22 @@ export function useOneTimeForm({
     }
   }
 
+  function buildValuesFromTx(tx: Transaction): OneTimeFormValues {
+    return {
+      type: tx.type as 'expense' | 'income',
+      date: tx.date,
+      category: tx.category,
+      amount: String(tx.amount),
+      memo: tx.memo ?? '',
+      storeType: tx.store_type ?? '',
+      mealType: tx.meal_type ?? '',
+      paymentType: (tx.payment_type as PaymentType | null) ?? '',
+      paymentMethod: tx.payment_method ?? '',
+    }
+  }
+
   const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
-    useForm<OneTimeFormValues>(buildDefaultValues())
+    useForm<OneTimeFormValues>(editingTx ? buildValuesFromTx(editingTx) : buildDefaultValues())
 
   const { isDirty, resetSnapshot } = useIsDirty(values)
 
@@ -65,17 +79,7 @@ export function useOneTimeForm({
   if (editingTx !== prevEditingTx) {
     setPrevEditingTx(editingTx)
     if (editingTx) {
-      const loaded: OneTimeFormValues = {
-        type: editingTx.type as 'expense' | 'income',
-        date: editingTx.date,
-        category: editingTx.category,
-        amount: String(editingTx.amount),
-        memo: editingTx.memo ?? '',
-        storeType: editingTx.store_type ?? '',
-        mealType: editingTx.meal_type ?? '',
-        paymentType: (editingTx.payment_type as PaymentType | null) ?? '',
-        paymentMethod: editingTx.payment_method ?? '',
-      }
+      const loaded = buildValuesFromTx(editingTx)
       setValues(loaded)
       resetSnapshot(loaded)
     }

@@ -11,9 +11,27 @@ interface Props {
   onEditTx: (tx: Transaction) => void
   startDay?: number
   budget?: number
+  dateFrom?: string
+  setDateFrom?: (v: string) => void
+  dateTo?: string
+  setDateTo?: (v: string) => void
 }
 
-export default function OneTimeTransactionList({ transactions, month, setMonth, availableMonths, loading, onAdd, onEditTx, startDay, budget }: Props) {
+export default function OneTimeTransactionList({
+  transactions,
+  month,
+  setMonth,
+  availableMonths,
+  loading,
+  onAdd,
+  onEditTx,
+  startDay,
+  budget,
+  dateFrom,
+  setDateFrom,
+  dateTo,
+  setDateTo,
+}: Props) {
   return (
     <>
       <div className="p-4">
@@ -26,6 +44,10 @@ export default function OneTimeTransactionList({ transactions, month, setMonth, 
           onEditTx={onEditTx}
           startDay={startDay}
           budget={budget}
+          dateFrom={dateFrom}
+          setDateFrom={setDateFrom}
+          dateTo={dateTo}
+          setDateTo={setDateTo}
         />
       </div>
 

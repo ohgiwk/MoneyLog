@@ -23,6 +23,20 @@ export const transactionService = {
     })
   },
 
+  fetchByDateRange: async (userId: string, from: string, to: string): Promise<Transaction[]> => {
+    return cachedFetch(`${TABLE}:range:${userId}:${from}:${to}`, async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .gte('date', from)
+        .lte('date', to)
+        .order('date', { ascending: false })
+      if (error) throw new Error(error.message)
+      return data ?? []
+    })
+  },
+
   insert: async (data: TransactionInsert): Promise<void> => {
     const { error } = await supabase.from('transactions').insert(data)
     if (error) throw new Error(error.message)

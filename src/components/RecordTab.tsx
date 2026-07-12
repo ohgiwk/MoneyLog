@@ -74,6 +74,9 @@ export default function RecordTab({
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const periodInitialized = useRef(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [rangeTransactions, setRangeTransactions] = useState<Transaction[] | null>(null)
 
   // initialSub が指定されたときにサブページを切り替える
   // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
@@ -167,6 +170,17 @@ export default function RecordTab({
       .catch(() => {})
   }, [userId, month, monthStartDay])
 
+  // 期間絞り込み（開始日・終了日）が指定されたら、月を跨いでその範囲のトランザクションを取得
+  useEffect(() => {
+    if (dateFrom === '' || dateTo === '') {
+      setRangeTransactions(null)
+      return
+    }
+    transactionService.fetchByDateRange(userId, dateFrom, dateTo)
+      .then(setRangeTransactions)
+      .catch(() => {})
+  }, [userId, dateFrom, dateTo])
+
   async function fetchConsumables() {
     try {
       const data = await consumableService.fetchByUser(userId)
@@ -251,7 +265,7 @@ export default function RecordTab({
         <PageTransition pageKey={oneTimeView} direction={oneTimeDirection}>
           {oneTimeView === 'list' ? (
             <OneTimeTransactionList
-              transactions={transactions}
+              transactions={rangeTransactions ?? transactions}
               month={month}
               setMonth={setMonth}
               availableMonths={months}
@@ -260,6 +274,10 @@ export default function RecordTab({
               onEditTx={(tx) => openForm(tx)}
               startDay={monthStartDay}
               budget={oneTimeBudget}
+              dateFrom={dateFrom}
+              setDateFrom={setDateFrom}
+              dateTo={dateTo}
+              setDateTo={setDateTo}
             />
           ) : (
             <div className="min-h-screen bg-slate-50 p-4 pb-28">
