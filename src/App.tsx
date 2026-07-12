@@ -189,9 +189,9 @@ export default function App() {
               className="flex flex-col gap-1 p-2 active:opacity-60 justify-self-end"
               aria-label="メニューを開く"
             >
-              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
-              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
-              <span className="block w-5 h-0.5 bg-surface-muted rounded" />
+              <span className="block w-5 h-0.5 bg-ink-muted rounded" />
+              <span className="block w-5 h-0.5 bg-ink-muted rounded" />
+              <span className="block w-5 h-0.5 bg-ink-muted rounded" />
             </button>
           )}
         </div>
