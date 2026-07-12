@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { getUsdJpyRate, setUsdJpyRate } from '../lib/exchangeRate'
 import { SAVE_SUCCESS_DISPLAY_MS } from '../constants'
 import ScreenHeader from './ui/ScreenHeader'
@@ -8,13 +8,9 @@ interface Props {
 }
 
 export default function ExchangeRateScreen({ onBack }: Props) {
-  const [rate, setRate] = useState('')
+  const [rate, setRate] = useState(() => getUsdJpyRate().toString())
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    setRate(getUsdJpyRate().toString())
-  }, [])
 
   function save() {
     const v = parseFloat(rate)

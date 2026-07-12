@@ -46,15 +46,12 @@ export default function FixedExpenseList({
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [direction, setDirection] = useState<NavDirection>('forward')
-  const [tutorialOpen, setTutorialOpen] = useState(false)
+  const [tutorialOpen, setTutorialOpen] = useState(() => !!fromOnboarding)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
 
   useEffect(() => {
-    if (fromOnboarding) {
-      setTutorialOpen(true)
-      onWizardOpen?.()
-    }
-  }, [fromOnboarding])
+    if (fromOnboarding) onWizardOpen?.()
+  }, [fromOnboarding]) // eslint-disable-line react-hooks/exhaustive-deps
   const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {

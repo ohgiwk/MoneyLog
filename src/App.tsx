@@ -49,6 +49,7 @@ export default function App() {
     action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
   } | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [prevTab, setPrevTab] = useState(tab)
 
   function navigate(next: Screen, dir: NavDirection = 'forward') {
     setDirection(dir)
@@ -64,15 +65,13 @@ export default function App() {
     scrollRef.current?.scrollTo(0, 0)
   }, [tab, screen])
 
-  // タブ切り替え時はヘッダーの戻るボタン状態をリセット
-  useEffect(() => {
+  // タブ切り替え時はヘッダーの戻るボタン状態と initialSub をリセット
+  // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
+  if (tab !== prevTab) {
+    setPrevTab(tab)
     setHeaderBack(null)
-  }, [tab])
-
-  // initialSub は一度使ったらリセット（再訪問時は通常の初期値に戻す）
-  useEffect(() => {
     if (recordInitialSub) setRecordInitialSub(undefined)
-  }, [tab])
+  }
 
   // フルスクリーンページへの遷移時は window もリセット
   useEffect(() => {

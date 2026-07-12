@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import type { CategoryInfo, PaymentType } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
@@ -56,12 +56,16 @@ export function useOneTimeForm({
     useForm<OneTimeFormValues>(buildDefaultValues())
 
   // フォームが未編集かどうかの判定基準（最後に読み込んだ／保存した状態のスナップショット）
-  const initialSnapshot = useRef(JSON.stringify(values))
-  const isDirty = JSON.stringify(values) !== initialSnapshot.current
+  const [initialSnapshot, setInitialSnapshot] = useState(() => JSON.stringify(values))
+  const isDirty = JSON.stringify(values) !== initialSnapshot
 
   const formCategories = values.type === 'expense' ? expenseCategories : incomeCategories
 
-  useEffect(() => {
+  // editingTx が変わったらフォームの値を読み込む
+  // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
+  const [prevEditingTx, setPrevEditingTx] = useState(editingTx)
+  if (editingTx !== prevEditingTx) {
+    setPrevEditingTx(editingTx)
     if (editingTx) {
       const loaded: OneTimeFormValues = {
         type: editingTx.type as 'expense' | 'income',
@@ -75,15 +79,15 @@ export function useOneTimeForm({
         paymentMethod: editingTx.payment_method ?? '',
       }
       setValues(loaded)
-      initialSnapshot.current = JSON.stringify(loaded)
+      setInitialSnapshot(JSON.stringify(loaded))
     }
-  }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   function resetForm() {
     reset()
     const next = buildDefaultValues()
     setValues(next)
-    initialSnapshot.current = JSON.stringify(next)
+    setInitialSnapshot(JSON.stringify(next))
   }
 
   function handleTypeChange(newType: 'expense' | 'income') {

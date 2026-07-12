@@ -50,8 +50,8 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
   })
 
   // 未編集かどうかの判定基準（マウント時の初期状態のスナップショット）
-  const initialSnapshot = useRef(JSON.stringify(values))
-  const isDirty = JSON.stringify(values) !== initialSnapshot.current
+  const [initialSnapshot] = useState(() => JSON.stringify(values))
+  const isDirty = JSON.stringify(values) !== initialSnapshot
 
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ

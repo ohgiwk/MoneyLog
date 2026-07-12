@@ -22,10 +22,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const [editingName, setEditingName] = useState('')
   const [showDialog, setShowDialog] = useState(false)
 
-  useEffect(() => {
-    void load()
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
-
   async function load() {
     setLoading(true)
     setError(null)
@@ -38,6 +34,10 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    void load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleAdd() {
     const name = newName.trim()

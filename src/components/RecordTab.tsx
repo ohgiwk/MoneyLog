@@ -73,9 +73,15 @@ export default function RecordTab({
   const periodInitialized = useRef(false)
 
   // initialSub が指定されたときにサブページを切り替える
+  // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
+  const [prevInitialSub, setPrevInitialSub] = useState(initialSub)
+  if (initialSub !== prevInitialSub) {
+    setPrevInitialSub(initialSub)
+    if (initialSub) setSubRaw(initialSub)
+  }
   useEffect(() => {
-    if (initialSub) setSub(initialSub)
-  }, [initialSub])
+    if (initialSub) onNavigate?.()
+  }, [initialSub]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 下部タブの「記録」を再タップしたら出費一覧に戻す
   const resetSignalMounted = useRef(false)
@@ -90,14 +96,20 @@ export default function RecordTab({
   }, [resetSignal])
 
   // 外部からの編集リクエスト（サマリー画面など）
-  useEffect(() => {
+  // （レンダー中に前回値と比較して即座に補正する React 推奨パターン）
+  const [prevEditingTx, setPrevEditingTx] = useState(editingTx)
+  if (editingTx !== prevEditingTx) {
+    setPrevEditingTx(editingTx)
     if (editingTx) {
-      setSub('one_time')
+      setSubRaw('one_time')
       setFormEditingTx(editingTx)
       setOneTimeDirection('forward')
       setOneTimeView('form')
     }
-  }, [editingTx])
+  }
+  useEffect(() => {
+    if (editingTx) onNavigate?.()
+  }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // マウント時に全データを並列取得
   useEffect(() => {

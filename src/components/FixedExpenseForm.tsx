@@ -81,8 +81,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
   })
 
   // 未編集かどうかの判定基準（マウント時の初期状態のスナップショット）
-  const initialSnapshot = useRef(JSON.stringify({ ...values, currency }))
-  const isDirty = JSON.stringify({ ...values, currency }) !== initialSnapshot.current
+  const [initialSnapshot] = useState(() => JSON.stringify({ ...values, currency }))
+  const isDirty = JSON.stringify({ ...values, currency }) !== initialSnapshot
 
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ

@@ -37,7 +37,9 @@ export default function WishlistScreen({ userId, onBack }: Props) {
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 優先順位を 1..N に正規化して一括保存
   const renormalize = async (ordered: WishlistItem[]) => {
