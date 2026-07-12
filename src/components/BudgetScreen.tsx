@@ -72,12 +72,6 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl p-4 shadow-sm">
-          <p className="text-xs text-slate-400">
-            月ごとの予算を設定すると、ホーム画面で週ごとの消費状況を確認できます。
-          </p>
-        </div>
-
         {/* 固定費 */}
         <Section title="固定費" icon="🏠">
           <BudgetField
