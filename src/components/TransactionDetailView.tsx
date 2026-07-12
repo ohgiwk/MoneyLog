@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
+import { STORE_TYPES } from '../constants'
 import { categoryInfo, formatYen } from '../utils'
 import { useTransactionFilters } from '../hooks/useTransactionFilters'
 import Spinner from './ui/Spinner'
@@ -263,6 +264,7 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
             <div className="px-4 divide-y divide-slate-50">
               {txs.map((t) => {
                 const info = categoryInfo(t.category)
+                const store = t.store_type ? STORE_TYPES.find((s) => s.name === t.store_type) : undefined
                 return (
                   <button
                     key={t.id}
@@ -273,7 +275,18 @@ export default function TransactionDetailView({ transactions, month, setMonth, a
                       <span className="text-lg">{info.icon}</span>
                       <div>
                         <div className="text-sm text-slate-700">{t.category}</div>
-                        {t.memo && <div className="text-xs text-slate-400">{t.memo}</div>}
+                        {(store || t.memo) && (
+                          <div className="text-xs text-slate-400 flex items-center gap-1">
+                            {store && (
+                              <span className="flex items-center gap-0.5">
+                                <span>{store.icon}</span>
+                                <span>{store.name}</span>
+                              </span>
+                            )}
+                            {store && t.memo && <span>/</span>}
+                            {t.memo && <span>{t.memo}</span>}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <span
