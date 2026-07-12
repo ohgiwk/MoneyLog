@@ -173,7 +173,7 @@ export default function ConsumablesList({
       {/* そろそろ買い時 */}
       {!loading && urgent.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-amber-600 mb-2 flex items-center gap-1">
+          <div className="text-xs font-semibold text-amber-600 mt-2 mb-2 flex items-center gap-1">
             <span>⚠️</span> そろそろ買い時（7日以内）
           </div>
           <div className="space-y-1.5">
@@ -203,7 +203,7 @@ export default function ConsumablesList({
       {/* カテゴリ別一覧 */}
       {!loading && byCategory.map(({ cat, items }) => (
         <div key={cat.name}>
-          <div className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1.5">
+          <div className="text-xs font-semibold text-slate-500 mt-2 mb-2 flex items-center gap-1.5">
             <span>{cat.icon}</span>
             <span>{cat.name}</span>
           </div>
@@ -233,7 +233,7 @@ export default function ConsumablesList({
       {/* 未知カテゴリ */}
       {!loading && uncategorized.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-slate-400 mb-2">その他</div>
+          <div className="text-xs font-semibold text-slate-400 mt-2 mb-2">その他</div>
           <div className="space-y-1.5">
             {uncategorized.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
