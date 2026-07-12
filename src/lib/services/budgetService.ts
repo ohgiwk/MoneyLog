@@ -12,12 +12,13 @@ export interface BudgetSettings {
 const empty = (): BudgetSettings => ({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
 
 export const budgetService = {
-  fetchByUser: async (userId: string): Promise<BudgetSettings> => {
-    return cachedFetch(`${TABLE}:${userId}`, async () => {
+  fetchByMonth: async (userId: string, month: string): Promise<BudgetSettings> => {
+    return cachedFetch(`${TABLE}:${userId}:${month}`, async () => {
       const { data, error } = await supabase
         .from('budgets')
         .select('*')
         .eq('user_id', userId)
+        .eq('month', month)
         .maybeSingle()
       if (error) throw new Error(error.message)
       if (!data) return empty()
@@ -29,15 +30,16 @@ export const budgetService = {
     })
   },
 
-  save: async (userId: string, budget: BudgetSettings): Promise<void> => {
+  save: async (userId: string, month: string, budget: BudgetSettings): Promise<void> => {
     const { error } = await supabase.from('budgets').upsert({
       user_id: userId,
+      month,
       fixed: budget.fixed,
       consumable: budget.consumable,
       one_time_by_category: budget.oneTimeByCategory,
     })
     if (error) throw new Error(error.message)
-    cacheSet(`${TABLE}:${userId}`, budget)
+    cacheSet(`${TABLE}:${userId}:${month}`, budget)
   },
 }
 

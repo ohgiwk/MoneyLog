@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
-import { formatYen } from '../utils'
+import { formatYen, todayStr } from '../utils'
+import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
 
 export default function BudgetScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
+  const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [budget, setBudget] = useState<BudgetSettings>({ fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [saved, setSaved] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -18,14 +20,15 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   useEffect(() => {
     const load = async () => {
       setFetchError(null)
+      setSaved(false)
       try {
-        setBudget(await budgetService.fetchByUser(userId))
+        setBudget(await budgetService.fetchByMonth(userId, month))
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       }
     }
     void load()
-  }, [userId])
+  }, [userId, month])
 
   function handleChange(field: 'fixed' | 'consumable', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -45,7 +48,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   async function handleSave() {
     setFetchError(null)
     try {
-      await budgetService.save(userId, budget)
+      await budgetService.save(userId, month, budget)
       setSaved(true)
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : '保存に失敗しました')
@@ -64,6 +67,8 @@ export default function BudgetScreen({ userId, onBack }: Props) {
       <div className="bg-white border-b border-slate-100">
         <ScreenHeader title="予算設定" onBack={onBack} />
       </div>
+
+      <MonthSwitcher month={month} setMonth={setMonth} />
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
         {fetchError && (

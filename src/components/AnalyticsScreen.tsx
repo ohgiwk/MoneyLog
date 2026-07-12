@@ -47,7 +47,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
           profileService.fetchById(userId),
-          budgetService.fetchByUser(userId),
+          budgetService.fetchByMonth(userId, month),
         ])
         setTransactions(txs)
         setYearTransactions(yearTxs)

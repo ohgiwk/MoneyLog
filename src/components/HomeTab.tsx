@@ -52,7 +52,7 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
           transactionService.fetchByMonth(userId, today.slice(0, 7)),
           fixedExpenseService.fetchByUser(userId),
           consumableService.fetchByUser(userId),
-          budgetService.fetchByUser(userId),
+          budgetService.fetchByMonth(userId, today.slice(0, 7)),
           calendarEventService.fetchUpcomingExpenses(userId, today),
         ])
         setTransactions(txs)

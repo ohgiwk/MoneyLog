@@ -212,6 +212,7 @@ export interface Database {
       budgets: {
         Row: {
           user_id: string
+          month: string
           fixed: number
           consumable: number
           one_time_by_category: Json

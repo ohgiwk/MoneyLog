@@ -257,3 +257,10 @@ alter table public.transactions add column if not exists meal_type text;
 -- payment_method: クレジットカード/電子マネー/QRコード決済を選んだ場合の具体的なサービス名（例: 楽天カード、PayPay）
 alter table public.transactions add column if not exists payment_type text;
 alter table public.transactions add column if not exists payment_method text;
+
+-- budgets を月ごとに設定できるようにする（既存の1ユーザー1行から、ユーザー×月の複合主キーへ移行）
+alter table public.budgets add column if not exists month text;
+update public.budgets set month = to_char(now(), 'YYYY-MM') where month is null;
+alter table public.budgets alter column month set not null;
+alter table public.budgets drop constraint if exists budgets_pkey;
+alter table public.budgets add primary key (user_id, month);
