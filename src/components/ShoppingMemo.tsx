@@ -125,13 +125,13 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           {items.map(item => (
             <div
               key={item.id}
-              className="bg-surface rounded-xl border border-line-subtle px-3 py-3 flex items-center gap-3 shadow-sm"
+              onClick={() => toggleSelect(item.id)}
+              className="bg-surface rounded-xl border border-line-subtle px-3 py-3 flex items-center gap-3 shadow-sm cursor-pointer active:bg-surface-subtle"
             >
               {/* チェックボックス */}
-              <button
-                onClick={() => toggleSelect(item.id)}
+              <div
                 className={
-                  'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors ' +
+                  'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors pointer-events-none ' +
                   (selected.has(item.id)
                     ? 'bg-primary-500 border-primary-500'
                     : 'border-line-strong bg-surface')
@@ -142,7 +142,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                     <path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 )}
-              </button>
+              </div>
 
               {/* 名前 / メモ / 予算 */}
               <div className="flex-1 min-w-0">
@@ -159,7 +159,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
               {/* 編集・削除ボタン */}
               <div className="flex gap-1">
                 <button
-                  onClick={() => openEditDialog(item)}
+                  onClick={(e) => { e.stopPropagation(); openEditDialog(item) }}
                   className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -168,7 +168,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                   </svg>
                 </button>
                 <button
-                  onClick={() => void handleDelete(item.id)}
+                  onClick={(e) => { e.stopPropagation(); void handleDelete(item.id) }}
                   className="p-1.5 text-ink-muted active:text-danger-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
