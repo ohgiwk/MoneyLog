@@ -277,6 +277,7 @@ export default function App() {
             month={month}
             setMonth={setMonth}
             initialSelectedDate={calendarSelectedDate}
+            expenseCategories={categories.expenseCategories}
           />
         )}
       </div>

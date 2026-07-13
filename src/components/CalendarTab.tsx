@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
+import type { CalendarEvent, Transaction, WorkSchedule } from '../lib/database.types'
+import type { CategoryInfo } from '../constants'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { workScheduleService } from '../lib/services/workScheduleService'
+import { transactionService } from '../lib/services/transactionService'
 import { formatDateWithWeekday, formatYen } from '../utils'
 
 interface Props {
@@ -9,6 +11,7 @@ interface Props {
   month: string
   setMonth: (m: string) => void
   initialSelectedDate?: string
+  expenseCategories: CategoryInfo[]
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
@@ -23,9 +26,10 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function CalendarTab({ userId, month, setMonth, initialSelectedDate }: Props) {
+export default function CalendarTab({ userId, month, setMonth, initialSelectedDate, expenseCategories }: Props) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [workSchedule, setWorkSchedule] = useState<WorkSchedule[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
@@ -39,12 +43,14 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
   async function load() {
     setFetchError(null)
     try {
-      const [eventData, scheduleData] = await Promise.all([
+      const [eventData, scheduleData, txData] = await Promise.all([
         calendarEventService.fetchByMonth(userId, month),
         workScheduleService.fetchByMonth(userId, month),
+        transactionService.fetchByMonth(userId, month),
       ])
       setEvents(eventData)
       setWorkSchedule(scheduleData)
+      setTransactions(txData)
     } catch (err) {
       setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
     }
@@ -83,6 +89,22 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
     return days
   }, [month])
 
+  const expenseByDate = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const tx of transactions) {
+      if (tx.type === 'expense') map.set(tx.date, (map.get(tx.date) ?? 0) + tx.amount)
+    }
+    return map
+  }, [transactions])
+
+  const plannedByDate = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const ev of events) {
+      if (ev.planned_expense > 0) map.set(ev.date, (map.get(ev.date) ?? 0) + ev.planned_expense)
+    }
+    return map
+  }, [events])
+
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>()
     for (const e of events) {
@@ -94,6 +116,10 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
   }, [events])
 
   const selectedEvents = eventsByDate.get(selectedDate) ?? []
+  const selectedTransactions = useMemo(
+    () => transactions.filter((tx) => tx.date === selectedDate && tx.type === 'expense'),
+    [transactions, selectedDate]
+  )
 
   function openAdd() {
     setEditingEvent(null)
@@ -137,7 +163,7 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
         {/* 日付セル */}
         <div className="grid grid-cols-7">
           {calendarDays.map((date, i) => {
-            if (!date) return <div key={i} className="h-14 border-b border-r border-line-subtle last:border-r-0" />
+            if (!date) return <div key={i} className="h-16 border-b border-r border-line-subtle last:border-r-0" />
             const dayEvents = eventsByDate.get(date) ?? []
             const isSelected = date === selectedDate
             const isToday = date === todayStr()
@@ -145,12 +171,14 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
             const dayNum = parseInt(date.slice(8))
             const dayType = dayTypeByDate.get(date)
             const cellBg = dayType ? DAY_TYPE_LABELS[dayType].cellBg : ''
+            const expense = expenseByDate.get(date) ?? 0
+            const planned = plannedByDate.get(date) ?? 0
             return (
               <button
                 key={date}
                 onClick={() => setSelectedDate(date)}
                 className={
-                  'relative h-14 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
+                  'relative h-16 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
                   cellBg + ' ' +
                   (isSelected ? 'ring-2 ring-inset ring-primary-400' : cellBg ? '' : 'active:bg-surface-subtle')
                 }
@@ -169,12 +197,15 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
                 >
                   {dayNum}
                 </span>
-                {/* 予定ドット */}
-                {dayEvents.length > 0 && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-surface-muted mt-0.5" />
+                {expense > 0 && (
+                  <span className="text-[9px] text-danger-500 font-medium leading-tight">
+                    -{(expense >= 1000 ? `${Math.round(expense / 1000)}k` : expense)}
+                  </span>
                 )}
-                {dayEvents.length > 1 && (
-                  <span className="text-[9px] text-ink-muted">{dayEvents.length}件</span>
+                {planned > 0 && (
+                  <span className="text-[9px] text-ink-muted leading-tight">
+                    予{planned >= 1000 ? `${Math.round(planned / 1000)}k` : planned}
+                  </span>
                 )}
               </button>
             )
@@ -214,6 +245,8 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
       </div>
 
       {/* 選択日の予定リスト */}
+      <div className="space-y-1">
+        <span className="text-xs text-ink-muted px-1">予定</span>
       {selectedEvents.length === 0 ? (
         <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
           予定はありません
@@ -245,6 +278,35 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
               )}
             </button>
           ))}
+        </div>
+      )}
+      </div>
+
+      {/* 選択日の出費記録 */}
+      {selectedTransactions.length > 0 && (
+        <div className="space-y-1">
+          <span className="text-xs text-ink-muted px-1">出費記録</span>
+          <div className="space-y-2">
+            {selectedTransactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-lg shrink-0">
+                    {expenseCategories.find((c) => c.name === tx.category)?.icon ?? '📦'}
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-sm text-ink truncate block">{tx.category}</span>
+                    {tx.memo && <span className="text-xs text-ink-muted truncate block">{tx.memo}</span>}
+                  </div>
+                </div>
+                <span className="text-sm font-semibold text-danger-500 shrink-0">
+                  -{formatYen(tx.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
