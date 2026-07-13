@@ -148,7 +148,7 @@ export default function TransactionDetailView({
             {formatYen(totalExpense)}
           </div>
           {totalIncome > 0 && (
-            <div className="text-sm font-semibold text-primary-600">
+            <div className="text-sm font-semibold text-income-600">
               <span className="text-ink-muted">/</span> 収入 +{formatYen(totalIncome)}
             </div>
           )}
@@ -159,7 +159,7 @@ export default function TransactionDetailView({
             {' / 残額 '}
             <span
               className={
-                budget - totalExpense < 0 ? 'text-danger-500 font-semibold' : 'text-primary-600 font-semibold'
+                budget - totalExpense < 0 ? 'text-danger-500 font-semibold' : 'text-income-600 font-semibold'
               }
             >
               {formatYen(budget - totalExpense)}
@@ -377,7 +377,7 @@ export default function TransactionDetailView({
             <div className="flex justify-between items-center px-4 py-2.5 bg-surface-hover border-b border-line">
               <span className="text-xs font-semibold text-ink">{formatDateWithWeekday(date)}</span>
               <div className="flex gap-2 text-xs">
-                {dayIncome > 0 && <span className="text-primary-600">+{formatYen(dayIncome)}</span>}
+                {dayIncome > 0 && <span className="text-income-600">+{formatYen(dayIncome)}</span>}
                 {dayExpense > 0 && <span className="text-danger-400">-{formatYen(dayExpense)}</span>}
               </div>
             </div>
@@ -412,7 +412,7 @@ export default function TransactionDetailView({
                     <span
                       className={
                         'text-sm font-semibold ' +
-                        (t.type === 'income' ? 'text-primary-600' : 'text-danger-500')
+                        (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
                       }
                     >
                       {t.type === 'income' ? '+' : '-'}

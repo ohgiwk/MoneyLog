@@ -144,24 +144,24 @@ export default function BudgetScreen({ userId, onBack }: Props) {
 
         {/* 収入に対する予算使用率 */}
         {budget.income > 0 && (
-          <div className="bg-primary-50 rounded-2xl p-4 shadow-sm space-y-2">
+          <div className="bg-income-50 rounded-2xl p-4 shadow-sm space-y-2">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-primary-700">予算使用率</div>
-              <span className={`text-sm font-bold ${overIncome ? 'text-danger-500' : 'text-primary-700'}`}>
+              <div className="text-sm font-semibold text-income-700">予算使用率</div>
+              <span className={`text-sm font-bold ${overIncome ? 'text-danger-500' : 'text-income-700'}`}>
                 {Math.round((budgetTotal / budget.income) * 100)}%
               </span>
             </div>
-            <div className="h-2.5 bg-primary-100 rounded-full overflow-hidden">
+            <div className="h-2.5 bg-income-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${overIncome ? 'bg-danger-400' : 'bg-primary-500'}`}
+                className={`h-full rounded-full transition-all ${overIncome ? 'bg-danger-400' : 'bg-income-500'}`}
                 style={{ width: `${usagePct}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-xs text-primary-700/80">
+            <div className="flex justify-between items-center text-xs text-income-700/80">
               <span>
                 予算合計 {formatYen(budgetTotal)} / 収入 {formatYen(budget.income)}
               </span>
-              <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-primary-700/80'}>
+              <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-income-700/80'}>
                 {overIncome
                   ? `${formatYen(Math.abs(remaining))} オーバー`
                   : `残り ${formatYen(remaining)}`}

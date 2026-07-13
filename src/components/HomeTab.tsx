@@ -179,7 +179,7 @@ export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent 
 
         <div className="text-sm font-semibold text-ink-muted">本日のお小遣い</div>
         <div className="relative flex items-center justify-center gap-1.5">
-          <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-primary-600' : 'text-danger-500'}`}>
+          <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
             {formatYen(todayAllowance)}
           </div>
           <button

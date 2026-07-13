@@ -104,7 +104,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
         {/* 収支サマリー */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
           <div className="text-sm font-semibold text-ink">収支</div>
-          <Row label="収入" value={formatYen(income)} valueColor="text-primary-600" />
+          <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
           <Row
             label="固定費"
             value={`-${formatYen(Math.round(totalFixed))}`}
@@ -116,7 +116,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
           <Row
             label="収支"
             value={(balance >= 0 ? '+' : '') + formatYen(balance)}
-            valueColor={balance >= 0 ? 'text-primary-600' : 'text-danger-500'}
+            valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
             bold
           />
         </div>
@@ -125,7 +125,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
         {totalSaved > 0 && (
           <div className="bg-surface rounded-2xl p-4 shadow-sm">
             <div className="text-sm font-semibold text-ink mb-1">固定費の節約効果</div>
-            <div className="text-2xl font-bold text-primary-600 mb-1">
+            <div className="text-2xl font-bold text-income-600 mb-1">
               -{formatYen(Math.round(totalSaved))}
               <span className="text-sm font-normal text-ink-muted">/月</span>
             </div>

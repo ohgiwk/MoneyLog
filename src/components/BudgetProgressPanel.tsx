@@ -96,7 +96,7 @@ export default function BudgetProgressPanel({
                 i === filledDots
                   ? 'bg-warning-400'
                   : i < filledDots
-                    ? 'bg-primary-500'
+                    ? 'bg-income-500'
                     : 'bg-surface-hover'
               }`}
             />

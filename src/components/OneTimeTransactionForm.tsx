@@ -147,7 +147,7 @@ export default function OneTimeTransactionForm({
             onClick={() => handleTypeChange('income')}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
-              (values.type === 'income' ? 'bg-primary-500 text-white shadow' : 'text-ink-muted')
+              (values.type === 'income' ? 'bg-income-500 text-white shadow' : 'text-ink-muted')
             }
           >
             収入
