@@ -1,19 +1,23 @@
+import { createPortal } from 'react-dom'
 import { useState } from 'react'
+import { PAYMENT_TYPES, STORE_TYPES, type PaymentType } from '../constants'
 import type { CategoryInfo } from '../constants'
 import { todayStr } from '../utils'
 
 interface Props {
   itemNames: string[]
   expenseCategories: CategoryInfo[]
-  onConfirm: (category: string, amount: number, memo: string, date: string) => Promise<void>
+  onConfirm: (category: string, amount: number, memo: string, date: string, storeType: string | null, paymentType: string | null) => Promise<void>
   onCancel: () => void
 }
 
 export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm, onCancel }: Props) {
   const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
   const [amount, setAmount] = useState('')
-  const [memo, setMemo] = useState('')
+  const [memo, setMemo] = useState(itemNames.join('・'))
   const [date, setDate] = useState(todayStr())
+  const [storeType, setStoreType] = useState<string>('')
+  const [paymentType, setPaymentType] = useState<PaymentType | ''>('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,16 +28,16 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
     setError(null)
     setSubmitting(true)
     try {
-      await onConfirm(category, parsed, memo, date)
+      await onConfirm(category, parsed, memo, date, storeType || null, paymentType || null)
     } catch (err) {
       setError(err instanceof Error ? err.message : '記録に失敗しました')
       setSubmitting(false)
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center sm:items-center">
-      <div className="bg-surface w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl">
+      <div className="bg-surface w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
 
         {/* 購入アイテム一覧 */}
@@ -95,6 +99,50 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
           </div>
         </div>
 
+        {/* 店舗種別 */}
+        <div>
+          <label className="block text-xs text-ink-muted mb-1">店舗種別（任意）</label>
+          <div className="grid grid-cols-3 gap-2">
+            {STORE_TYPES.map(s => (
+              <button
+                key={s.name}
+                onClick={() => setStoreType(prev => prev === s.name ? '' : s.name)}
+                className={
+                  'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
+                  (storeType === s.name
+                    ? 'border-primary-400 bg-primary-50 text-primary-700'
+                    : 'border-line text-ink active:bg-surface-subtle')
+                }
+              >
+                <span>{s.icon}</span>
+                <span className="truncate">{s.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 支払い方法 */}
+        <div>
+          <label className="block text-xs text-ink-muted mb-1">支払い方法（任意）</label>
+          <div className="grid grid-cols-2 gap-2">
+            {PAYMENT_TYPES.map(p => (
+              <button
+                key={p.type}
+                onClick={() => setPaymentType(prev => prev === p.type ? '' : p.type)}
+                className={
+                  'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ' +
+                  (paymentType === p.type
+                    ? 'border-primary-400 bg-primary-50 text-primary-700'
+                    : 'border-line text-ink active:bg-surface-subtle')
+                }
+              >
+                <span>{p.icon}</span>
+                <span>{p.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* メモ */}
         <div>
           <label className="block text-xs text-ink-muted mb-1">メモ（任意）</label>
@@ -125,6 +173,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, onConfirm
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

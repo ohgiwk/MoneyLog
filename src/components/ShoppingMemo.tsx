@@ -78,7 +78,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     })
   }
 
-  async function handlePurchase(category: string, amount: number, memo: string, date: string) {
+  async function handlePurchase(category: string, amount: number, memo: string, date: string, storeType: string | null, paymentType: string | null) {
     await transactionService.insert({
       user_id: userId,
       type: 'expense',
@@ -87,9 +87,9 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       category,
       amount,
       memo: memo || null,
-      store_type: null,
+      store_type: storeType,
       meal_type: null,
-      payment_type: null,
+      payment_type: paymentType,
       payment_method: null,
       recurring_rule_id: null,
     })
@@ -150,7 +150,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 {(item.memo || item.budget_amount > 0) && (
                   <span className="block text-xs text-ink-muted truncate">
                     {item.memo}
-                    {item.memo && item.budget_amount > 0 ? ' ・ ' : ''}
+                    {item.memo && item.budget_amount > 0 ? ' / ' : ''}
                     {item.budget_amount > 0 ? `予算 ¥${item.budget_amount.toLocaleString()}` : ''}
                   </span>
                 )}
