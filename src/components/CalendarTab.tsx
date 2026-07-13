@@ -288,6 +288,7 @@ interface EventFormProps {
 
 function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
   const [eventDate, setEventDate]       = useState(event?.date ?? date)
+  const [allDay, setAllDay]             = useState(!event?.start_time)
   const [title, setTitle]               = useState(event?.title ?? '')
   const [startTime, setStartTime]       = useState(event?.start_time?.slice(0, 5) ?? '')
   const [endTime, setEndTime]           = useState(event?.end_time?.slice(0, 5) ?? '')
@@ -307,8 +308,8 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
         user_id: userId,
         date: eventDate,
         title: title.trim(),
-        start_time: startTime || null,
-        end_time: endTime || null,
+        start_time: allDay ? null : startTime || null,
+        end_time: allDay ? null : endTime || null,
         planned_expense: parseInt(plannedExpense) || 0,
         memo: memo.trim() || null,
       }
@@ -347,6 +348,22 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
             <h2 className="text-base font-semibold text-ink">
               {event ? '予定を編集' : '予定を追加'}
             </h2>
+            {event && (
+              <button
+                onClick={handleDelete}
+                disabled={isSubmitting}
+                className="p-1.5 text-danger-400 active:text-danger-600 disabled:opacity-50"
+                aria-label="削除"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                  <path d="M10 11v6" />
+                  <path d="M14 11v6" />
+                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {error && (
@@ -386,7 +403,8 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                disabled={allDay}
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 disabled:bg-surface-subtle disabled:text-ink-muted"
               />
             </div>
             <div>
@@ -395,10 +413,24 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                disabled={allDay}
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 disabled:bg-surface-subtle disabled:text-ink-muted"
               />
             </div>
           </div>
+
+          {/* 終日トグル */}
+          <label className="flex items-center justify-between cursor-pointer select-none">
+            <span className="text-sm text-ink">終日</span>
+            <div
+              onClick={() => setAllDay((v) => !v)}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${allDay ? 'bg-primary-500' : 'bg-surface-muted'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${allDay ? 'translate-x-5' : 'translate-x-0'}`}
+              />
+            </div>
+          </label>
 
           {/* 予定出費 */}
           <div>
@@ -429,15 +461,6 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
 
           {/* ボタン */}
           <div className="flex gap-2 pt-1">
-            {event && (
-              <button
-                onClick={handleDelete}
-                disabled={isSubmitting}
-                className="px-4 py-3 rounded-xl border border-danger-200 text-danger-500 text-sm font-semibold active:bg-danger-50 disabled:opacity-50"
-              >
-                削除
-              </button>
-            )}
             <button
               onClick={onClose}
               disabled={isSubmitting}
