@@ -70,7 +70,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
       onTouchEnd={handleTouchEnd}
     >
       {/* ドットインジケーター */}
-      <div className="flex justify-center gap-2 pt-10 pb-2">
+      <div className="flex justify-center gap-2 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2">
         {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
           <span
             key={i}

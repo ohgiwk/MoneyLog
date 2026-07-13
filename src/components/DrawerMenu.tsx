@@ -31,7 +31,7 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onWishlist, 
         exit={{ x: '100%' }}
         transition={{ type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.25 }}
       >
-        <div className="flex items-center justify-between px-4 py-4 border-b border-line-subtle">
+        <div className="flex items-center justify-between px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))] border-b border-line-subtle">
           <span className="font-semibold text-ink">メニュー</span>
           <button
             onClick={onClose}
