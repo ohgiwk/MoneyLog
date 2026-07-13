@@ -267,3 +267,6 @@ alter table public.budgets add primary key (user_id, month);
 
 -- budgets に月の収入カラムを追加（予算設定画面で収入に対する予算使用率を表示するために使用）
 alter table public.budgets add column if not exists income numeric not null default 0;
+
+-- shopping_items にメモカラムを追加（買い物メモの品目に任意メモを記録できるようにする）
+alter table public.shopping_items add column if not exists memo text;

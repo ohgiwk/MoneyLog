@@ -113,6 +113,7 @@ export interface Database {
           category: string
           budget_amount: number
           actual_amount: number | null
+          memo: string | null
           status: 'pending' | 'bought' | 'skipped'
           is_template: boolean
           sort_order: number

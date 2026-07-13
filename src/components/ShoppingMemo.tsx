@@ -4,6 +4,7 @@ import type { ShoppingItem } from '../lib/database.types'
 import { shoppingMemoService } from '../lib/services/shoppingMemoService'
 import { transactionService } from '../lib/services/transactionService'
 import PurchaseDialog from './PurchaseDialog'
+import ShoppingItemDialog from './ShoppingItemDialog'
 
 interface Props {
   userId: string
@@ -16,11 +17,9 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [newName, setNewName] = useState('')
-  const [adding, setAdding] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingName, setEditingName] = useState('')
   const [showDialog, setShowDialog] = useState(false)
+  const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
+  const [showItemDialog, setShowItemDialog] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -39,31 +38,26 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     void load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
   }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleAdd() {
-    const name = newName.trim()
-    if (!name) return
-    setAdding(true)
-    try {
-      const item = await shoppingMemoService.addItem(userId, name)
-      setItems(prev => [...prev, item])
-      setNewName('')
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '追加に失敗しました')
-    } finally {
-      setAdding(false)
-    }
+  function openAddDialog() {
+    setEditingItem(null)
+    setShowItemDialog(true)
   }
 
-  async function handleUpdate(id: string) {
-    const name = editingName.trim()
-    if (!name) return
-    try {
-      await shoppingMemoService.updateItem(id, name)
-      setItems(prev => prev.map(it => it.id === id ? { ...it, name } : it))
-      setEditingId(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '更新に失敗しました')
+  function openEditDialog(item: ShoppingItem) {
+    setEditingItem(item)
+    setShowItemDialog(true)
+  }
+
+  async function handleSaveItem(name: string, memo: string | null, budgetAmount: number) {
+    if (editingItem) {
+      await shoppingMemoService.updateItem(editingItem.id, name, memo, budgetAmount)
+      setItems(prev => prev.map(it => it.id === editingItem.id ? { ...it, name, memo, budget_amount: budgetAmount } : it))
+    } else {
+      const item = await shoppingMemoService.addItem(userId, name, memo, budgetAmount)
+      setItems(prev => [...prev, item])
     }
+    setShowItemDialog(false)
+    setEditingItem(null)
   }
 
   async function handleDelete(id: string) {
@@ -110,31 +104,12 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const selectedItems = items.filter(it => selected.has(it.id))
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 pb-24 space-y-4">
       {error && (
         <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {error}
         </div>
       )}
-
-      {/* 追加フォーム */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') void handleAdd() }}
-          placeholder="商品名を入力..."
-          className="flex-1 border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400 bg-surface"
-        />
-        <button
-          onClick={handleAdd}
-          disabled={adding || !newName.trim()}
-          className="px-4 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-medium active:bg-primary-600 disabled:opacity-40"
-        >
-          追加
-        </button>
-      </div>
 
       {/* リスト */}
       {loading ? (
@@ -143,7 +118,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         <div className="text-center py-10 text-ink-muted text-sm">
           <p className="text-3xl mb-2">🛒</p>
           <p>買い物メモがありません</p>
-          <p className="text-xs mt-1">商品名を入力して追加してください</p>
+          <p className="text-xs mt-1">右下のボタンから追加してください</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -169,36 +144,22 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 )}
               </button>
 
-              {/* 名前 / 編集 */}
-              {editingId === item.id ? (
-                <input
-                  autoFocus
-                  type="text"
-                  value={editingName}
-                  onChange={e => setEditingName(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') void handleUpdate(item.id)
-                    if (e.key === 'Escape') setEditingId(null)
-                  }}
-                  onBlur={() => void handleUpdate(item.id)}
-                  className="flex-1 text-sm text-ink-strong border-b border-primary-400 outline-none bg-transparent"
-                />
-              ) : (
-                <span
-                  className="flex-1 text-sm text-ink-strong"
-                  onDoubleClick={() => { setEditingId(item.id); setEditingName(item.name) }}
-                >
-                  {item.name}
-                </span>
-              )}
+              {/* 名前 / メモ / 予算 */}
+              <div className="flex-1 min-w-0">
+                <span className="block text-sm text-ink-strong truncate">{item.name}</span>
+                {(item.memo || item.budget_amount > 0) && (
+                  <span className="block text-xs text-ink-muted truncate">
+                    {item.memo}
+                    {item.memo && item.budget_amount > 0 ? ' ・ ' : ''}
+                    {item.budget_amount > 0 ? `予算 ¥${item.budget_amount.toLocaleString()}` : ''}
+                  </span>
+                )}
+              </div>
 
               {/* 編集・削除ボタン */}
               <div className="flex gap-1">
                 <button
-                  onClick={() => {
-                    if (editingId === item.id) { setEditingId(null) }
-                    else { setEditingId(item.id); setEditingName(item.name) }
-                  }}
+                  onClick={() => openEditDialog(item)}
                   className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -224,13 +185,27 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       )}
 
       {/* 購入済みボタン（選択時に表示） */}
-      {selected.size > 0 && (
+      {selected.size > 0 ? (
         <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
           <button
             onClick={() => setShowDialog(true)}
             className="w-full py-3.5 rounded-2xl bg-primary-500 text-white font-medium text-sm shadow-lg active:bg-primary-600"
           >
             {selected.size}件を購入済みとして記録
+          </button>
+        </div>
+      ) : (
+        /* FAB（追加） */
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+          <button
+            onClick={openAddDialog}
+            className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg active:bg-primary-600 flex items-center justify-center"
+            aria-label="買い物メモを追加"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
           </button>
         </div>
       )}
@@ -242,6 +217,15 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           expenseCategories={expenseCategories}
           onConfirm={handlePurchase}
           onCancel={() => setShowDialog(false)}
+        />
+      )}
+
+      {/* 追加・編集ダイアログ */}
+      {showItemDialog && (
+        <ShoppingItemDialog
+          item={editingItem ?? undefined}
+          onConfirm={handleSaveItem}
+          onCancel={() => { setShowItemDialog(false); setEditingItem(null) }}
         />
       )}
     </div>

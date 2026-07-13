@@ -47,7 +47,12 @@ export const shoppingMemoService = {
     })
   },
 
-  addItem: async (userId: string, name: string): Promise<ShoppingItem> => {
+  addItem: async (
+    userId: string,
+    name: string,
+    memo: string | null = null,
+    budgetAmount = 0
+  ): Promise<ShoppingItem> => {
     const listId = await ensureOpenList(userId)
     const { data, error } = await supabase
       .from('shopping_items')
@@ -56,7 +61,9 @@ export const shoppingMemoService = {
         user_id: userId,
         name,
         category: '',
-        budget_amount: 0,
+        budget_amount: budgetAmount,
+        actual_amount: null,
+        memo,
         status: 'pending',
         is_template: false,
         sort_order: Math.floor(Date.now() / 1000),
@@ -68,10 +75,15 @@ export const shoppingMemoService = {
     return data
   },
 
-  updateItem: async (id: string, name: string): Promise<void> => {
+  updateItem: async (
+    id: string,
+    name: string,
+    memo: string | null = null,
+    budgetAmount = 0
+  ): Promise<void> => {
     const { error } = await supabase
       .from('shopping_items')
-      .update({ name })
+      .update({ name, memo, budget_amount: budgetAmount })
       .eq('id', id)
     if (error) throw new Error(error.message)
     cacheInvalidateTable(TABLE)
