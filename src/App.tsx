@@ -148,7 +148,7 @@ export default function App() {
     <div className="max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
       <UpdateNotification />
       {/* ヘッダー */}
-      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface border-b border-line-subtle pt-[env(safe-area-inset-top)]">
+      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-b-2 border-primary-500 pt-[env(safe-area-inset-top)]">
         <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
           {headerBack ? (
             <button
@@ -283,7 +283,7 @@ export default function App() {
       </div>
 
       {/* ボトムナビ */}
-      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface border-t border-line-subtle flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-t border-line flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(1,38,100,0.06)]">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -294,11 +294,12 @@ export default function App() {
             }}
             className={
               'flex flex-col items-center gap-0.5 px-6 py-1 ' +
-              (tab === t.key ? 'text-primary-600' : 'text-ink-muted')
+              (tab === t.key ? 'text-primary-500' : 'text-ink-muted')
             }
           >
             <span className="text-xl">{t.icon}</span>
             <span className="text-[11px] font-medium">{t.label}</span>
+            <span className={`block h-0.5 w-5 rounded-full mt-0.5 transition-all ${tab === t.key ? 'bg-primary-500' : 'bg-transparent'}`} />
           </button>
         ))}
       </div>

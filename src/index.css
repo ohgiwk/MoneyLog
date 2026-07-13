@@ -9,39 +9,43 @@
  */
 :root {
   color-scheme: light;
-  --color-surface: 255 255 255; /* white */
-  --color-surface-subtle: 248 250 252; /* slate-50 */
-  --color-surface-hover: 241 245 249; /* slate-100 */
-  --color-surface-muted: 226 232 240; /* slate-200 */
-  --color-surface-strong: 51 65 85; /* slate-700 */
-  --color-line: 226 232 240; /* slate-200 */
-  --color-line-subtle: 241 245 249; /* slate-100 */
-  --color-line-strong: 100 116 139; /* slate-500 */
-  --color-ink-strong: 30 41 59; /* slate-800 */
-  --color-ink: 51 65 85; /* slate-700 */
-  --color-ink-muted: 100 116 139; /* slate-500 */
-  --color-ink-subtle: 203 213 225; /* slate-300 */
+  --color-surface: 255 255 253; /* ほぼ白 #fffffd - カード背景 */
+  --color-surface-subtle: 252 250 244; /* 白みがかった薄クリーム #fcfaf4 - ページ背景・ヘッダー */
+  --color-surface-hover: 245 240 224; /* 薄金 #f5f0e0 - ホバー */
+  --color-surface-muted: 230 218 180; /* 金土 #e6dab4 - 無効状態 */
+  --color-surface-strong: 1 38 100; /* 紺 #012664 - 選択中セグメント */
+  --color-line: 228 218 188; /* 薄金枠 #e4dabc */
+  --color-line-subtle: 242 238 226; /* 極薄金 #f2eee2 - 区切り線 */
+  --color-line-strong: 172 154 112; /* 金茶 #ac9a70 - 強調枠 */
+  --color-ink-strong: 42 30 16; /* 濃茶 #2a1e10 - 見出し */
+  --color-ink: 90 74 42; /* 茶 #5a4a2a - 本文 */
+  --color-ink-muted: 122 106 74; /* 薄茶 #7a6a4a - 補足 */
+  --color-ink-subtle: 200 186 154; /* 極薄茶 #c8ba9a - 装飾 */
 }
 
 .dark {
   color-scheme: dark;
-  --color-surface: 30 41 59; /* slate-800 */
-  --color-surface-subtle: 15 23 42; /* slate-900 */
-  --color-surface-hover: 51 65 85; /* slate-700 */
-  --color-surface-muted: 71 85 105; /* slate-600 */
-  --color-surface-strong: 51 65 85; /* slate-700（白文字と組む前提のため明暗共通） */
-  --color-line: 51 65 85; /* slate-700 */
-  --color-line-subtle: 30 41 59; /* slate-800 */
-  --color-line-strong: 100 116 139; /* slate-500 */
-  --color-ink-strong: 248 250 252; /* slate-50 */
-  --color-ink: 203 213 225; /* slate-300 */
-  --color-ink-muted: 148 163 184; /* slate-400 */
-  --color-ink-subtle: 71 85 105; /* slate-600 */
+  --color-surface: 28 32 52; /* スレート紺 #1c2034 - カード背景 */
+  --color-surface-subtle: 16 18 36; /* 深スレート #101224 - ページ背景 */
+  --color-surface-hover: 40 46 72; /* 中スレート #282e48 - ホバー */
+  --color-surface-muted: 58 66 100; /* 明スレート #3a4264 - 無効状態 */
+  --color-surface-strong: 1 38 100; /* #012664（アクセント共通） */
+  --color-line: 40 46 72; /* スレート枠 #282e48 */
+  --color-line-subtle: 28 32 52; /* 深スレート枠 #1c2034 */
+  --color-line-strong: 86 96 140; /* 明スレート #56608c */
+  --color-ink-strong: 222 218 230; /* 温白 #dedae6 */
+  --color-ink: 162 168 196; /* 薄スレート #a2a8c4 */
+  --color-ink-muted: 96 104 136; /* くすみスレート #606888 */
+  --color-ink-subtle: 46 52 80; /* 暗スレート #2e3450 */
 }
 
 body {
   font-family: 'Hiragino Sans', 'Yu Gothic', 'Helvetica Neue', Arial, sans-serif;
-  background: rgb(var(--color-surface-subtle));
+  background: #c8b070; /* アプリ外領域：金茶色（ライト） */
+}
+
+.dark body {
+  background: #06060d; /* アプリ外領域：ほぼ黒（ダーク） */
 }
 
 * {
@@ -54,4 +58,32 @@ body {
 
 input[type='number']::-webkit-inner-spin-button {
   opacity: 1;
+}
+
+/* 麻の葉柄の透かし（position: fixed を上書きしないよう position は指定しない） */
+.asanoha {
+  overflow: hidden;
+}
+
+.asanoha::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("/seigaiha.png");
+  background-repeat: repeat;
+  background-size: 180px auto;
+  background-position: center;
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .asanoha::before {
+  opacity: 0.12;
+}
+
+/* ::before の上にコンテンツが来るよう直接の子を z-index: 1 に */
+.asanoha > * {
+  position: relative;
+  z-index: 1;
 }

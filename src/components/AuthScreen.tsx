@@ -23,13 +23,13 @@ export default function AuthScreen() {
     <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">💰</div>
-          <h1 className="text-2xl font-bold text-ink-strong">キンカク手帖</h1>
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-16 h-16 object-contain mx-auto mb-3" />
+          <h1 className="text-2xl font-bold text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>キンカク手帖</h1>
           <p className="text-xs text-ink-muted">Kinkaku Note</p>
           <p className="text-sm text-ink-muted mt-1 font-medium">本気の節約家計簿</p>
         </div>
 
-        <div className="bg-surface rounded-2xl shadow-sm p-6 space-y-4">
+        <div className="bg-surface rounded-2xl shadow-sm border border-line p-6 space-y-4">
           {/* モード切り替え */}
           <div className="flex rounded-xl bg-surface-hover p-1" role="tablist" aria-label="認証モード">
             <button
