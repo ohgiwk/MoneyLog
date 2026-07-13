@@ -193,10 +193,10 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
       </div>
 
       {/* 選択日の区分設定 */}
-      <div className="bg-surface rounded-2xl shadow-sm px-4 py-3 space-y-2">
-        <span className="text-xs text-ink-muted">区分</span>
+      <div className="bg-surface rounded-2xl shadow-sm px-4 py-2 flex items-center gap-3">
+        <span className="text-xs text-ink-muted shrink-0">区分</span>
         {dayTypeError && <p className="text-xs text-danger-500">{dayTypeError}</p>}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-1">
           {(['work', 'off', 'holiday'] as const).map((t) => {
             const selected = dayTypeByDate.get(selectedDate) === t
             return (
@@ -205,7 +205,7 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
                 type="button"
                 onClick={() => void handleDayTypeChange(selected ? null : t)}
                 className={
-                  'flex-1 py-2 rounded-xl text-xs font-semibold border transition ' +
+                  'flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ' +
                   (selected ? DAY_TYPE_LABELS[t].color : 'border-line-subtle text-ink-muted bg-surface-subtle')
                 }
               >
