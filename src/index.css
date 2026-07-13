@@ -44,12 +44,12 @@ body {
   background: rgb(var(--color-surface-subtle));
 }
 
-::-webkit-scrollbar {
-  width: 6px;
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--color-line-strong));
-  border-radius: 3px;
+*::-webkit-scrollbar {
+  display: none;
 }
 
 input[type='number']::-webkit-inner-spin-button {
