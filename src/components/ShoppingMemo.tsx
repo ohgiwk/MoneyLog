@@ -5,6 +5,7 @@ import { shoppingMemoService } from '../lib/services/shoppingMemoService'
 import { transactionService } from '../lib/services/transactionService'
 import PurchaseDialog from './PurchaseDialog'
 import ShoppingItemDialog from './ShoppingItemDialog'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface Props {
   userId: string
@@ -20,6 +21,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const [showDialog, setShowDialog] = useState(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
   const [showItemDialog, setShowItemDialog] = useState(false)
+  const [deletingItem, setDeletingItem] = useState<ShoppingItem | null>(null)
 
   async function load() {
     setLoading(true)
@@ -168,7 +170,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                   </svg>
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); void handleDelete(item.id) }}
+                  onClick={(e) => { e.stopPropagation(); setDeletingItem(item) }}
                   className="p-1.5 text-ink-muted active:text-danger-500 rounded-lg"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -226,6 +228,13 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           item={editingItem ?? undefined}
           onConfirm={handleSaveItem}
           onCancel={() => { setShowItemDialog(false); setEditingItem(null) }}
+        />
+      )}
+      {deletingItem && (
+        <ConfirmDialog
+          message={`「${deletingItem.name}」を削除しますか？`}
+          onConfirm={() => { void handleDelete(deletingItem.id); setDeletingItem(null) }}
+          onCancel={() => setDeletingItem(null)}
         />
       )}
     </div>
