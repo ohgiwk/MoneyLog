@@ -170,7 +170,7 @@ export default function App() {
             ) : (
               <>
                 <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-7 h-7 object-contain" />
-                <span className="font-bold text-lg text-ink-strong">キンカク手帖</span>
+                <span className="text-lg text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>キンカク手帖</span>
               </>
             )}
           </div>
