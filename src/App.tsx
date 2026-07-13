@@ -169,7 +169,7 @@ export default function App() {
               <span className="font-semibold text-ink-strong truncate">{headerBack.title}</span>
             ) : (
               <>
-                <span className="text-2xl">💰</span>
+                <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-7 h-7 object-contain" />
                 <span className="font-bold text-lg text-ink-strong">キンカク手帖</span>
               </>
             )}
