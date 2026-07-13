@@ -9,6 +9,7 @@ interface Props {
   userId: string
   month: string
   setMonth: (m: string) => void
+  initialSelectedDate?: string
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
@@ -23,10 +24,10 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function CalendarTab({ userId, month, setMonth }: Props) {
+export default function CalendarTab({ userId, month, setMonth, initialSelectedDate }: Props) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [workSchedule, setWorkSchedule] = useState<WorkSchedule[]>([])
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr())
+  const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [fetchError, setFetchError] = useState<string | null>(null)

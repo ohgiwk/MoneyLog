@@ -39,6 +39,7 @@ export default function App() {
   const theme = useTheme()
   const [tab, setTab] = useState<TabKey>('home')
   const [month, setMonth] = useState(todayStr().slice(0, 7))
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | undefined>(undefined)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [screen, setScreen] = useState<Screen>('main')
   const [direction, setDirection] = useState<NavDirection>('forward')
@@ -61,6 +62,12 @@ export default function App() {
 
   function resetScroll() {
     scrollRef.current?.scrollTo(0, 0)
+  }
+
+  function goToCalendarDate(date: string) {
+    setMonth(date.slice(0, 7))
+    setCalendarSelectedDate(date)
+    setTab('calendar')
   }
 
   // タブ・画面遷移時にスクロールをトップに戻す
@@ -216,7 +223,13 @@ export default function App() {
 
       {/* コンテンツ */}
       <div ref={scrollRef} className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto">
-        {tab === 'home' && <HomeTab userId={user.id} onManageBudget={() => navigate('budget')} />}
+        {tab === 'home' && (
+          <HomeTab
+            userId={user.id}
+            onManageBudget={() => navigate('budget')}
+            onSelectUpcomingEvent={goToCalendarDate}
+          />
+        )}
         {tab === 'record' && (
           <RecordTab
             userId={user.id}
@@ -243,7 +256,12 @@ export default function App() {
           />
         )}
         {tab === 'calendar' && (
-          <CalendarTab userId={user.id} month={month} setMonth={setMonth} />
+          <CalendarTab
+            userId={user.id}
+            month={month}
+            setMonth={setMonth}
+            initialSelectedDate={calendarSelectedDate}
+          />
         )}
       </div>
 
@@ -254,6 +272,7 @@ export default function App() {
             key={t.key}
             onClick={() => {
               if (t.key === 'record') setRecordTapKey((k) => k + 1)
+              if (t.key === 'calendar') setCalendarSelectedDate(undefined)
               setTab(t.key)
             }}
             className={

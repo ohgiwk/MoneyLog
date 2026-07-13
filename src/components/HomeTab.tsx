@@ -13,11 +13,12 @@ import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 interface Props {
   userId: string
   onManageBudget?: () => void
+  onSelectUpcomingEvent?: (date: string) => void
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 
-export default function HomeTab({ userId, onManageBudget }: Props) {
+export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent }: Props) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [budgetMonthTx, setBudgetMonthTx] = useState<Transaction[]>([])
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
@@ -269,12 +270,18 @@ export default function HomeTab({ userId, onManageBudget }: Props) {
           <div className="text-sm font-semibold text-ink-muted">今後の予定出費</div>
           <ul className="divide-y divide-line-subtle">
             {upcomingEvents.map((event) => (
-              <li key={event.id} className="flex items-center justify-between py-2 text-sm">
-                <div className="flex flex-col">
-                  <span className="text-ink">{event.title}</span>
-                  <span className="text-xs text-ink-muted">{formatDateWithWeekday(event.date)}</span>
-                </div>
-                <span className="font-semibold text-ink">{formatYen(event.planned_expense)}</span>
+              <li key={event.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelectUpcomingEvent?.(event.date)}
+                  className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-ink">{event.title}</span>
+                    <span className="text-xs text-ink-muted">{formatDateWithWeekday(event.date)}</span>
+                  </div>
+                  <span className="font-semibold text-ink">{formatYen(event.planned_expense)}</span>
+                </button>
               </li>
             ))}
           </ul>
