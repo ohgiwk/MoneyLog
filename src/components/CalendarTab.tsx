@@ -3,7 +3,6 @@ import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { workScheduleService } from '../lib/services/workScheduleService'
 import { formatDateWithWeekday, formatYen } from '../utils'
-import MonthSwitcher from './ui/MonthSwitcher'
 
 interface Props {
   userId: string
@@ -113,8 +112,6 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
 
   return (
     <div className="p-4 space-y-4">
-      <MonthSwitcher month={month} setMonth={setMonth} />
-
       {fetchError && (
         <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}

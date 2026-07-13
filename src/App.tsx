@@ -3,7 +3,7 @@ import { AnimatePresence } from 'motion/react'
 import { useAuth } from './hooks/useAuth'
 import { useCategories } from './hooks/useCategories'
 import { useTheme } from './hooks/useTheme'
-import { todayStr } from './utils'
+import { todayStr, shiftMonth, monthLabel } from './utils'
 import AuthScreen from './components/AuthScreen'
 import HomeTab from './components/HomeTab'
 import RecordTab from './components/RecordTab'
@@ -167,6 +167,22 @@ export default function App() {
           <div className="flex items-center justify-center gap-2 min-w-0">
             {headerBack ? (
               <span className="font-semibold text-ink-strong truncate">{headerBack.title}</span>
+            ) : tab === 'calendar' ? (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setMonth(shiftMonth(month, -1))}
+                  className="w-8 h-8 flex items-center justify-center rounded-full active:bg-surface-subtle text-ink-muted text-2xl"
+                >
+                  ‹
+                </button>
+                <span className="text-base font-bold text-ink-strong">{monthLabel(month)}</span>
+                <button
+                  onClick={() => setMonth(shiftMonth(month, 1))}
+                  className="w-8 h-8 flex items-center justify-center rounded-full active:bg-surface-subtle text-ink-muted text-2xl"
+                >
+                  ›
+                </button>
+              </div>
             ) : (
               <>
                 <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-7 h-7 object-contain" />
