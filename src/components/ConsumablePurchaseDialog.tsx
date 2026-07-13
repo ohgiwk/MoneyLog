@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Consumable } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
 import { todayStr } from '../utils'
@@ -44,9 +45,11 @@ export default function ConsumablePurchaseDialog({
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center sm:items-center">
-      <div className="bg-surface w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 space-y-4 shadow-xl">
+  // 祖先の transform/z-index によるスタッキングコンテキストの影響を受けないよう、
+  // document.body 直下に portal 描画してヘッダー・下部ナビより確実に手前に表示する
+  return createPortal(
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-surface w-full max-w-md rounded-2xl p-5 space-y-4 shadow-xl max-h-[85vh] overflow-y-auto">
         <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
 
         {/* 品目情報 */}
@@ -135,6 +138,7 @@ export default function ConsumablePurchaseDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
