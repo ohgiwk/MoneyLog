@@ -282,6 +282,7 @@ interface EventFormProps {
 }
 
 function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
+  const [eventDate, setEventDate]       = useState(event?.date ?? date)
   const [title, setTitle]               = useState(event?.title ?? '')
   const [startTime, setStartTime]       = useState(event?.start_time?.slice(0, 5) ?? '')
   const [endTime, setEndTime]           = useState(event?.end_time?.slice(0, 5) ?? '')
@@ -299,7 +300,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
     try {
       const payload = {
         user_id: userId,
-        date,
+        date: eventDate,
         title: title.trim(),
         start_time: startTime || null,
         end_time: endTime || null,
@@ -341,7 +342,6 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
             <h2 className="text-base font-semibold text-ink">
               {event ? '予定を編集' : '予定を追加'}
             </h2>
-            <span className="text-xs text-ink-muted">{formatDateWithWeekday(date)}</span>
           </div>
 
           {error && (
@@ -349,6 +349,17 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
               {error}
             </div>
           )}
+
+          {/* 予定日 */}
+          <div>
+            <label className="text-xs text-ink-muted">予定日</label>
+            <input
+              type="date"
+              value={eventDate}
+              onChange={(e) => setEventDate(e.target.value)}
+              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+            />
+          </div>
 
           {/* 予定名 */}
           <div>
