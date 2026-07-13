@@ -185,17 +185,11 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
         </div>
       </div>
 
-      {/* 選択日のヘッダー + 追加ボタン */}
+      {/* 選択日のヘッダー */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-ink">
           {formatDateWithWeekday(selectedDate)}
         </span>
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary-500 text-white text-xs font-semibold active:bg-primary-600"
-        >
-          <span className="text-base leading-none">＋</span>予定を追加
-        </button>
       </div>
 
       {/* 選択日の区分設定 */}
@@ -256,6 +250,17 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
           ))}
         </div>
       )}
+
+      {/* FAB */}
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+        <button
+          onClick={openAdd}
+          className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 active:bg-primary-600 text-white shadow-lg flex items-center justify-center text-2xl"
+          aria-label="予定を追加"
+        >
+          ＋
+        </button>
+      </div>
 
       {/* 追加・編集フォーム */}
       {showForm && (
