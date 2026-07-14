@@ -89,8 +89,8 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
         >
           {/* Page 1: Welcome */}
           <div className="flex flex-col items-center justify-center px-8 text-center h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 0 ? { inert: '' } : {})}>
-            <div className="text-6xl mb-6">🌱</div>
-            <h1 className="text-2xl font-bold text-ink-strong mb-4">
+            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-24 h-24 object-contain mb-6" />
+            <h1 className="text-2xl font-bold text-ink-strong mb-4" style={{ fontFamily: "'Kiwi Maru', serif" }}>
               キンカク手帖へようこそ！
             </h1>
             <p className="text-ink leading-relaxed mb-4">
