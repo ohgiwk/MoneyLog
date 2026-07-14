@@ -181,10 +181,10 @@ export const CONSUMABLE_CYCLE_PRESETS = [
 ]
 
 export const STATUS_LABELS = {
-  active: { label: '契約中', color: 'text-primary-600 bg-primary-50' },
-  reviewing: { label: '見直し中', color: 'text-warning-600 bg-warning-50' },
+  active: { label: '契約中', color: 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-950/60' },
+  reviewing: { label: '見直し中', color: 'text-warning-600 bg-warning-50 dark:text-warning-400 dark:bg-warning-950/60' },
   cancelled: { label: '解約済み', color: 'text-ink-muted bg-surface-hover' },
-  unsubscribed: { label: '未契約', color: 'text-blue-500 bg-blue-50' },
+  unsubscribed: { label: '未契約', color: 'text-blue-500 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/60' },
 } as const
 
 export const HOUSEHOLD_MEMBERS_MIN = 1

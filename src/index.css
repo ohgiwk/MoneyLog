@@ -25,14 +25,14 @@
 
 .dark {
   color-scheme: dark;
-  --color-surface: 28 32 52; /* スレート紺 #1c2034 - カード背景 */
-  --color-surface-subtle: 16 18 36; /* 深スレート #101224 - ページ背景 */
-  --color-surface-hover: 40 46 72; /* 中スレート #282e48 - ホバー */
-  --color-surface-muted: 58 66 100; /* 明スレート #3a4264 - 無効状態 */
+  --color-surface: 30 33 48; /* スレート #1e2130 - カード背景（彩度下げ） */
+  --color-surface-subtle: 17 18 30; /* 深スレート #12121e - ページ背景（彩度下げ） */
+  --color-surface-hover: 43 47 66; /* 中スレート #2b2f42 - ホバー（彩度下げ） */
+  --color-surface-muted: 62 68 92; /* 明スレート #3e445c - 無効状態（彩度下げ） */
   --color-surface-strong: 1 38 100; /* #012664（アクセント共通） */
-  --color-line: 40 46 72; /* スレート枠 #282e48 */
-  --color-line-subtle: 28 32 52; /* 深スレート枠 #1c2034 */
-  --color-line-strong: 86 96 140; /* 明スレート #56608c */
+  --color-line: 43 47 66; /* スレート枠 #2b2f42（彩度下げ） */
+  --color-line-subtle: 30 33 48; /* 深スレート枠 #1e2130（彩度下げ） */
+  --color-line-strong: 90 98 128; /* 明スレート #5a6280（彩度下げ） */
   --color-ink-strong: 222 218 230; /* 温白 #dedae6 */
   --color-ink: 162 168 196; /* 薄スレート #a2a8c4 */
   --color-ink-muted: 96 104 136; /* くすみスレート #606888 */
