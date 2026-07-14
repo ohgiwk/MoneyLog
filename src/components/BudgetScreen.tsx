@@ -56,7 +56,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   }
 
   const oneTimeTotal = oneTimeBudgetTotal(budget)
-  const budgetTotal = budget.fixed + budget.consumable + oneTimeTotal
+  const budgetTotal = budget.fixed + oneTimeTotal
   const { pct: usagePct, over: overIncome } = calcBudgetProgress(budgetTotal, budget.income)
   const remaining = budget.income - budgetTotal
 
@@ -102,15 +102,6 @@ export default function BudgetScreen({ userId, onBack }: Props) {
               label="固定費"
               value={budget.fixed}
               onChange={(v) => handleChange('fixed', v)}
-            />
-          </div>
-
-          {/* 定期購入 */}
-          <div className="space-y-3">
-            <BudgetField
-              label="定期購入"
-              value={budget.consumable}
-              onChange={(v) => handleChange('consumable', v)}
             />
           </div>
 

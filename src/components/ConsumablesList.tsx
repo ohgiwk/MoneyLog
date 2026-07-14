@@ -171,21 +171,6 @@ export default function ConsumablesList({
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
-        {budget > 0 && (
-          <div className="text-xs text-ink-muted mt-1">
-            予算 {formatYen(summaryPeriod === 'monthly' ? budget : budget * 12)}
-            {' / 残額 '}
-            <span
-              className={
-                (summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12) < 0
-                  ? 'text-danger-500 font-semibold'
-                  : 'text-primary-600 font-semibold'
-              }
-            >
-              {formatYen(summaryPeriod === 'monthly' ? budget - totalMonthly : (budget - totalMonthly) * 12)}
-            </span>
-          </div>
-        )}
       </div>
 
       {loading && <Spinner />}
