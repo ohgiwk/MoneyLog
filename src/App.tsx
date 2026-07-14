@@ -28,9 +28,9 @@ type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'home', label: 'ホーム', icon: '🏠' },
+  { key: 'fixed', label: '固定費', icon: '📋' },
   { key: 'record', label: '記録', icon: '✏️' },
   { key: 'shopping', label: 'メモ', icon: '🛒' },
-  { key: 'fixed', label: '固定費', icon: '📋' },
   { key: 'calendar', label: 'カレンダー', icon: '📅' },
 ]
 
