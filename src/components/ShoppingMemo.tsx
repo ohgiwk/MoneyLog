@@ -146,6 +146,13 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const grouped = groupItems(items)
   const existingGroups = [...new Set(items.map(it => it.category ?? '').filter(Boolean))]
 
+  // 選択アイテムが全て同じグループかつ STORE_TYPES に一致する場合、店舗種別を自動選択
+  const inferredStoreType = (() => {
+    const groups = [...new Set(selectedItems.map(it => it.category ?? ''))]
+    if (groups.length === 1 && STORE_TYPES.some(st => st.name === groups[0])) return groups[0]
+    return undefined
+  })()
+
   return (
     <div className="p-4 pb-24 space-y-4">
       {error && (
@@ -324,6 +331,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         <PurchaseDialog
           itemNames={selectedItems.map(it => it.name)}
           expenseCategories={expenseCategories}
+          initialStoreType={inferredStoreType}
           onConfirm={handlePurchase}
           onCancel={() => setShowDialog(false)}
         />
