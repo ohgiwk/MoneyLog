@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import { formatYen } from '../utils'
@@ -6,6 +7,9 @@ import { getAllCurrencyMeta } from '../lib/exchangeRate'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
+import SubscriptionPickerScreen from './SubscriptionPickerScreen'
+import { type SubscriptionPreset } from '../constants'
+import { AnimatePresence, motion } from 'motion/react'
 import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
 import type { ReactNode } from 'react'
@@ -47,6 +51,9 @@ export default function FixedExpenseList({
 }: Props) {
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [pendingPreset, setPendingPreset] = useState<SubscriptionPreset | null>(null)
+  const [formFocusSignal, setFormFocusSignal] = useState(0)
   const [direction, setDirection] = useState<NavDirection>('forward')
   const [tutorialOpen, setTutorialOpen] = useState(() => !!fromOnboarding)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
@@ -62,9 +69,19 @@ export default function FixedExpenseList({
   }
   function closeEditing() {
     setDirection('back')
+    setShowPicker(false)
     setEditing(null)
     onEditingChange(null)
     reload()
+  }
+  function openPicker() {
+    setDirection('forward')
+    setShowPicker(true)
+  }
+  function closePicker() {
+    setDirection('back')
+    setShowPicker(false)
+    setFormFocusSignal((n) => n + 1)
   }
 
   const categoryOrderMap = useMemo(
@@ -103,12 +120,16 @@ export default function FixedExpenseList({
 
   if (editing !== null) {
     content = (
-      <div className="-m-4 p-4 min-h-screen bg-surface-subtle">
+      <div className="relative -m-4 p-4 min-h-screen bg-surface-subtle">
         <FixedExpenseForm
           userId={userId}
           expense={editing === 'new' ? undefined : editing}
           fixedCategories={fixedCategories}
           onClose={closeEditing}
+          onOpenSubscriptionPicker={openPicker}
+          presetToApply={pendingPreset}
+          onPresetApplied={() => setPendingPreset(null)}
+          focusSignal={formFocusSignal}
           onHeaderChange={onEditingChange}
         />
       </div>
@@ -396,8 +417,33 @@ export default function FixedExpenseList({
   }
 
   return (
-    <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
-      {content}
-    </PageTransition>
+    <>
+      <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
+        {content}
+      </PageTransition>
+      {createPortal(
+        <AnimatePresence>
+          {showPicker && (
+            <motion.div
+              key="picker"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ x: { type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.32 } }}
+              className="fixed inset-0 max-w-md mx-auto bg-surface-subtle overflow-y-auto z-[100]"
+            >
+              <SubscriptionPickerScreen
+                onSelect={(preset) => {
+                  setPendingPreset(preset)
+                  closePicker()
+                }}
+                onBack={closePicker}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
   )
 }

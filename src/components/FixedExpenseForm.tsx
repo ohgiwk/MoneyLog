@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   STATUS_LABELS,
-  SUBSCRIPTION_PRESETS,
-  SUBSCRIPTION_SUBCATEGORIES,
   type CategoryInfo,
+  type SubscriptionPreset,
 } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
@@ -32,6 +31,10 @@ interface Props {
   expense?: FixedExpense
   fixedCategories: CategoryInfo[]
   onClose: () => void
+  onOpenSubscriptionPicker?: () => void
+  presetToApply?: SubscriptionPreset | null
+  onPresetApplied?: () => void
+  focusSignal?: number
   onHeaderChange?: (
     state: {
       title: string
@@ -41,17 +44,7 @@ interface Props {
   ) => void
 }
 
-export default function FixedExpenseForm({ userId, expense, fixedCategories, onClose, onHeaderChange }: Props) {
-  const initialSubSubcategory = (() => {
-    if (expense?.category === 'サブスク') {
-      return (
-        SUBSCRIPTION_PRESETS.find((p) => p.name === expense?.name)?.subcategory ??
-        SUBSCRIPTION_SUBCATEGORIES[0].name
-      )
-    }
-    return SUBSCRIPTION_SUBCATEGORIES[0].name
-  })()
-
+export default function FixedExpenseForm({ userId, expense, fixedCategories, onClose, onOpenSubscriptionPicker, presetToApply, onPresetApplied, focusSignal, onHeaderChange }: Props) {
   const [nameError, setNameError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -69,7 +62,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: expense?.name ?? '',
     category: expense?.category ?? fixedCategories[0]?.name ?? '',
-    subSubcategory: initialSubSubcategory,
+    subSubcategory: '',
     amount: (() => {
       if (expense?.id) {
         const meta = getExpenseCurrencyMeta(expense.id)
@@ -110,7 +103,22 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
         : undefined,
     })
-  }, [expense, isDirty, isSubmitting]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [expense, isDirty, isSubmitting, focusSignal]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!presetToApply) return
+    setValue('name', presetToApply.name)
+    setValue('cycle', presetToApply.cycle)
+    if (presetToApply.currency === 'USD') {
+      setCurrency('USD')
+      setUsdRate(getUsdJpyRate())
+      setValue('amount', (presetToApply.usdAmount ?? 0).toString())
+    } else {
+      setCurrency('JPY')
+      setValue('amount', presetToApply.amount.toString())
+    }
+    onPresetApplied?.()
+  }, [presetToApply]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function save() {
     const inputAmt = parseFloat(values.amount)
@@ -239,57 +247,13 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
         </div>
 
         {values.category === 'サブスク' && (
-          <div className="space-y-2">
-            <div>
-              <label className="text-xs text-ink-muted">サービスカテゴリ</label>
-              <select
-                value={values.subSubcategory}
-                onChange={(e) => setValue('subSubcategory', e.target.value)}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-ink"
-              >
-                {SUBSCRIPTION_SUBCATEGORIES.map((s) => (
-                  <option key={s.name} value={s.name}>
-                    {s.icon} {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-ink-muted">サービスから選ぶ（任意）</label>
-              <select
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 text-ink"
-                value={values.name}
-                onChange={(e) => {
-                  const preset = SUBSCRIPTION_PRESETS.find((p) => p.name === e.target.value)
-                  if (preset) {
-                    setValue('name', preset.name)
-                    setValue('cycle', preset.cycle)
-                    if (preset.currency === 'USD') {
-                      setCurrency('USD')
-                      setUsdRate(getUsdJpyRate())
-                      setValue('amount', (preset.usdAmount ?? 0).toString())
-                    } else {
-                      setCurrency('JPY')
-                      setValue('amount', preset.amount.toString())
-                    }
-                  } else {
-                    setValue('name', e.target.value)
-                  }
-                }}
-              >
-                <option value="">-- サービスを選択 --</option>
-                {SUBSCRIPTION_PRESETS.filter((p) => p.subcategory === values.subSubcategory).map(
-                  (p) => (
-                    <option key={p.name} value={p.name}>
-                      {p.currency === 'USD'
-                        ? `${p.name}（$${p.usdAmount}/${p.cycle === 'monthly' ? '月' : '年'}）`
-                        : `${p.name}（${p.amount.toLocaleString()}円/${p.cycle === 'monthly' ? '月' : '年'}）`}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => onOpenSubscriptionPicker?.()}
+            className="w-full py-2 rounded-xl border border-line bg-surface text-sm font-medium text-ink active:bg-surface-subtle"
+          >
+            サブスク一覧から選択する →
+          </button>
         )}
 
         <div className="grid grid-cols-2 gap-3">
