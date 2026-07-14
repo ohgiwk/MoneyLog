@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { CategoryInfo } from '../constants'
+import { STORE_TYPES } from '../constants'
 import type { ShoppingItem } from '../lib/database.types'
 import { shoppingMemoService } from '../lib/services/shoppingMemoService'
 import { transactionService } from '../lib/services/transactionService'
@@ -39,7 +40,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [showDialog, setShowDialog] = useState(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null)
@@ -163,60 +163,56 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         <div className="space-y-3">
           {grouped.map(({ groupName, items: groupedItems }) => {
             const key = groupName || '__ungrouped__'
-            const isCollapsed = collapsedGroups.has(key)
             const allSelected = groupedItems.every(it => selected.has(it.id))
             const someSelected = groupedItems.some(it => selected.has(it.id))
 
-            function toggleCollapse() {
-              setCollapsedGroups(prev => {
-                const n = new Set(prev)
-                if (n.has(key)) n.delete(key); else n.add(key)
-                return n
-              })
-            }
-
             return (
               <div key={key} className="bg-surface border border-line-subtle rounded-2xl shadow-sm overflow-hidden">
-                {/* パネルヘッダー */}
+                {/* グループヘッダー */}
                 <div className="flex items-center gap-2 px-3 py-2.5">
-                  {/* 折りたたみトグル */}
-                  <button
-                    onClick={toggleCollapse}
-                    className="flex items-center gap-1.5 flex-1 min-w-0 text-left"
-                  >
-                    <svg
-                      width="14" height="14" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                      className={'flex-shrink-0 text-ink-muted transition-transform ' + (isCollapsed ? '-rotate-90' : '')}
-                    >
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
-                    <span className="text-sm font-semibold text-ink-strong truncate">
-                      {groupName || 'グループなし'}
-                    </span>
-                    <span className="text-xs text-ink-muted flex-shrink-0">
-                      {groupedItems.length}件
-                    </span>
-                  </button>
-
-                  {/* グループ全選択ボタン */}
+                  {/* 全選択チェックボックス */}
                   <button
                     onClick={() => toggleGroup(groupedItems)}
-                    className={
-                      'flex-shrink-0 text-xs px-2.5 py-1 rounded-lg border transition-colors ' +
-                      (allSelected
-                        ? 'bg-primary-500 border-primary-500 text-white'
-                        : someSelected
-                        ? 'bg-primary-50 border-primary-300 text-primary-600'
-                        : 'border-line text-ink-muted active:bg-surface-subtle')
-                    }
+                    className="flex-shrink-0"
+                    aria-label={`${groupName || 'グループなし'}を全選択`}
                   >
-                    {allSelected ? '全解除' : '全選択'}
+                    <div
+                      className={
+                        'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ' +
+                        (allSelected
+                          ? 'bg-primary-500 border-primary-500'
+                          : someSelected
+                          ? 'bg-primary-100 border-primary-400'
+                          : 'border-line-strong bg-surface')
+                      }
+                    >
+                      {allSelected && (
+                        <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                          <path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      {someSelected && !allSelected && (
+                        <svg width="9" height="2" viewBox="0 0 9 2" fill="none">
+                          <line x1="1" y1="1" x2="8" y2="1" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      )}
+                    </div>
                   </button>
+
+                  {/* アイコン・グループ名・件数 */}
+                  <span className="text-base leading-none flex-shrink-0">
+                    {STORE_TYPES.find(st => st.name === groupName)?.icon ?? (groupName ? '🛍️' : '📋')}
+                  </span>
+                  <span className="text-sm font-semibold text-ink-strong truncate flex-1 min-w-0">
+                    {groupName || 'グループなし'}
+                  </span>
+                  <span className="text-xs text-ink-muted flex-shrink-0">
+                    {groupedItems.length}件
+                  </span>
 
                   {/* グループへ追加ボタン */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); openAddDialog(groupName) }}
+                    onClick={() => openAddDialog(groupName)}
                     className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-ink-muted active:bg-surface-subtle"
                     aria-label={`${groupName || 'グループなし'}にアイテムを追加`}
                   >
@@ -228,8 +224,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 </div>
 
                 {/* アイテムリスト */}
-                {!isCollapsed && (
-                  <div className="border-t border-line-subtle divide-y divide-line-subtle">
+                <div className="border-t border-line-subtle divide-y divide-line-subtle">
                     {groupedItems.map(item => (
                       <div
                         key={item.id}
@@ -290,7 +285,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                       </div>
                     ))}
                   </div>
-                )}
               </div>
             )
           })}
