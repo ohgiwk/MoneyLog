@@ -3,7 +3,6 @@ import type { CategoryInfo } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { consumableService } from '../lib/services/consumableService'
 import { profileService } from '../lib/services/profileService'
-import { budgetService } from '../lib/services/budgetService'
 import { TabGroup } from './ui/TabGroup'
 import ConsumablesList from './ConsumablesList'
 import ShoppingMemo from './ShoppingMemo'
@@ -32,11 +31,10 @@ interface Props {
   ) => void
 }
 
-export default function ShoppingTab({ userId, month, expenseCategories, resetSignal, onNavigate, onHeaderChange }: Props) {
+export default function ShoppingTab({ userId, expenseCategories, resetSignal, onNavigate, onHeaderChange }: Props) {
   const [sub, setSub] = useState<SubPage>('shopping')
   const [consumables, setConsumables] = useState<Consumable[]>([])
   const [householdMembers, setHouseholdMembers] = useState(1)
-  const [consumableBudget, setConsumableBudget] = useState(0)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [consumableEditing, setConsumableEditing] = useState(false)
@@ -53,14 +51,12 @@ export default function ShoppingTab({ userId, month, expenseCategories, resetSig
       setFetchError(null)
       setLoading(true)
       try {
-        const [profile, consumablesData, budget] = await Promise.all([
+        const [profile, consumablesData] = await Promise.all([
           profileService.fetchById(userId),
           consumableService.fetchByUser(userId),
-          budgetService.fetchByMonth(userId, month),
         ])
         if (profile) setHouseholdMembers(profile.household_members ?? 1)
         setConsumables(consumablesData)
-        setConsumableBudget(budget.consumable)
       } catch (err) {
         setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
       } finally {
@@ -70,13 +66,7 @@ export default function ShoppingTab({ userId, month, expenseCategories, resetSig
     void load()
   }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    budgetService.fetchByMonth(userId, month)
-      .then((b) => setConsumableBudget(b.consumable))
-      .catch(() => {})
-  }, [userId, month])
-
-  async function fetchConsumables() {
+async function fetchConsumables() {
     try {
       const data = await consumableService.fetchByUser(userId)
       setConsumables(data)
@@ -134,7 +124,6 @@ export default function ShoppingTab({ userId, month, expenseCategories, resetSig
             onEditingChange={handleConsumableEditingChange}
             loading={loading}
             onTransactionAdded={fetchTransactions}
-            budget={consumableBudget}
           />
         </div>
       )}

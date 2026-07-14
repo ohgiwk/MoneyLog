@@ -42,7 +42,7 @@ export default function PageTransition({ pageKey, direction, children, className
   return (
     <div
       className={'relative overflow-hidden grid' + (className ? ' ' + className : '')}
-      style={{ gridTemplateRows: fillHeight ? '100%' : undefined }}
+      style={{ gridTemplateColumns: '100%', gridTemplateRows: fillHeight ? '100%' : undefined }}
     >
       <AnimatePresence initial={false} custom={direction}>
         <motion.div

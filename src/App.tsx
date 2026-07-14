@@ -146,7 +146,7 @@ export default function App() {
     )
   } else {
     content = (
-    <div className="max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
+    <div id="app-root" className="relative max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
       <UpdateNotification />
       {/* ヘッダー */}
       <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-b-2 border-primary-500 pt-[env(safe-area-inset-top)]">

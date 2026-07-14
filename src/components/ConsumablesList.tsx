@@ -26,7 +26,6 @@ interface Props {
   onEditingChange: (state: HeaderState | null) => void
   loading?: boolean
   onTransactionAdded?: () => void
-  budget?: number
 }
 
 type EditingState = Consumable | null | 'new' | { preset: DefaultConsumable }
@@ -40,7 +39,6 @@ export default function ConsumablesList({
   onEditingChange,
   loading,
   onTransactionAdded,
-  budget = 0,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
   const [direction, setDirection] = useState<NavDirection>('forward')
