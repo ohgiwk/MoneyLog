@@ -74,7 +74,7 @@ export default function BudgetProgressPanel({
             <button
               key={m}
               onClick={() => setPeriodMode(m)}
-              className={`px-2 py-1 ${periodMode === m ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
+              className={`px-2 py-1 ${periodMode === m ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted'}`}
             >
               {m === 'week' ? '週' : '月'}
             </button>
