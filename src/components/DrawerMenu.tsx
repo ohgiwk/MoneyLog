@@ -6,11 +6,12 @@ interface Props {
   onSetup: () => void
   onAnalytics: () => void
   onSavingTips: () => void
+  onAchievements: () => void
   onSignOut: () => void
   onClose: () => void
 }
 
-export default function DrawerMenu({ onSettings, onBudget, onSetup, onAnalytics, onSavingTips, onSignOut, onClose }: Props) {
+export default function DrawerMenu({ onSettings, onBudget, onSetup, onAnalytics, onSavingTips, onAchievements, onSignOut, onClose }: Props) {
   return (
     <>
       {/* オーバーレイ */}
@@ -80,6 +81,16 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onAnalytics,
           >
             <span className="text-lg">💡</span>
             節約のコツ
+          </button>
+          <button
+            onClick={() => {
+              onAchievements()
+              onClose()
+            }}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
+            <span className="text-lg">🏆</span>
+            実績
           </button>
           <button
             onClick={() => {

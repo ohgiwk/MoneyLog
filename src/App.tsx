@@ -19,12 +19,13 @@ import PaymentMethodsScreen from './components/PaymentMethodsScreen'
 import OnboardingScreen from './components/OnboardingScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
+import AchievementsScreen from './components/AchievementsScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 import PageTransition, { type NavDirection } from './components/PageTransition'
 
 type TabKey = 'home' | 'record' | 'shopping' | 'fixed' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'analytics' | 'saving-tips'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'analytics' | 'saving-tips' | 'achievements'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'home', label: 'ホーム', icon: '🏠' },
@@ -100,7 +101,9 @@ export default function App() {
 
   let content: ReactNode
 
-  if (screen === 'analytics') {
+  if (screen === 'achievements') {
+    content = <AchievementsScreen userId={user.id} onBack={() => navigate('main', 'back')} />
+  } else if (screen === 'analytics') {
     content = <AnalyticsScreen userId={user.id} onBack={() => navigate('main', 'back')} />
   } else if (screen === 'saving-tips') {
     content = <SavingTipsScreen onBack={() => navigate('main', 'back')} />
@@ -238,6 +241,7 @@ export default function App() {
             onSetup={() => navigate('setup')}
             onAnalytics={() => navigate('analytics')}
             onSavingTips={() => navigate('saving-tips')}
+            onAchievements={() => navigate('achievements')}
             onSignOut={signOut}
             onClose={() => setDrawerOpen(false)}
           />
