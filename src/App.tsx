@@ -7,6 +7,7 @@ import { todayStr, shiftMonth, monthLabel } from './utils'
 import AuthScreen from './components/AuthScreen'
 import HomeTab from './components/HomeTab'
 import RecordTab from './components/RecordTab'
+import ShoppingTab from './components/ShoppingTab'
 import FixedExpenseTab from './components/FixedExpenseTab'
 import CalendarTab from './components/CalendarTab'
 import DrawerMenu from './components/DrawerMenu'
@@ -16,19 +17,19 @@ import BudgetScreen from './components/BudgetScreen'
 import ExchangeRateScreen from './components/ExchangeRateScreen'
 import PaymentMethodsScreen from './components/PaymentMethodsScreen'
 import OnboardingScreen from './components/OnboardingScreen'
-import WishlistScreen from './components/WishlistScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
 import type { Transaction } from './lib/database.types'
 import UpdateNotification from './components/UpdateNotification'
 import PageTransition, { type NavDirection } from './components/PageTransition'
 
-type TabKey = 'home' | 'record' | 'fixed' | 'calendar'
-type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'wishlist' | 'analytics' | 'saving-tips'
+type TabKey = 'home' | 'record' | 'shopping' | 'fixed' | 'calendar'
+type Screen = 'main' | 'settings' | 'category-edit' | 'budget' | 'exchange-rate' | 'payment-methods' | 'setup' | 'analytics' | 'saving-tips'
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'home', label: 'ホーム', icon: '🏠' },
   { key: 'record', label: '記録', icon: '✏️' },
+  { key: 'shopping', label: 'メモ', icon: '🛒' },
   { key: 'fixed', label: '固定費', icon: '📋' },
   { key: 'calendar', label: 'カレンダー', icon: '📅' },
 ]
@@ -44,8 +45,8 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('main')
   const [direction, setDirection] = useState<NavDirection>('forward')
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
-  const [recordInitialSub, setRecordInitialSub] = useState<'one_time' | 'consumables' | undefined>(undefined)
   const [recordTapKey, setRecordTapKey] = useState(0)
+  const [shoppingTapKey, setShoppingTapKey] = useState(0)
   const [fixedFromOnboarding, setFixedFromOnboarding] = useState(false)
   const [headerBack, setHeaderBack] = useState<{
     title: string
@@ -80,7 +81,6 @@ export default function App() {
   if (tab !== prevTab) {
     setPrevTab(tab)
     setHeaderBack(null)
-    if (recordInitialSub) setRecordInitialSub(undefined)
   }
 
   // フルスクリーンページへの遷移時は window もリセット
@@ -100,9 +100,7 @@ export default function App() {
 
   let content: ReactNode
 
-  if (screen === 'wishlist') {
-    content = <WishlistScreen userId={user.id} onBack={() => navigate('main', 'back')} />
-  } else if (screen === 'analytics') {
+  if (screen === 'analytics') {
     content = <AnalyticsScreen userId={user.id} onBack={() => navigate('main', 'back')} />
   } else if (screen === 'saving-tips') {
     content = <SavingTipsScreen onBack={() => navigate('main', 'back')} />
@@ -228,7 +226,6 @@ export default function App() {
             onSettings={() => navigate('settings')}
             onBudget={() => navigate('budget')}
             onSetup={() => navigate('setup')}
-            onWishlist={() => navigate('wishlist')}
             onAnalytics={() => navigate('analytics')}
             onSavingTips={() => navigate('saving-tips')}
             onSignOut={signOut}
@@ -255,8 +252,17 @@ export default function App() {
             incomeCategories={categories.incomeCategories}
             editingTx={editingTx}
             onEditDone={() => setEditingTx(null)}
-            initialSub={recordInitialSub}
             resetSignal={recordTapKey}
+            onHeaderChange={setHeaderBack}
+            onNavigate={resetScroll}
+          />
+        )}
+        {tab === 'shopping' && (
+          <ShoppingTab
+            userId={user.id}
+            month={month}
+            expenseCategories={categories.expenseCategories}
+            resetSignal={shoppingTapKey}
             onHeaderChange={setHeaderBack}
             onNavigate={resetScroll}
           />
@@ -289,6 +295,7 @@ export default function App() {
             key={t.key}
             onClick={() => {
               if (t.key === 'record') setRecordTapKey((k) => k + 1)
+              if (t.key === 'shopping') setShoppingTapKey((k) => k + 1)
               if (t.key === 'calendar') setCalendarSelectedDate(undefined)
               setTab(t.key)
             }}
