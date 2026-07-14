@@ -26,7 +26,7 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function CalendarTab({ userId, month, setMonth, initialSelectedDate, expenseCategories }: Props) {
+export default function CalendarTab({ userId, month, setMonth: _setMonth, initialSelectedDate, expenseCategories }: Props) {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [workSchedule, setWorkSchedule] = useState<WorkSchedule[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -164,7 +164,6 @@ export default function CalendarTab({ userId, month, setMonth, initialSelectedDa
         <div className="grid grid-cols-7">
           {calendarDays.map((date, i) => {
             if (!date) return <div key={i} className="h-16 border-b border-r border-line-subtle last:border-r-0" />
-            const dayEvents = eventsByDate.get(date) ?? []
             const isSelected = date === selectedDate
             const isToday = date === todayStr()
             const dow = new Date(date + 'T00:00:00').getDay()
