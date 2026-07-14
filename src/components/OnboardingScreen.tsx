@@ -65,12 +65,24 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
 
   return (
     <div
-      className="h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto"
+      className="h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto relative overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      {/* 青海波透かし：上部が濃く下に向かって消える */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[55%] z-0"
+        style={{
+          backgroundImage: `url(${import.meta.env.BASE_URL}seigaiha.png)`,
+          backgroundSize: '120px auto',
+          backgroundRepeat: 'repeat',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, transparent 100%)',
+        }}
+      />
+
       {/* ドットインジケーター */}
-      <div className="flex justify-center gap-2 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2">
+      <div className="relative z-10 flex justify-center gap-2 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2">
         {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
           <span
             key={i}
@@ -82,7 +94,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
       </div>
 
       {/* カルーセルコンテンツ */}
-      <div className="flex-1 overflow-hidden min-h-0">
+      <div className="relative z-10 flex-1 overflow-hidden min-h-0">
         <div
           className="flex h-full transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${page * (100 / TOTAL_PAGES)}%)`, width: `${TOTAL_PAGES * 100}%` }}
