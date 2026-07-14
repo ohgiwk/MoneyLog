@@ -13,13 +13,36 @@ interface Props {
   onTransactionAdded?: () => void
 }
 
+interface GroupedItems {
+  groupName: string
+  items: ShoppingItem[]
+}
+
+function groupItems(items: ShoppingItem[]): GroupedItems[] {
+  const map = new Map<string, ShoppingItem[]>()
+  // グループなし（category = ''）は最後に
+  const ungrouped: ShoppingItem[] = []
+  for (const item of items) {
+    const g = item.category ?? ''
+    if (!g) { ungrouped.push(item); continue }
+    if (!map.has(g)) map.set(g, [])
+    map.get(g)!.push(item)
+  }
+  const result: GroupedItems[] = []
+  map.forEach((its, name) => result.push({ groupName: name, items: its }))
+  if (ungrouped.length > 0) result.push({ groupName: '', items: ungrouped })
+  return result
+}
+
 export default function ShoppingMemo({ userId, expenseCategories, onTransactionAdded }: Props) {
   const [items, setItems] = useState<ShoppingItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [showDialog, setShowDialog] = useState(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
+  const [addingToGroup, setAddingToGroup] = useState<string | null>(null)
   const [showItemDialog, setShowItemDialog] = useState(false)
   const [deletingItem, setDeletingItem] = useState<ShoppingItem | null>(null)
 
@@ -40,8 +63,9 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     void load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
   }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function openAddDialog() {
+  function openAddDialog(group?: string) {
     setEditingItem(null)
+    setAddingToGroup(group ?? null)
     setShowItemDialog(true)
   }
 
@@ -50,16 +74,17 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     setShowItemDialog(true)
   }
 
-  async function handleSaveItem(name: string, memo: string | null, budgetAmount: number) {
+  async function handleSaveItem(name: string, memo: string | null, budgetAmount: number, group: string) {
     if (editingItem) {
-      await shoppingMemoService.updateItem(editingItem.id, name, memo, budgetAmount)
-      setItems(prev => prev.map(it => it.id === editingItem.id ? { ...it, name, memo, budget_amount: budgetAmount } : it))
+      await shoppingMemoService.updateItem(editingItem.id, name, memo, budgetAmount, group)
+      setItems(prev => prev.map(it => it.id === editingItem.id ? { ...it, name, memo, budget_amount: budgetAmount, category: group } : it))
     } else {
-      const item = await shoppingMemoService.addItem(userId, name, memo, budgetAmount)
+      const item = await shoppingMemoService.addItem(userId, name, memo, budgetAmount, group)
       setItems(prev => [...prev, item])
     }
     setShowItemDialog(false)
     setEditingItem(null)
+    setAddingToGroup(null)
   }
 
   async function handleDelete(id: string) {
@@ -76,6 +101,17 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     setSelected(prev => {
       const n = new Set(prev)
       if (n.has(id)) n.delete(id); else n.add(id)
+      return n
+    })
+  }
+
+  function toggleGroup(groupItems: ShoppingItem[]) {
+    const ids = groupItems.map(it => it.id)
+    const allSelected = ids.every(id => selected.has(id))
+    setSelected(prev => {
+      const n = new Set(prev)
+      if (allSelected) { ids.forEach(id => n.delete(id)) }
+      else { ids.forEach(id => n.add(id)) }
       return n
     })
   }
@@ -104,6 +140,8 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   }
 
   const selectedItems = items.filter(it => selected.has(it.id))
+  const grouped = groupItems(items)
+  const existingGroups = [...new Set(items.map(it => it.category ?? '').filter(Boolean))]
 
   return (
     <div className="p-4 pb-24 space-y-4">
@@ -113,7 +151,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         </div>
       )}
 
-      {/* リスト */}
       {loading ? (
         <div className="text-center py-8 text-ink-muted text-sm">読み込み中...</div>
       ) : items.length === 0 ? (
@@ -123,66 +160,140 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           <p className="text-xs mt-1">右下のボタンから追加してください</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {items.map(item => (
-            <div
-              key={item.id}
-              onClick={() => toggleSelect(item.id)}
-              className="bg-surface rounded-xl border border-line-subtle px-3 py-3 flex items-center gap-3 shadow-sm cursor-pointer active:bg-surface-subtle"
-            >
-              {/* チェックボックス */}
-              <div
-                className={
-                  'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors pointer-events-none ' +
-                  (selected.has(item.id)
-                    ? 'bg-primary-500 border-primary-500'
-                    : 'border-line-strong bg-surface')
-                }
-              >
-                {selected.has(item.id) && (
-                  <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                    <path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+        <div className="space-y-3">
+          {grouped.map(({ groupName, items: groupedItems }) => {
+            const key = groupName || '__ungrouped__'
+            const isCollapsed = collapsedGroups.has(key)
+            const allSelected = groupedItems.every(it => selected.has(it.id))
+            const someSelected = groupedItems.some(it => selected.has(it.id))
+
+            function toggleCollapse() {
+              setCollapsedGroups(prev => {
+                const n = new Set(prev)
+                if (n.has(key)) n.delete(key); else n.add(key)
+                return n
+              })
+            }
+
+            return (
+              <div key={key} className="bg-surface border border-line-subtle rounded-2xl shadow-sm overflow-hidden">
+                {/* パネルヘッダー */}
+                <div className="flex items-center gap-2 px-3 py-2.5">
+                  {/* 折りたたみトグル */}
+                  <button
+                    onClick={toggleCollapse}
+                    className="flex items-center gap-1.5 flex-1 min-w-0 text-left"
+                  >
+                    <svg
+                      width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      className={'flex-shrink-0 text-ink-muted transition-transform ' + (isCollapsed ? '-rotate-90' : '')}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                    <span className="text-sm font-semibold text-ink-strong truncate">
+                      {groupName || 'グループなし'}
+                    </span>
+                    <span className="text-xs text-ink-muted flex-shrink-0">
+                      {groupedItems.length}件
+                    </span>
+                  </button>
+
+                  {/* グループ全選択ボタン */}
+                  <button
+                    onClick={() => toggleGroup(groupedItems)}
+                    className={
+                      'flex-shrink-0 text-xs px-2.5 py-1 rounded-lg border transition-colors ' +
+                      (allSelected
+                        ? 'bg-primary-500 border-primary-500 text-white'
+                        : someSelected
+                        ? 'bg-primary-50 border-primary-300 text-primary-600'
+                        : 'border-line text-ink-muted active:bg-surface-subtle')
+                    }
+                  >
+                    {allSelected ? '全解除' : '全選択'}
+                  </button>
+
+                  {/* グループへ追加ボタン */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); openAddDialog(groupName) }}
+                    className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg text-ink-muted active:bg-surface-subtle"
+                    aria-label={`${groupName || 'グループなし'}にアイテムを追加`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* アイテムリスト */}
+                {!isCollapsed && (
+                  <div className="border-t border-line-subtle divide-y divide-line-subtle">
+                    {groupedItems.map(item => (
+                      <div
+                        key={item.id}
+                        onClick={() => toggleSelect(item.id)}
+                        className="px-3 py-3 flex items-center gap-3 cursor-pointer active:bg-surface-subtle"
+                      >
+                        {/* チェックボックス */}
+                        <div
+                          className={
+                            'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors pointer-events-none ' +
+                            (selected.has(item.id)
+                              ? 'bg-primary-500 border-primary-500'
+                              : 'border-line-strong bg-surface')
+                          }
+                        >
+                          {selected.has(item.id) && (
+                            <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                              <path d="M1 4L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* 名前 / メモ / 予算 */}
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-sm text-ink-strong truncate">{item.name}</span>
+                          {(item.memo || item.budget_amount > 0) && (
+                            <span className="block text-xs text-ink-muted truncate">
+                              {item.memo}
+                              {item.memo && item.budget_amount > 0 ? ' / ' : ''}
+                              {item.budget_amount > 0 ? `予算 ¥${item.budget_amount.toLocaleString()}` : ''}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* 編集・削除ボタン */}
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openEditDialog(item) }}
+                            className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeletingItem(item) }}
+                            className="p-1.5 text-ink-muted active:text-danger-500 rounded-lg"
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"/>
+                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                              <path d="M10 11v6M14 11v6"/>
+                              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
-
-              {/* 名前 / メモ / 予算 */}
-              <div className="flex-1 min-w-0">
-                <span className="block text-sm text-ink-strong truncate">{item.name}</span>
-                {(item.memo || item.budget_amount > 0) && (
-                  <span className="block text-xs text-ink-muted truncate">
-                    {item.memo}
-                    {item.memo && item.budget_amount > 0 ? ' / ' : ''}
-                    {item.budget_amount > 0 ? `予算 ¥${item.budget_amount.toLocaleString()}` : ''}
-                  </span>
-                )}
-              </div>
-
-              {/* 編集・削除ボタン */}
-              <div className="flex gap-1">
-                <button
-                  onClick={(e) => { e.stopPropagation(); openEditDialog(item) }}
-                  className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setDeletingItem(item) }}
-                  className="p-1.5 text-ink-muted active:text-danger-500 rounded-lg"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6"/>
-                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -200,7 +311,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         /* FAB（追加） */
         <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
           <button
-            onClick={openAddDialog}
+            onClick={() => openAddDialog()}
             className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg active:bg-primary-600 flex items-center justify-center"
             aria-label="買い物メモを追加"
           >
@@ -226,8 +337,10 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       {showItemDialog && (
         <ShoppingItemDialog
           item={editingItem ?? undefined}
+          defaultGroup={addingToGroup ?? undefined}
+          groups={existingGroups}
           onConfirm={handleSaveItem}
-          onCancel={() => { setShowItemDialog(false); setEditingItem(null) }}
+          onCancel={() => { setShowItemDialog(false); setEditingItem(null); setAddingToGroup(null) }}
         />
       )}
       {deletingItem && (

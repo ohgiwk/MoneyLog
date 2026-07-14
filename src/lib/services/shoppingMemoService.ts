@@ -51,7 +51,8 @@ export const shoppingMemoService = {
     userId: string,
     name: string,
     memo: string | null = null,
-    budgetAmount = 0
+    budgetAmount = 0,
+    group = ''
   ): Promise<ShoppingItem> => {
     const listId = await ensureOpenList(userId)
     const { data, error } = await supabase
@@ -60,7 +61,7 @@ export const shoppingMemoService = {
         list_id: listId,
         user_id: userId,
         name,
-        category: '',
+        category: group,
         budget_amount: budgetAmount,
         actual_amount: null,
         memo,
@@ -79,11 +80,12 @@ export const shoppingMemoService = {
     id: string,
     name: string,
     memo: string | null = null,
-    budgetAmount = 0
+    budgetAmount = 0,
+    group = ''
   ): Promise<void> => {
     const { error } = await supabase
       .from('shopping_items')
-      .update({ name, memo, budget_amount: budgetAmount })
+      .update({ name, memo, budget_amount: budgetAmount, category: group })
       .eq('id', id)
     if (error) throw new Error(error.message)
     cacheInvalidateTable(TABLE)
