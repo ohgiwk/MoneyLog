@@ -15,6 +15,7 @@ import {
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
 import ConfirmDialog from './ui/ConfirmDialog'
+import CelebrationDialog from './ui/CelebrationDialog'
 
 interface FormValues {
   name: string
@@ -55,6 +56,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
   const [amountError, setAmountError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+  const [celebration, setCelebration] = useState<{ monthly: number; yearly: number } | null>(null)
   const [currency, setCurrency] = useState<'JPY' | 'USD'>(() => {
     if (expense?.id) {
       const meta = getExpenseCurrencyMeta(expense.id)
@@ -163,7 +165,16 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           setExpenseCurrencyMeta(inserted.id, { currency: 'USD', usdAmount: inputAmt })
         }
       }
-      closeAndNotify()
+      // 契約中・見直し中 → 解約済み への変更時はお祝いダイアログを表示
+      const wasActive = expense && ['active', 'reviewing'].includes(expense.status)
+      const nowCancelled = ['cancelled', 'unsubscribed'].includes(values.status)
+      if (wasActive && nowCancelled) {
+        const monthly = expense!.cycle === 'yearly' ? Math.round(jpyAmount / 12) : jpyAmount
+        const yearly = expense!.cycle === 'yearly' ? jpyAmount : jpyAmount * 12
+        setCelebration({ monthly, yearly })
+      } else {
+        closeAndNotify()
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '保存に失敗しました')
     } finally {
@@ -387,6 +398,15 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           confirmLabel="破棄する"
           onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
           onCancel={() => setShowDiscardConfirm(false)}
+        />
+      )}
+
+      {celebration && expense && (
+        <CelebrationDialog
+          savingsMonthly={celebration.monthly}
+          savingsYearly={celebration.yearly}
+          itemName={expense.name}
+          onClose={closeAndNotify}
         />
       )}
 

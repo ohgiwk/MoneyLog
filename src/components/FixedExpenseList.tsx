@@ -259,9 +259,6 @@ export default function FixedExpenseList({
                           {f.cycle === 'yearly' && f.amount != null && (
                             <div className="text-xs text-ink-muted">月換算 {formatYen(Math.round(f.amount / 12))}</div>
                           )}
-                          {f.cycle !== 'yearly' && f.baseline_amount > 0 && f.amount != null && f.baseline_amount > f.amount && (
-                            <div className="text-xs text-primary-500">-{formatYen(f.baseline_amount - f.amount)}</div>
-                          )}
                         </>
                       )
                     })()}
@@ -356,14 +353,6 @@ export default function FixedExpenseList({
                               月換算 {formatYen(Math.round(f.amount / 12))}
                             </div>
                           )}
-                          {f.cycle !== 'yearly' &&
-                            f.baseline_amount > 0 &&
-                            f.amount != null &&
-                            f.baseline_amount > f.amount && (
-                              <div className="text-xs text-primary-500">
-                                -{formatYen(f.baseline_amount - f.amount)}
-                              </div>
-                            )}
                         </>
                       )
                     })()}
