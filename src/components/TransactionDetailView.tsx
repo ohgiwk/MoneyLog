@@ -149,7 +149,7 @@ export default function TransactionDetailView({
           </div>
           {totalIncome > 0 && (
             <div className="text-sm font-semibold text-income-600">
-              <span className="text-ink-muted">/</span> 収入 +{formatYen(totalIncome)}
+              <span className="text-ink-muted">/</span> 収入 {formatYen(totalIncome)}
             </div>
           )}
         </div>
