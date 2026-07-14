@@ -233,7 +233,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 className={
                   'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-primary-400 bg-primary-50'
+                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
                     : 'border-line-subtle bg-surface-subtle')
                 }
               >

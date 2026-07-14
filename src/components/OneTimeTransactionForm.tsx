@@ -171,7 +171,7 @@ export default function OneTimeTransactionForm({
                 className={
                   'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-primary-400 bg-primary-50'
+                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
                     : 'border-line-subtle bg-surface-subtle')
                 }
               >
@@ -197,7 +197,7 @@ export default function OneTimeTransactionForm({
                   className={
                     'flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs border ' +
                     (values.mealType === m.name
-                      ? 'border-primary-400 bg-primary-50 text-primary-700'
+                      ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
                       : 'border-line-subtle bg-surface-subtle text-ink')
                   }
                 >
@@ -259,7 +259,7 @@ export default function OneTimeTransactionForm({
                     onClick={() => { setValue('storeType', ''); setStoreTypeOpen(false) }}
                     className={
                       'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                      (values.storeType === '' ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')
+                      (values.storeType === '' ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400' : 'text-ink active:bg-surface-subtle')
                     }
                   >
                     <span className="text-lg">🏷️</span>
@@ -272,7 +272,7 @@ export default function OneTimeTransactionForm({
                       onClick={() => { setValue('storeType', s.name); setStoreTypeOpen(false) }}
                       className={
                         'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                        (values.storeType === s.name ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')
+                        (values.storeType === s.name ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400' : 'text-ink active:bg-surface-subtle')
                       }
                     >
                       <span className="text-lg">{s.icon}</span>
@@ -298,7 +298,7 @@ export default function OneTimeTransactionForm({
                   className={
                     'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border-2 transition ' +
                     (values.paymentType === p.type
-                      ? 'border-primary-500 bg-primary-50'
+                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/60'
                       : 'border-transparent bg-surface-hover')
                   }
                 >

@@ -35,7 +35,7 @@ export default function ConsumableRow({
 
   return (
     <div
-      className={`flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer ${border ? 'border-t border-line-subtle' : ''} ${urgent ? 'bg-warning-50/40' : ''}`}
+      className={`flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer ${border ? 'border-t border-line-subtle' : ''} ${urgent ? 'bg-warning-50/40 dark:bg-warning-950/40' : ''}`}
       onClick={onClick}
     >
       <span className="text-xl shrink-0">{cat?.icon ?? '📦'}</span>

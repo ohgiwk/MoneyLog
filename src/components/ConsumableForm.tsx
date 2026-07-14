@@ -169,7 +169,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                 className={
                   'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
-                    ? 'border-primary-400 bg-primary-50'
+                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
                     : 'border-line-subtle bg-surface-subtle')
                 }
               >
@@ -219,7 +219,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
                 className={
                   'px-3 py-1 rounded-lg text-xs font-medium border ' +
                   (values.cycleDays === p.days.toString()
-                    ? 'border-primary-400 bg-primary-50 text-primary-700'
+                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
                     : 'border-line text-ink-muted')
                 }
               >

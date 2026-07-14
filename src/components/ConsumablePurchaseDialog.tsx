@@ -83,7 +83,7 @@ export default function ConsumablePurchaseDialog({
                 className={
                   'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
                   (category === cat.name
-                    ? 'border-primary-400 bg-primary-50 text-primary-700'
+                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
                     : 'border-line text-ink active:bg-surface-subtle')
                 }
               >

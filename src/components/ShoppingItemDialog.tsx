@@ -75,7 +75,7 @@ export default function ShoppingItemDialog({ item, defaultGroup, groups = [], on
                     className={
                       'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                       (group === st.name
-                        ? 'border-primary-400 bg-primary-50'
+                        ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
                         : 'border-line-subtle bg-surface-subtle')
                     }
                   >
@@ -168,7 +168,7 @@ export default function ShoppingItemDialog({ item, defaultGroup, groups = [], on
             {/* 選択中グループ表示（新規・グループパネル経由） */}
             {!item && (
               resolvedGroup ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-50 rounded-xl w-fit">
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-50 dark:bg-primary-950/60 rounded-xl w-fit">
                   <span className="text-xs text-primary-600 font-medium">{resolvedGroup}</span>
                   {defaultGroup === undefined && (
                     <button onClick={() => setStep(1)} className="text-primary-400 active:text-primary-600">

@@ -193,7 +193,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
                   title="購入済"
                 >
                   <IconShoppingCartCopy size={20} />
@@ -224,7 +224,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
                   title="購入済"
                 >
                   <IconShoppingCartCopy size={20} />
@@ -252,7 +252,7 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
                   title="購入済"
                 >
                   <IconShoppingCartCopy size={20} />

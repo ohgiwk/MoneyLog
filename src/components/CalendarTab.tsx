@@ -17,9 +17,9 @@ interface Props {
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
 const DAY_TYPE_LABELS: Record<WorkSchedule['day_type'], { label: string; color: string; cellBg: string }> = {
-  work:    { label: '勤務日', color: 'text-primary-600 bg-primary-50 border-primary-200', cellBg: 'bg-primary-50' },
-  off:     { label: '休暇',   color: 'text-sky-600 bg-sky-50 border-sky-200', cellBg: 'bg-sky-50' },
-  holiday: { label: 'その他', color: 'text-warning-600 bg-warning-50 border-warning-200', cellBg: 'bg-warning-50' },
+  work:    { label: '勤務日', color: 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 border-primary-200 dark:border-primary-900', cellBg: 'bg-primary-50 dark:bg-primary-950/50' },
+  off:     { label: '休暇',   color: 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-900', cellBg: 'bg-sky-50 dark:bg-sky-950/50' },
+  holiday: { label: 'その他', color: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900', cellBg: 'bg-warning-50 dark:bg-warning-950/50' },
 }
 
 function todayStr() {
