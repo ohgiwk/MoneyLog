@@ -160,20 +160,20 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
         <div>
           <label className="text-xs text-ink-muted">カテゴリ</label>
-          <div className="grid grid-cols-3 gap-2 mt-1">
+          <div className="grid grid-cols-5 gap-2 mt-1">
             {expenseCategories.map((c) => (
               <button
                 key={c.name}
                 type="button"
                 onClick={() => setValue('category', c.name)}
                 className={
-                  'flex flex-col items-center py-2 rounded-xl text-xs gap-1 border ' +
+                  'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
                   (values.category === c.name
                     ? 'border-primary-400 bg-primary-50'
                     : 'border-line-subtle bg-surface-subtle')
                 }
               >
-                <span className="text-base">{c.icon}</span>
+                <span className="text-lg">{c.icon}</span>
                 <span className="text-[10px] text-ink text-center leading-tight">
                   {c.name}
                 </span>
