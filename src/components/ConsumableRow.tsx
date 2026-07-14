@@ -53,7 +53,6 @@ export default function ConsumableRow({
         </div>
         <div className="text-xs text-ink-muted">{formatYen(monthly)}/月</div>
       </div>
-      <span className="text-ink-subtle text-sm">›</span>
     </div>
   )
 }

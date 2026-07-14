@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react'
+import { IconShoppingCartCopy } from '@tabler/icons-react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
@@ -209,9 +210,10 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  title="購入済"
                 >
-                  購入済
+                  <IconShoppingCartCopy size={20} />
                 </button>
               </div>
             ))}
@@ -239,9 +241,10 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  title="購入済"
                 >
-                  購入済
+                  <IconShoppingCartCopy size={20} />
                 </button>
               </div>
             ))}
@@ -266,9 +269,10 @@ export default function ConsumablesList({
                 </div>
                 <button
                   onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 text-xs font-medium border border-primary-200 active:bg-primary-100 [writing-mode:vertical-rl] tracking-widest"
+                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 text-primary-600 border border-primary-200 active:bg-primary-100 flex flex-col items-center justify-center gap-0.5"
+                  title="購入済"
                 >
-                  購入済
+                  <IconShoppingCartCopy size={20} />
                 </button>
               </div>
             ))}
