@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useState, type ReactNode } from 'react'
 import { IconShoppingCartCopy } from '@tabler/icons-react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
@@ -182,7 +183,7 @@ export default function ConsumablesList({
           <div className="space-y-1.5">
             {urgent.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
+                <Card className="flex-1">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
@@ -190,7 +191,7 @@ export default function ConsumablesList({
                     border={false}
                     urgent
                   />
-                </div>
+                </Card>
                 <button
                   onClick={() => setPurchasing(c)}
                   className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
@@ -214,14 +215,14 @@ export default function ConsumablesList({
           <div className="space-y-1.5">
             {items.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
+                <Card className="flex-1">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
                     onClick={() => openEditing(c)}
                     border={false}
                   />
-                </div>
+                </Card>
                 <button
                   onClick={() => setPurchasing(c)}
                   className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
@@ -242,14 +243,14 @@ export default function ConsumablesList({
           <div className="space-y-1.5">
             {uncategorized.map((c) => (
               <div key={c.id} className="flex items-center gap-2">
-                <div className="flex-1 bg-surface rounded-2xl shadow-sm overflow-hidden">
+                <Card className="flex-1">
                   <ConsumableRow
                     consumable={c}
                     householdMembers={householdMembers}
                     onClick={() => openEditing(c)}
                     border={false}
                   />
-                </div>
+                </Card>
                 <button
                   onClick={() => setPurchasing(c)}
                   className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"

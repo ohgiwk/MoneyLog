@@ -1,4 +1,5 @@
-import { createPortal } from 'react-dom'
+import Modal from './Modal'
+import Button from './Button'
 
 interface Props {
   message: string
@@ -15,29 +16,19 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  // 祖先の transform/z-index によるスタッキングコンテキストの影響を受けないよう、
-  // document.body 直下に portal 描画してヘッダー・下部ナビより確実に手前に表示する
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative w-72 bg-surface rounded-2xl shadow-xl px-5 py-5 mx-4">
+  return (
+    <Modal isOpen onClose={onCancel}>
+      <div className="px-5 py-5">
         <p className="text-sm text-ink text-center leading-relaxed mb-5">{message}</p>
         <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-2.5 rounded-xl border border-line text-ink-muted text-sm font-medium active:bg-surface-subtle"
-          >
+          <Button variant="secondary" size="sm" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button
-            onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-xl bg-danger-500 text-white text-sm font-semibold active:bg-danger-600"
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

@@ -5,6 +5,10 @@ import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
+import Modal from './ui/Modal'
+import Button from './ui/Button'
+import Input from './ui/Input'
+import ErrorText from './ui/ErrorText'
 
 interface Props {
   userId: string
@@ -103,31 +107,20 @@ export default function OneTimeTransactionForm({
         />
       )}
 
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowSuccess(false)} />
-          <div className="relative bg-surface rounded-2xl shadow-xl mx-6 p-6 flex flex-col items-center gap-4 w-full max-w-sm">
-            <div className="text-3xl">✅</div>
-            <p className="text-base font-semibold text-ink">記録しました！</p>
-            <div className="flex flex-col gap-2 w-full">
-              <button
-                type="button"
-                onClick={() => setShowSuccess(false)}
-                className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold active:bg-primary-600"
-              >
-                続けて記録する
-              </button>
-              <button
-                type="button"
-                onClick={() => { setShowSuccess(false); closeAndNotify() }}
-                className="w-full py-3 rounded-xl border border-line text-ink font-semibold active:bg-surface-subtle"
-              >
-                一覧を見る
-              </button>
-            </div>
+      <Modal isOpen={showSuccess} onClose={() => setShowSuccess(false)}>
+        <div className="p-6 flex flex-col items-center gap-4">
+          <div className="text-3xl">✅</div>
+          <p className="text-base font-semibold text-ink">記録しました！</p>
+          <div className="flex flex-col gap-2 w-full">
+            <Button fullWidth type="button" onClick={() => setShowSuccess(false)}>
+              続けて記録する
+            </Button>
+            <Button fullWidth variant="secondary" type="button" onClick={() => { setShowSuccess(false); closeAndNotify() }}>
+              一覧を見る
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
         {/* 収支トグル */}
@@ -213,7 +206,7 @@ export default function OneTimeTransactionForm({
         <div>
           <label className="text-xs text-ink-muted">金額</label>
           <div className="flex items-center gap-2 mt-1">
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               placeholder="0"
@@ -222,11 +215,12 @@ export default function OneTimeTransactionForm({
                 setValue('amount', e.target.value)
                 if (amountError) setAmountError(null)
               }}
-              className={`flex-1 border rounded-xl px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-line'}`}
+              error={!!amountError}
+              className="flex-1 text-lg font-semibold"
             />
             <span className="text-sm text-ink-muted font-medium">円</span>
           </div>
-          {amountError && <p className="text-xs text-danger-500 mt-1">{amountError}</p>}
+          <ErrorText>{amountError}</ErrorText>
         </div>
 
         {/* 店舗種別 */}
@@ -344,33 +338,30 @@ export default function OneTimeTransactionForm({
         {/* メモ */}
         <div>
           <label className="text-xs text-ink-muted">メモ（任意）</label>
-          <input
+          <Input
             type="text"
             placeholder="例: スーパーで買い物"
             value={values.memo}
             onChange={(e) => setValue('memo', e.target.value)}
-            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="mt-1"
           />
         </div>
 
-        {error && <p className="text-xs text-danger-500">{error}</p>}
+        <ErrorText>{error}</ErrorText>
       </form>
 
       {/* 保存ボタン（タブメニュー上にフローティング表示） */}
       <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
-        <button
+        <Button
           type="button"
+          size="fab"
+          variant={values.type === 'expense' ? 'danger' : 'primary'}
           onClick={() => handleSubmit()}
           disabled={isSubmitting}
-          className={
-            'w-[60%] py-3.5 rounded-[2rem] text-white font-semibold text-sm shadow-lg disabled:opacity-50 ' +
-            (values.type === 'expense'
-              ? 'bg-danger-500 active:bg-danger-600'
-              : 'bg-primary-500 active:bg-primary-600')
-          }
+          className="w-[60%]"
         >
           {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}
-        </button>
+        </Button>
       </div>
     </>
   )

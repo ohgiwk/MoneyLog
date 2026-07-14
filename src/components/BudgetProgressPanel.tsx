@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import Button from './ui/Button'
 import { calcBudgetProgress, formatYen, mondayFirstDow } from '../utils'
 
 export type PeriodMode = 'week' | 'month'
@@ -145,12 +146,9 @@ export default function BudgetProgressPanel({
 
       {onManageBudget && (
         <div className="pt-2">
-          <button
-            onClick={onManageBudget}
-            className="w-full text-center py-2 rounded-xl border border-line bg-surface text-sm font-medium text-ink active:bg-surface-subtle"
-          >
+          <Button variant="secondary" fullWidth size="sm" onClick={onManageBudget}>
             予算を管理
-          </button>
+          </Button>
         </div>
       )}
     </div>

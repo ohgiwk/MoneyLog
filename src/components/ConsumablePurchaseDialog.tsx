@@ -1,5 +1,9 @@
 import { useState } from 'react'
-import { createPortal } from 'react-dom'
+import Modal from './ui/Modal'
+import Button from './ui/Button'
+import Input from './ui/Input'
+import FormLabel from './ui/FormLabel'
+import ErrorText from './ui/ErrorText'
 import type { Consumable } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
 import { todayStr } from '../utils'
@@ -45,100 +49,72 @@ export default function ConsumablePurchaseDialog({
     }
   }
 
-  // 祖先の transform/z-index によるスタッキングコンテキストの影響を受けないよう、
-  // document.body 直下に portal 描画してヘッダー・下部ナビより確実に手前に表示する
-  return createPortal(
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-surface w-full max-w-md rounded-2xl p-5 space-y-4 shadow-xl max-h-[85vh] overflow-y-auto">
-        <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
+  return (
+    <Modal isOpen onClose={onCancel} position="center" className="p-5 space-y-4 max-h-[85vh] overflow-y-auto w-full max-w-md mx-4">
+      <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
 
-        {/* 品目情報 */}
-        <div className="bg-surface-subtle rounded-xl px-4 py-3">
-          <p className="text-xs text-ink-muted mb-0.5">定期購入品目</p>
-          <p className="text-sm font-semibold text-ink-strong">{c.name}</p>
-          <p className="text-xs text-ink-muted mt-0.5">
-            {c.amount}円 × {c.quantity}個{c.members_scale ? ` × ${householdMembers}人` : ''} = ¥{defaultAmount.toLocaleString()}
-          </p>
-        </div>
+      <div className="bg-surface-subtle rounded-xl px-4 py-3">
+        <p className="text-xs text-ink-muted mb-0.5">定期購入品目</p>
+        <p className="text-sm font-semibold text-ink-strong">{c.name}</p>
+        <p className="text-xs text-ink-muted mt-0.5">
+          {c.amount}円 × {c.quantity}個{c.members_scale ? ` × ${householdMembers}人` : ''} = ¥{defaultAmount.toLocaleString()}
+        </p>
+      </div>
 
-        {/* 購入日 */}
-        <div>
-          <label className="block text-xs text-ink-muted mb-1">購入日</label>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
-          />
-        </div>
+      <div>
+        <FormLabel>購入日</FormLabel>
+        <Input variant="dialog" type="date" value={date} onChange={e => setDate(e.target.value)} />
+      </div>
 
-        {/* カテゴリ */}
-        <div>
-          <label className="block text-xs text-ink-muted mb-1">カテゴリ</label>
-          <div className="grid grid-cols-3 gap-2">
-            {expenseCategories.map(cat => (
-              <button
-                key={cat.name}
-                onClick={() => setCategory(cat.name)}
-                className={
-                  'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
-                  (category === cat.name
-                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
-                    : 'border-line text-ink active:bg-surface-subtle')
-                }
-              >
-                <span>{cat.icon}</span>
-                <span className="truncate">{cat.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 金額 */}
-        <div>
-          <label className="block text-xs text-ink-muted mb-1">金額</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              className="w-full border border-line rounded-xl pl-7 pr-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
-            />
-          </div>
-        </div>
-
-        {/* メモ */}
-        <div>
-          <label className="block text-xs text-ink-muted mb-1">メモ（任意）</label>
-          <input
-            type="text"
-            value={memo}
-            onChange={e => setMemo(e.target.value)}
-            className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400"
-          />
-        </div>
-
-        {error && <p className="text-xs text-danger-500">{error}</p>}
-
-        <div className="flex gap-2 pt-1">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-3 rounded-xl border border-line text-sm text-ink active:bg-surface-subtle"
-          >
-            キャンセル
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="flex-1 py-3 rounded-xl bg-primary-500 text-white text-sm font-medium active:bg-primary-600 disabled:opacity-50"
-          >
-            {submitting ? '記録中...' : '記録する'}
-          </button>
+      <div>
+        <FormLabel>カテゴリ</FormLabel>
+        <div className="grid grid-cols-3 gap-2">
+          {expenseCategories.map(cat => (
+            <button
+              key={cat.name}
+              onClick={() => setCategory(cat.name)}
+              className={
+                'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
+                (category === cat.name
+                  ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
+                  : 'border-line text-ink active:bg-surface-subtle')
+              }
+            >
+              <span>{cat.icon}</span>
+              <span className="truncate">{cat.name}</span>
+            </button>
+          ))}
         </div>
       </div>
-    </div>,
-    document.body
+
+      <div>
+        <FormLabel>金額</FormLabel>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
+          <Input
+            variant="dialog"
+            type="number"
+            inputMode="numeric"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            className="pl-7"
+          />
+        </div>
+      </div>
+
+      <div>
+        <FormLabel>メモ（任意）</FormLabel>
+        <Input variant="dialog" type="text" value={memo} onChange={e => setMemo(e.target.value)} />
+      </div>
+
+      <ErrorText>{error}</ErrorText>
+
+      <div className="flex gap-2 pt-1">
+        <Button variant="secondary" onClick={onCancel}>キャンセル</Button>
+        <Button onClick={handleSubmit} disabled={submitting}>
+          {submitting ? '記録中...' : '記録する'}
+        </Button>
+      </div>
+    </Modal>
   )
 }

@@ -1,4 +1,5 @@
 import { CATEGORY_META, type MultiItem } from './data'
+import Input from '../ui/Input'
 
 interface MultiStepProps {
   items: MultiItem[]
@@ -28,7 +29,7 @@ export function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepPro
                   <div key={i} className="flex items-center gap-3 mb-3">
                     <span className="text-sm text-ink w-28 shrink-0">{item.name}</span>
                     <div className="flex-1 relative">
-                      <input
+                      <Input
                         type="number"
                         inputMode="numeric"
                         placeholder="0"
@@ -38,7 +39,7 @@ export function MultiStep({ items, showCategoryHeaders, onChange }: MultiStepPro
                           next[i] = { ...item, amount: e.target.value }
                           onChange(next)
                         }}
-                        className="w-full border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 pr-8"
+                        className="pr-8"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">
                         円

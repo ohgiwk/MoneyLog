@@ -1,3 +1,9 @@
+import Card from './ui/Card'
+import Button from './ui/Button'
+import Input from './ui/Input'
+import Textarea from './ui/Textarea'
+import ErrorText from './ui/ErrorText'
+import Modal from './ui/Modal'
 import { useEffect, useMemo, useState } from 'react'
 import type { CalendarEvent, Transaction, WorkSchedule } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
@@ -145,7 +151,7 @@ export default function CalendarTab({ userId, month, setMonth: _setMonth, initia
       )}
 
       {/* カレンダーグリッド */}
-      <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+      <Card>
         {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 border-b border-line-subtle">
           {DAY_LABELS.map((d, i) => (
@@ -210,7 +216,7 @@ export default function CalendarTab({ userId, month, setMonth: _setMonth, initia
             )
           })}
         </div>
-      </div>
+      </Card>
 
       {/* 選択日のヘッダー */}
       <div className="flex items-center justify-between">
@@ -222,7 +228,7 @@ export default function CalendarTab({ userId, month, setMonth: _setMonth, initia
       {/* 選択日の区分設定 */}
       <div className="bg-surface rounded-2xl shadow-sm px-4 py-2 flex items-center gap-3">
         <span className="text-xs text-ink-muted shrink-0">区分</span>
-        {dayTypeError && <p className="text-xs text-danger-500">{dayTypeError}</p>}
+        <ErrorText>{dayTypeError}</ErrorText>
         <div className="flex gap-2 flex-1">
           {(['work', 'off', 'holiday'] as const).map((t) => {
             const selected = dayTypeByDate.get(selectedDate) === t
@@ -398,144 +404,98 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-surface rounded-2xl w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="px-5 pt-5 pb-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-ink">
-              {event ? '予定を編集' : '予定を追加'}
-            </h2>
-            {event && (
-              <button
-                onClick={handleDelete}
-                disabled={isSubmitting}
-                className="p-1.5 text-danger-400 active:text-danger-600 disabled:opacity-50"
-                aria-label="削除"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {error && (
-            <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-              {error}
-            </div>
+    <Modal isOpen onClose={onClose} position="center" className="w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="px-5 pt-5 pb-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-ink">
+            {event ? '予定を編集' : '予定を追加'}
+          </h2>
+          {event && (
+            <button
+              onClick={handleDelete}
+              disabled={isSubmitting}
+              className="p-1.5 text-danger-400 active:text-danger-600 disabled:opacity-50"
+              aria-label="削除"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
           )}
+        </div>
 
-          {/* 予定日 */}
+        {error && (
+          <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
+            {error}
+          </div>
+        )}
+
+        <div>
+          <label className="text-xs text-ink-muted">予定日</label>
+          <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="mt-1" />
+        </div>
+
+        <div>
+          <label className="text-xs text-ink-muted">予定名</label>
+          <Input
+            value={title}
+            onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null) }}
+            placeholder="例: 会議、買い物"
+            error={!!titleError}
+            className="mt-1"
+          />
+          <ErrorText>{titleError}</ErrorText>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs text-ink-muted">予定日</label>
-            <input
-              type="date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-            />
+            <label className="text-xs text-ink-muted">開始時間</label>
+            <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={allDay} className="mt-1 disabled:bg-surface-subtle disabled:text-ink-muted" />
           </div>
-
-          {/* 予定名 */}
           <div>
-            <label className="text-xs text-ink-muted">予定名</label>
-            <input
-              value={title}
-              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null) }}
-              placeholder="例: 会議、買い物"
-              className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${titleError ? 'border-danger-300' : 'border-line'}`}
-            />
-            {titleError && <p className="text-xs text-danger-500 mt-1">{titleError}</p>}
-          </div>
-
-          {/* 開始・終了時間 */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-ink-muted">開始時間</label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                disabled={allDay}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 disabled:bg-surface-subtle disabled:text-ink-muted"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink-muted">終了時間</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                disabled={allDay}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 disabled:bg-surface-subtle disabled:text-ink-muted"
-              />
-            </div>
-          </div>
-
-          {/* 終日トグル */}
-          <label className="flex items-center justify-between cursor-pointer select-none">
-            <span className="text-sm text-ink">終日</span>
-            <div
-              onClick={() => setAllDay((v) => !v)}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${allDay ? 'bg-primary-500' : 'bg-surface-muted'}`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${allDay ? 'translate-x-5' : 'translate-x-0'}`}
-              />
-            </div>
-          </label>
-
-          {/* 予定出費 */}
-          <div>
-            <label className="text-xs text-ink-muted">予定出費</label>
-            <div className="flex items-center gap-2 mt-1">
-              <input
-                type="number"
-                inputMode="numeric"
-                placeholder="0"
-                value={plannedExpense}
-                onChange={(e) => setPlannedExpense(e.target.value)}
-                className="flex-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-              />
-              <span className="text-sm text-ink-muted">円</span>
-            </div>
-          </div>
-
-          {/* メモ */}
-          <div>
-            <label className="text-xs text-ink-muted">メモ（任意）</label>
-            <textarea
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              rows={2}
-              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
-            />
-          </div>
-
-          {/* ボタン */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="px-4 py-3 rounded-xl border border-line text-ink-muted text-sm font-semibold active:bg-surface-subtle disabled:opacity-50"
-            >
-              キャンセル
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="flex-1 py-3 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600 disabled:opacity-50"
-            >
-              {isSubmitting ? '保存中...' : '保存'}
-            </button>
+            <label className="text-xs text-ink-muted">終了時間</label>
+            <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={allDay} className="mt-1 disabled:bg-surface-subtle disabled:text-ink-muted" />
           </div>
         </div>
+
+        <label className="flex items-center justify-between cursor-pointer select-none">
+          <span className="text-sm text-ink">終日</span>
+          <div
+            onClick={() => setAllDay((v) => !v)}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${allDay ? 'bg-primary-500' : 'bg-surface-muted'}`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${allDay ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </div>
+        </label>
+
+        <div>
+          <label className="text-xs text-ink-muted">予定出費</label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input type="number" inputMode="numeric" placeholder="0" value={plannedExpense} onChange={(e) => setPlannedExpense(e.target.value)} className="flex-1 w-auto" />
+            <span className="text-sm text-ink-muted">円</span>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs text-ink-muted">メモ（任意）</label>
+          <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} className="mt-1" />
+        </div>
+
+        <div className="flex gap-2 pt-1">
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting} className="px-4 flex-none">
+            キャンセル
+          </Button>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? '保存中...' : '保存'}
+          </Button>
+        </div>
       </div>
-    </div>
+    </Modal>
   )
 }

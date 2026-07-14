@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useState } from 'react'
 import { SUBSCRIPTION_PRESETS, SUBSCRIPTION_SUBCATEGORIES, type SubscriptionPreset } from '../constants'
 
@@ -57,7 +58,7 @@ export default function SubscriptionPickerScreen({ onSelect, onBack }: Props) {
       </div>
 
       {/* サービス一覧 */}
-      <div className="mx-4 mt-4 mb-6 bg-surface rounded-2xl shadow-sm overflow-hidden">
+      <Card className="mx-4 mt-4 mb-6">
         <div className="divide-y divide-line-subtle">
           {filtered.map((preset) => (
             <button
@@ -71,7 +72,7 @@ export default function SubscriptionPickerScreen({ onSelect, onBack }: Props) {
             </button>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

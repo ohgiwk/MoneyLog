@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
 import { STORE_TYPES } from '../constants'
@@ -373,7 +374,7 @@ export default function TransactionDetailView({
         const dayExpense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
         const dayIncome = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
         return (
-          <div key={date} className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+          <Card key={date}>
             <div className="flex justify-between items-center px-4 py-2.5 bg-surface-hover border-b border-line">
               <span className="text-xs font-semibold text-ink">{formatDateWithWeekday(date)}</span>
               <div className="flex gap-2 text-xs">
@@ -422,7 +423,7 @@ export default function TransactionDetailView({
                 )
               })}
             </div>
-          </div>
+          </Card>
         )
       })}
     </div>

@@ -15,6 +15,9 @@ import {
 } from '../lib/exchangeRate'
 import ConfirmDialog from './ui/ConfirmDialog'
 import CelebrationDialog from './ui/CelebrationDialog'
+import Input from './ui/Input'
+import Textarea from './ui/Textarea'
+import ErrorText from './ui/ErrorText'
 
 interface FormValues {
   name: string
@@ -213,13 +216,14 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
       <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
         <div>
           <label className="text-xs text-ink-muted">名前</label>
-          <input
+          <Input
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); if (nameError) setNameError(null) }}
             placeholder="例: Netflix"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${nameError ? 'border-danger-300' : 'border-line'}`}
+            error={!!nameError}
+            className="mt-1"
           />
-          {nameError && <p className="text-xs text-danger-500 mt-1">{nameError}</p>}
+          <ErrorText>{nameError}</ErrorText>
         </div>
 
         <div>
@@ -281,13 +285,14 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none select-none">
                 {currency === 'USD' ? '$' : '¥'}
               </span>
-              <input
+              <Input
                 type="number"
                 inputMode="decimal"
                 value={values.amount}
                 onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
                 placeholder="0"
-                className={`w-full border rounded-xl pl-7 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${amountError ? 'border-danger-300' : 'border-line'}`}
+                error={!!amountError}
+                className="pl-7 pr-3"
               />
             </div>
             {currency === 'USD' && values.amount && !isNaN(parseFloat(values.amount)) && (
@@ -296,7 +301,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 （1USD={usdRate}円）
               </p>
             )}
-            {amountError && <p className="text-xs text-danger-500 mt-1">{amountError}</p>}
+            <ErrorText>{amountError}</ErrorText>
           </div>
           <div>
             <label className="text-xs text-ink-muted">サイクル</label>
@@ -334,12 +339,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
         <div>
           <label className="text-xs text-ink-muted">メモ</label>
-          <textarea
+          <Textarea
             value={values.notes}
             onChange={(e) => setValue('notes', e.target.value)}
-            placeholder=""
             rows={3}
-            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+            className="mt-1"
           />
         </div>
 

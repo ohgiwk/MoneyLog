@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { getUsdJpyRate, setUsdJpyRate } from '../lib/exchangeRate'
 import { SAVE_SUCCESS_DISPLAY_MS } from '../constants'
 import ScreenHeader from './ui/ScreenHeader'
+import Input from './ui/Input'
+import Button from './ui/Button'
+import ErrorText from './ui/ErrorText'
 
 interface Props {
   onBack: () => void
@@ -39,25 +42,23 @@ export default function ExchangeRateScreen({ onBack }: Props) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-ink-muted shrink-0">1 USD =</span>
-              <input
+              <Input
                 type="number"
                 inputMode="decimal"
                 value={rate}
                 onChange={(e) => { setRate(e.target.value); setError(null) }}
                 placeholder="150"
-                className={`flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${error ? 'border-danger-300' : 'border-line'}`}
+                error={!!error}
+                className="flex-1 w-auto"
               />
               <span className="text-sm text-ink-muted shrink-0">円</span>
             </div>
-            {error && <p className="text-xs text-danger-500 mt-1">{error}</p>}
+            <ErrorText>{error}</ErrorText>
           </div>
 
-          <button
-            onClick={save}
-            className="w-full py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold active:bg-primary-600"
-          >
+          <Button fullWidth size="sm" onClick={save}>
             {saved ? '保存しました ✓' : '保存'}
-          </button>
+          </Button>
         </div>
 
         <div className="bg-warning-50 rounded-2xl p-4">

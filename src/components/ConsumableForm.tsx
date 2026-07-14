@@ -6,6 +6,9 @@ import { formatYen, effectiveCycleDays } from '../utils'
 import { useForm, useIsDirty } from '../hooks/useForm'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
+import Input from './ui/Input'
+import Textarea from './ui/Textarea'
+import ErrorText from './ui/ErrorText'
 
 interface FormValues {
   name: string
@@ -149,13 +152,14 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
       <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
         <div>
           <label className="text-xs text-ink-muted">名前</label>
-          <input
+          <Input
             value={values.name}
             onChange={(e) => { setValue('name', e.target.value); setFieldErrors((p) => ({ ...p, name: undefined })) }}
             placeholder="例: トイレットペーパー"
-            className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.name ? 'border-danger-400' : 'border-line'}`}
+            error={!!fieldErrors.name}
+            className="mt-1"
           />
-          {fieldErrors.name && <p className="text-xs text-danger-500 mt-1">{fieldErrors.name}</p>}
+          <ErrorText>{fieldErrors.name}</ErrorText>
         </div>
 
         <div>
@@ -193,17 +197,17 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               placeholder="0"
               className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.amount ? 'border-danger-400' : 'border-line'}`}
             />
-            {fieldErrors.amount && <p className="text-xs text-danger-500 mt-1">{fieldErrors.amount}</p>}
+            <ErrorText>{fieldErrors.amount}</ErrorText>
           </div>
           <div>
             <label className="text-xs text-ink-muted">購入個数</label>
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               value={values.quantity}
               onChange={(e) => setValue('quantity', e.target.value)}
               min="1"
-              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+              className="mt-1"
             />
           </div>
         </div>
@@ -238,7 +242,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
             />
             <span className="text-sm text-ink-muted">日おき</span>
           </div>
-          {fieldErrors.cycleDays && <p className="text-xs text-danger-500 mt-1">{fieldErrors.cycleDays}</p>}
+          <ErrorText>{fieldErrors.cycleDays}</ErrorText>
         </div>
 
         <div>
@@ -256,11 +260,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
         <div>
           <label className="text-xs text-ink-muted">メモ</label>
-          <textarea
+          <Textarea
             value={values.notes}
             onChange={(e) => setValue('notes', e.target.value)}
             rows={2}
-            className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none"
+            className="mt-1"
           />
         </div>
 

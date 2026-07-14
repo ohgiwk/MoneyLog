@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useEffect, useState } from 'react'
 import {
   MONTH_START_DAY_MIN,
@@ -60,7 +61,7 @@ export default function SettingsScreen({
       </div>
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
         {/* 家計の設定 */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           <div className="px-4 py-3 border-b border-line-subtle">
             <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
               家計
@@ -106,10 +107,10 @@ export default function SettingsScreen({
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* 表示設定 */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           <div className="px-4 py-3 border-b border-line-subtle">
             <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
               表示設定
@@ -130,10 +131,10 @@ export default function SettingsScreen({
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* カスタマイズ */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           <div className="px-4 py-3 border-b border-line-subtle">
             <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
               カスタマイズ
@@ -172,7 +173,7 @@ export default function SettingsScreen({
             </div>
             <span className="text-ink-subtle text-lg">›</span>
           </button>
-        </div>
+        </Card>
       </div>
     </div>
   )

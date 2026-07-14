@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { wishlistService, type WishlistItem } from '../lib/services/wishlistService'
 import ConfirmDialog from './ui/ConfirmDialog'
+import Modal from './ui/Modal'
+import Button from './ui/Button'
+import Input from './ui/Input'
+import FormLabel from './ui/FormLabel'
+import ErrorText from './ui/ErrorText'
 
 interface Props {
   userId: string
@@ -194,58 +199,54 @@ export default function WishlistPanel({ userId }: Props) {
 
       {editing !== null && (
         <>
-          <div className="fixed inset-0 bg-black/40 z-20 flex items-center justify-center px-4" onClick={closeForm}>
-            <div className="w-full max-w-sm bg-surface rounded-2xl shadow-2xl px-5 pt-5 pb-6" onClick={e => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-ink-strong text-base">
-                  {editing === 'new' ? '目標を追加' : '目標を編集'}
-                </h2>
-                <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
+          <Modal isOpen onClose={closeForm} position="center" className="w-full max-w-sm mx-4 px-5 pt-5 pb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-ink-strong text-base">
+                {editing === 'new' ? '目標を追加' : '目標を編集'}
+              </h2>
+              <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
+            </div>
+            <ErrorText className="mb-3">{error}</ErrorText>
+            <div className="space-y-3">
+              <div>
+                <FormLabel className="font-medium">商品名</FormLabel>
+                <Input
+                  variant="dialog"
+                  type="text"
+                  value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  placeholder="例：新しいスニーカー"
+                />
               </div>
-              {error && <p className="text-danger-500 text-xs mb-3">{error}</p>}
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">商品名</label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                    placeholder="例：新しいスニーカー"
-                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">金額（円）</label>
-                  <input
-                    type="number"
-                    value={form.price}
-                    onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                    placeholder="例：12000"
-                    inputMode="numeric"
-                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  />
-                </div>
-              </div>
-              <div className="mt-5 space-y-2">
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-surface-muted disabled:text-ink-muted text-white font-semibold py-3 rounded-xl text-sm"
-                >
-                  {saving ? '保存中...' : '保存する'}
-                </button>
-                {editing !== 'new' && (
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    disabled={saving}
-                    className="w-full text-danger-500 active:bg-danger-50 py-2.5 rounded-xl text-sm"
-                  >
-                    削除する
-                  </button>
-                )}
+              <div>
+                <FormLabel className="font-medium">金額（円）</FormLabel>
+                <Input
+                  variant="dialog"
+                  type="number"
+                  value={form.price}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  placeholder="例：12000"
+                  inputMode="numeric"
+                />
               </div>
             </div>
-          </div>
+            <div className="mt-5 space-y-2">
+              <Button fullWidth onClick={handleSave} disabled={saving}>
+                {saving ? '保存中...' : '保存する'}
+              </Button>
+              {editing !== 'new' && (
+                <Button
+                  variant="ghost"
+                  fullWidth
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={saving}
+                  className="text-danger-500 active:bg-danger-50 py-2.5"
+                >
+                  削除する
+                </Button>
+              )}
+            </div>
+          </Modal>
           {confirmDelete && editing !== 'new' && (
             <ConfirmDialog
               message={`「${editing.name}」を削除しますか？`}

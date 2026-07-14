@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import CategoryFormDialog from './CategoryFormDialog'
@@ -41,7 +42,7 @@ export default function CategoryList({ categories, onChange }: Props) {
 
   return (
     <>
-      <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+      <Card>
         <ul className="divide-y divide-line-subtle">
           {categories.map((c, i) => (
             <li key={i} className="flex items-center gap-3 px-4 py-3">
@@ -75,7 +76,7 @@ export default function CategoryList({ categories, onChange }: Props) {
             ＋ カテゴリを追加
           </button>
         </div>
-      </div>
+      </Card>
 
       {dialog !== null && (
         <CategoryFormDialog

@@ -4,6 +4,8 @@ import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/s
 import { calcBudgetProgress, formatYen, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
+import Button from './ui/Button'
+import Input from './ui/Input'
 
 interface Props {
   userId: string
@@ -161,12 +163,9 @@ export default function BudgetScreen({ userId, onBack }: Props) {
           </div>
         )}
 
-        <button
-          onClick={handleSave}
-          className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold rounded-2xl py-3.5 text-sm transition"
-        >
+        <Button fullWidth size="lg" onClick={handleSave}>
           {saved ? '✓ 保存しました' : '保存する'}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -186,14 +185,14 @@ function BudgetField({
       <span className="text-sm text-ink flex-1 min-w-0 truncate">{label}</span>
       <div className="flex items-center gap-1 shrink-0">
         <span className="text-ink-muted text-xs">¥</span>
-        <input
+        <Input
           type="number"
           inputMode="numeric"
           min={0}
           value={value === 0 ? '' : value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="0"
-          className="w-28 border border-line rounded-xl px-3 py-2 text-sm text-right text-ink-strong focus:outline-none focus:ring-2 focus:ring-primary-400"
+          className="w-28 text-right text-ink-strong"
         />
       </div>
     </div>

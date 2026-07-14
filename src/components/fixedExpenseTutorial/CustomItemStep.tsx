@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { FIXED_EXPENSE_CATEGORIES } from '../../constants'
 import type { MultiItem } from './data'
+import Input from '../ui/Input'
+import Button from '../ui/Button'
 
 interface CustomItemStepProps {
   items: MultiItem[]
@@ -24,14 +26,12 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* 追加フォーム */}
       <div className="space-y-2 mb-4 shrink-0 bg-surface rounded-2xl p-4 shadow-sm border border-line-subtle">
-        <input
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="例: 町内会費"
-          className="w-full border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
         <div className="flex gap-2">
           <select
@@ -64,28 +64,27 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
         </div>
         <div className="flex gap-2">
           <div className="flex-1 relative">
-            <input
+            <Input
               type="number"
               inputMode="numeric"
               placeholder="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 pr-8"
+              className="pr-8"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">円</span>
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleAdd}
             disabled={!name.trim()}
-            className="px-4 rounded-xl bg-primary-500 disabled:bg-surface-muted disabled:text-ink-muted text-white text-sm font-semibold active:bg-primary-600 shrink-0"
+            className="px-4 shrink-0 flex-none"
           >
             追加
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* 追加済みリスト */}
       <div className="flex-1 overflow-y-auto space-y-2 pr-1">
         {items.length === 0 ? (
           <p className="text-sm text-ink-muted">まだ項目が追加されていません</p>

@@ -1,3 +1,5 @@
+import Card from './ui/Card'
+import Input from './ui/Input'
 import { useEffect, useState } from 'react'
 import { PAYMENT_TYPES, type PaymentType } from '../constants'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
@@ -39,7 +41,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
 
       <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-8">
         {/* デフォルトの支払い方法 */}
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           <div className="px-4 py-3 border-b border-line-subtle">
             <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
               デフォルトの支払い方法
@@ -88,13 +90,13 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
               })
             )}
           </div>
-        </div>
+        </Card>
 
         {/* 種別ごとの管理 */}
         {MANAGED_TYPES.map((t) => {
           const list = methods.filter((m) => m.type === t.type)
           return (
-            <div key={t.type} className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+            <Card key={t.type}>
               <div className="px-4 py-3 border-b border-line-subtle flex items-center gap-2">
                 <span className="text-lg">{t.icon}</span>
                 <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
@@ -118,13 +120,13 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                   </div>
                 ))}
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     type="text"
                     value={newNames[t.type]}
                     onChange={(e) => setNewNames((prev) => ({ ...prev, [t.type]: e.target.value }))}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(t.type) }}
                     placeholder={`例: ${t.type === 'credit_card' ? '楽天カード' : t.type === 'emoney' ? 'Suica' : 'PayPay'}`}
-                    className="flex-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                    className="flex-1"
                   />
                   <button
                     onClick={() => handleAdd(t.type)}
@@ -135,7 +137,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
           )
         })}
       </div>

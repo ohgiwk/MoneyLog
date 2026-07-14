@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
@@ -45,7 +46,7 @@ export default function SavingTipsScreen({ onBack }: Props) {
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto pb-8">
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           {TIPS.map((tip, i) => (
             <div
               key={i}
@@ -57,7 +58,7 @@ export default function SavingTipsScreen({ onBack }: Props) {
               <span className="text-sm text-ink leading-relaxed">{tip}</span>
             </div>
           ))}
-        </div>
+        </Card>
       </div>
     </div>
   )

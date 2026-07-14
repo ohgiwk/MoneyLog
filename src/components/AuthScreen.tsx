@@ -1,5 +1,8 @@
 import { type FormEvent, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import Input from './ui/Input'
+import Button from './ui/Button'
+import ErrorText from './ui/ErrorText'
 
 export default function AuthScreen() {
   const { signInWithEmail, signUpWithEmail, signInWithGoogle } = useAuth()
@@ -58,43 +61,40 @@ export default function AuthScreen() {
 
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label htmlFor="email" className="sr-only">
-                メールアドレス
-              </label>
-              <input
+              <label htmlFor="email" className="sr-only">メールアドレス</label>
+              <Input
                 id="email"
                 type="email"
                 placeholder="メールアドレス"
                 aria-label="メールアドレス"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                variant="dialog"
                 required
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                パスワード
-              </label>
-              <input
+              <label htmlFor="password" className="sr-only">パスワード</label>
+              <Input
                 id="password"
                 type="password"
                 placeholder="パスワード"
                 aria-label="パスワード"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+                variant="dialog"
                 required
               />
             </div>
-            {error && <p className="text-xs text-danger-500">{error}</p>}
-            <button
+            <ErrorText>{error}</ErrorText>
+            <Button
+              fullWidth
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold text-sm disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-1"
+              className="focus:ring-2 focus:ring-primary-400 focus:ring-offset-1"
             >
               {loading ? '...' : mode === 'signin' ? 'ログイン' : 'アカウントを作成'}
-            </button>
+            </Button>
           </form>
 
           <div className="flex items-center gap-3">
@@ -103,12 +103,14 @@ export default function AuthScreen() {
             <div className="flex-1 h-px bg-surface-hover" />
           </div>
 
-          <button
+          <Button
+            variant="secondary"
+            fullWidth
             onClick={() => signInWithGoogle()}
-            className="w-full py-3 rounded-xl border border-line text-sm font-semibold text-ink flex items-center justify-center gap-2 active:bg-surface-subtle focus:outline-none focus:ring-2 focus:ring-primary-300"
+            className="focus:ring-2 focus:ring-primary-300"
           >
-            <span aria-hidden="true">G</span> Googleでログイン
-          </button>
+            <span aria-hidden="true">G</span>&nbsp;Googleでログイン
+          </Button>
         </div>
       </div>
     </div>

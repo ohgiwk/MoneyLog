@@ -1,3 +1,4 @@
+import Card from './ui/Card'
 import { useMemo, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
@@ -213,9 +214,9 @@ export default function FixedExpenseList({
 
       {/* 固定費一覧 */}
       {loading ? <Spinner /> : (filtered.length === 0 ? (
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
           <div className="text-sm text-ink-muted text-center py-6">該当する固定費がありません</div>
-        </div>
+        </Card>
       ) : filter === 'active' ? (
         (() => {
           const reviewingList = filtered.filter((f) => f.status === 'reviewing')
@@ -297,20 +298,20 @@ export default function FixedExpenseList({
               {reviewingList.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-warning-600 px-1 pb-1">見直し中</div>
-                  <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">{renderGroup(reviewingList)}</div>
+                  <Card>{renderGroup(reviewingList)}</Card>
                 </div>
               )}
               {activeList.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-ink-muted px-1 pb-1">契約中</div>
-                  <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">{renderGroup(activeList)}</div>
+                  <Card>{renderGroup(activeList)}</Card>
                 </div>
               )}
             </div>
           )
         })()
       ) : (
-        <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+        <Card>
         {((() => {
           const rows: ReactNode[] = []
           let prevCategory = ''
@@ -389,7 +390,7 @@ export default function FixedExpenseList({
             return rows
           })()
         )}
-        </div>
+        </Card>
       ))}
 
       <button
