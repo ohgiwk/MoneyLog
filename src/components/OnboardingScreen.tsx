@@ -191,7 +191,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
               onClick={onComplete}
               className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
-              固定費を設定する →
+              固定費を設定する
             </button>
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
               disabled={!canProceed() || saving}
               className="w-full bg-primary-500 active:bg-primary-600 disabled:bg-surface-muted disabled:text-ink-muted text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
-              {saving ? '保存中...' : '次へ →'}
+              {saving ? '保存中...' : '次へ'}
             </button>
             {page > 0 && (
               <div className="flex justify-between mt-3">
@@ -214,7 +214,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
                   onClick={goPrev}
                   className="text-ink-muted text-sm py-2 px-2 active:text-ink"
                 >
-                  ← 戻る
+                  戻る
                 </button>
                 {(page === 1 || page === 2) && (
                   <button
