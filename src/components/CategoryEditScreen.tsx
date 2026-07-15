@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import CategoryList from './CategoryList'
+import CategoryList, { type CategoryListHandle } from './CategoryList'
 import ScreenHeader from './ui/ScreenHeader'
 import { useAppContext } from '../contexts/AppContext'
 
@@ -18,6 +18,15 @@ export default function CategoryEditScreen() {
   const { expenseCategories, incomeCategories, fixedCategories, updateExpenseCategories, updateIncomeCategories, updateFixedCategories } = categories
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
+  const expenseRef = useRef<CategoryListHandle>(null)
+  const incomeRef = useRef<CategoryListHandle>(null)
+  const fixedRef = useRef<CategoryListHandle>(null)
+
+  function handleFab() {
+    if (activeTab === 'expense') expenseRef.current?.openAdd()
+    else if (activeTab === 'income') incomeRef.current?.openAdd()
+    else fixedRef.current?.openAdd()
+  }
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
@@ -41,16 +50,29 @@ export default function CategoryEditScreen() {
         </div>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto pb-8">
+      <div className="flex-1 p-4 overflow-y-auto pb-24">
         {activeTab === 'expense' && (
-          <CategoryList categories={expenseCategories} onChange={updateExpenseCategories} />
+          <CategoryList ref={expenseRef} categories={expenseCategories} onChange={updateExpenseCategories} />
         )}
         {activeTab === 'income' && (
-          <CategoryList categories={incomeCategories} onChange={updateIncomeCategories} />
+          <CategoryList ref={incomeRef} categories={incomeCategories} onChange={updateIncomeCategories} />
         )}
         {activeTab === 'fixed' && (
-          <CategoryList categories={fixedCategories} onChange={updateFixedCategories} />
+          <CategoryList ref={fixedRef} categories={fixedCategories} onChange={updateFixedCategories} />
         )}
+      </div>
+
+      <div className="fixed bottom-8 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+        <button
+          onClick={handleFab}
+          className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg active:bg-primary-600 flex items-center justify-center"
+          aria-label="カテゴリを追加"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
       </div>
     </div>
   )

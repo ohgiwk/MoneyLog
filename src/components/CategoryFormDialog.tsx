@@ -31,7 +31,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
   }
 
   return (
-    <Modal isOpen onClose={onClose} position="bottom" className="w-full max-w-md p-5 space-y-4 pb-8">
+    <Modal isOpen onClose={onClose} position="center" className="w-full max-w-sm mx-4 p-5 space-y-4">
       <div className="flex items-center justify-between">
         <span className="font-semibold text-ink">カテゴリ編集</span>
         <button onClick={onClose} className="text-ink-muted active:text-ink px-1 text-xl">✕</button>
