@@ -69,7 +69,7 @@ export default function BudgetScreen({ userId }: Props) {
 
       <MonthSwitcher month={month} setMonth={setMonth} />
 
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-48">
         {fetchError && (
           <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
             {fetchError}
@@ -133,35 +133,39 @@ export default function BudgetScreen({ userId }: Props) {
           </div>
         </div>
 
-        {/* 収入に対する予算使用率 */}
-        {budget.income > 0 && (
-          <div className="bg-income-50 dark:bg-income-950/50 rounded-2xl p-4 shadow-sm space-y-2">
+      </div>
+
+      {/* フローティング: 予算使用率 */}
+      {budget.income > 0 && (
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
+          <div className="bg-income-50 dark:bg-income-950/80 rounded-2xl px-4 py-2.5 shadow-lg space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-income-700 dark:text-income-400">予算使用率</div>
-              <span className={`text-sm font-bold ${overIncome ? 'text-danger-500' : 'text-income-700 dark:text-income-400'}`}>
-                {Math.round((budgetTotal / budget.income) * 100)}%
-              </span>
+              <div className="text-xs font-semibold text-income-700 dark:text-income-400">予算使用率</div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-ink-muted">{formatYen(budgetTotal)} / {formatYen(budget.income)}</span>
+                <span className={`font-bold ${overIncome ? 'text-danger-500' : 'text-income-700 dark:text-income-400'}`}>
+                  {Math.round((budgetTotal / budget.income) * 100)}%
+                </span>
+              </div>
             </div>
-            <div className="h-2.5 bg-income-100 dark:bg-income-900/50 rounded-full overflow-hidden">
+            <div className="h-2 bg-income-100 dark:bg-income-900/50 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${overIncome ? 'bg-danger-400' : 'bg-income-500 dark:bg-income-600'}`}
                 style={{ width: `${usagePct}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-xs text-income-700/80 dark:text-income-400/80">
-              <span>
-                予算合計 {formatYen(budgetTotal)} / 収入 {formatYen(budget.income)}
-              </span>
-              <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-income-700/80 dark:text-income-400/80'}>
-                {overIncome
-                  ? `${formatYen(Math.abs(remaining))} オーバー`
-                  : `残り ${formatYen(remaining)}`}
+            <div className="text-right text-xs">
+              <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-ink-muted'}>
+                {overIncome ? `${formatYen(Math.abs(remaining))} オーバー` : `残り ${formatYen(remaining)}`}
               </span>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        <Button fullWidth size="lg" onClick={handleSave}>
+      {/* フローティング: 保存ボタン */}
+      <div className="fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
+        <Button size="fab" onClick={handleSave} className="w-[60%]">
           {saved ? '✓ 保存しました' : '保存する'}
         </Button>
       </div>
