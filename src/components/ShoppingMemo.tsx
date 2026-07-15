@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { CategoryInfo } from '../constants'
 import { STORE_TYPES } from '../constants'
 import type { ShoppingItem } from '../lib/database.types'
-import { shoppingMemoService } from '../lib/services/shoppingMemoService'
 import { transactionService } from '../lib/services/transactionService'
+import { useShoppingMemoQuery, useShoppingMemoAdd, useShoppingMemoUpdate, useShoppingMemoDelete } from '../hooks/queries/useShoppingMemoQuery'
 import PurchaseDialog from './PurchaseDialog'
 import ShoppingItemDialog from './ShoppingItemDialog'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -36,32 +36,18 @@ function groupItems(items: ShoppingItem[]): GroupedItems[] {
 }
 
 export default function ShoppingMemo({ userId, expenseCategories, onTransactionAdded }: Props) {
-  const [items, setItems] = useState<ShoppingItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data: items = [], isLoading: loading, error: queryError } = useShoppingMemoQuery(userId)
+  const addMutation = useShoppingMemoAdd(userId)
+  const updateMutation = useShoppingMemoUpdate(userId)
+  const deleteMutation = useShoppingMemoDelete(userId)
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'データの読み込みに失敗しました') : null
+
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [showDialog, setShowDialog] = useState(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null)
   const [showItemDialog, setShowItemDialog] = useState(false)
   const [confirmDeleteSelected, setConfirmDeleteSelected] = useState(false)
-
-  async function load() {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await shoppingMemoService.fetchItems(userId)
-      setItems(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   function openAddDialog(group?: string) {
     setEditingItem(null)
@@ -76,11 +62,9 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
 
   async function handleSaveItem(name: string, memo: string | null, budgetAmount: number, group: string) {
     if (editingItem) {
-      await shoppingMemoService.updateItem(editingItem.id, name, memo, budgetAmount, group)
-      setItems(prev => prev.map(it => it.id === editingItem.id ? { ...it, name, memo, budget_amount: budgetAmount, category: group } : it))
+      await updateMutation.mutateAsync({ id: editingItem.id, name, memo, budgetAmount, group })
     } else {
-      const item = await shoppingMemoService.addItem(userId, name, memo, budgetAmount, group)
-      setItems(prev => [...prev, item])
+      await addMutation.mutateAsync({ name, memo, budgetAmount, group })
     }
     setShowItemDialog(false)
     setEditingItem(null)
@@ -90,11 +74,8 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   async function handleDeleteSelected() {
     const ids = [...selected]
     try {
-      await shoppingMemoService.deleteItems(ids)
-      setItems(prev => prev.filter(it => !selected.has(it.id)))
+      await deleteMutation.mutateAsync(ids)
       setSelected(new Set())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
     } finally {
       setConfirmDeleteSelected(false)
     }
@@ -135,8 +116,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       recurring_rule_id: null,
     })
     const ids = [...selected]
-    await shoppingMemoService.deleteItems(ids)
-    setItems(prev => prev.filter(it => !selected.has(it.id)))
+    await deleteMutation.mutateAsync(ids)
     setSelected(new Set())
     setShowDialog(false)
     onTransactionAdded?.()

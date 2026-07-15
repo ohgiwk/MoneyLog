@@ -8,4 +8,5 @@ export const queryKeys = {
   workSchedule: (userId: string) => ['workSchedule', userId] as const,
   wishlist: (userId: string) => ['wishlist', userId] as const,
   achievements: (userId: string) => ['achievements', userId] as const,
+  shoppingMemo: (userId: string) => ['shoppingMemo', userId] as const,
 }
