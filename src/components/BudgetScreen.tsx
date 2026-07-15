@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { EXPENSE_CATEGORIES } from '../constants'
-import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
 import { calcBudgetProgress, formatYen, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
@@ -12,25 +13,26 @@ interface Props {
   onBack: () => void
 }
 
+const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
+
 export default function BudgetScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
-  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
+  const [budget, setBudget] = useState<BudgetSettings>(emptyBudget)
   const [saved, setSaved] = useState(false)
-  const [fetchError, setFetchError] = useState<string | null>(null)
 
+  const { data: fetchedBudget, isError } = useBudgetQuery(userId, month)
+  const mutation = useBudgetMutation(userId, month)
+
+  // サーバーから取得したデータをフォームに反映（月切替時もリセット）
   useEffect(() => {
-    const load = async () => {
-      setFetchError(null)
+    if (fetchedBudget) {
+      setBudget(fetchedBudget)
       setSaved(false)
-      try {
-        setBudget(await budgetService.fetchByMonth(userId, month))
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      }
     }
-    void load()
-  }, [userId, month])
+  }, [fetchedBudget])
+
+  const fetchError = isError ? 'データの読み込みに失敗しました' : mutation.isError ? '保存に失敗しました' : null
 
   function handleChange(field: 'income' | 'fixed' | 'consumable', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -48,13 +50,8 @@ export default function BudgetScreen({ userId, onBack }: Props) {
   }
 
   async function handleSave() {
-    setFetchError(null)
-    try {
-      await budgetService.save(userId, month, budget)
-      setSaved(true)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : '保存に失敗しました')
-    }
+    await mutation.mutateAsync(budget)
+    setSaved(true)
   }
 
   const oneTimeTotal = oneTimeBudgetTotal(budget)

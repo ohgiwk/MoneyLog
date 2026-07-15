@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
-import { transactionService } from '../lib/services/transactionService'
-import { fixedExpenseService } from '../lib/services/fixedExpenseService'
-import { consumableService } from '../lib/services/consumableService'
-import { profileService } from '../lib/services/profileService'
+import { useMemo, useState } from 'react'
+import { useProfileQuery } from '../hooks/queries/useProfileQuery'
+import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
+import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
+import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
+import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { calendarEventService } from '../lib/services/calendarEventService'
-import type { CalendarEvent, Consumable, FixedExpense, Transaction } from '../lib/database.types'
+import { useQuery } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
-import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 
@@ -17,17 +18,9 @@ interface Props {
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
+const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
 
 export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent }: Props) {
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [budgetMonthTx, setBudgetMonthTx] = useState<Transaction[]>([])
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
-  const [consumables, setConsumables] = useState<Consumable[]>([])
-  const [upcomingEvents, setUpcomingEvents] = useState<CalendarEvent[]>([])
-  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
-  const [monthStartDay, setMonthStartDay] = useState(1)
-  const [householdMembers, setHouseholdMembers] = useState(1)
-  const [fetchError, setFetchError] = useState<string | null>(null)
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
@@ -36,39 +29,27 @@ export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent 
   const [infoOpen, setInfoOpen] = useState(false)
 
   const today = todayStr()
-  const period = periodKey(today, monthStartDay)
   const calendarMonth = today.slice(0, 7)
 
-  useEffect(() => {
-    const load = async () => {
-      setFetchError(null)
-      try {
-        const profile = await profileService.fetchById(userId)
-        const startDay = profile?.month_start_day ?? 1
-        setMonthStartDay(startDay)
-        setHouseholdMembers(profile?.household_members ?? 1)
-        const currentPeriod = periodKey(today, startDay)
+  const { data: profile, isError: profileError } = useProfileQuery(userId)
+  const monthStartDay = profile?.month_start_day ?? 1
+  const householdMembers = profile?.household_members ?? 1
+  const period = periodKey(today, monthStartDay)
 
-        const [txs, monthTxs, fixed, cons, budgetSettings, upcoming] = await Promise.all([
-          transactionService.fetchByMonth(userId, currentPeriod, startDay),
-          transactionService.fetchByMonth(userId, today.slice(0, 7)),
-          fixedExpenseService.fetchByUser(userId),
-          consumableService.fetchByUser(userId),
-          budgetService.fetchByMonth(userId, today.slice(0, 7)),
-          calendarEventService.fetchUpcomingExpenses(userId, today),
-        ])
-        setTransactions(txs)
-        setBudgetMonthTx(monthTxs)
-        setFixedExpenses(fixed)
-        setConsumables(cons)
-        setBudget(budgetSettings)
-        setUpcomingEvents(upcoming)
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      }
-    }
-    void load()
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, period, monthStartDay)
+  const { data: budgetMonthTx = [], isError: budgetTxError } = useTransactionsQuery(userId, calendarMonth)
+  const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
+  const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
+  const { data: budget = emptyBudget, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
+  const { data: upcomingEvents = [], isError: upcomingError } = useQuery({
+    queryKey: ['calendarEvents', 'upcoming', userId, today],
+    queryFn: () => calendarEventService.fetchUpcomingExpenses(userId, today),
+    enabled: !!userId,
+  })
+
+  const fetchError = profileError || txError || budgetTxError || fixedError || consumablesError || budgetError || upcomingError
+    ? 'データの読み込みに失敗しました'
+    : null
 
   function handleCarryOverChange(next: boolean) {
     setCarryOver(next)

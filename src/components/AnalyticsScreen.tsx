@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { transactionService } from '../lib/services/transactionService'
-import { fixedExpenseService } from '../lib/services/fixedExpenseService'
-import { consumableService } from '../lib/services/consumableService'
-import { profileService } from '../lib/services/profileService'
-import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
+import { useProfileQuery } from '../hooks/queries/useProfileQuery'
+import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
+import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
+import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
+import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
+import { useQuery } from '@tanstack/react-query'
 import { STORE_TYPES } from '../constants'
 import { categoryInfo, formatYen, todayStr } from '../utils'
-import { budgetService, type BudgetSettings } from '../lib/services/budgetService'
+import { type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
@@ -21,46 +23,33 @@ interface Props {
   onBack: () => void
 }
 
+const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
+
 export default function AnalyticsScreen({ userId, onBack }: Props) {
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
-  const [budget, setBudget] = useState<BudgetSettings>({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [yearTransactions, setYearTransactions] = useState<Transaction[]>([])
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
-  const [consumables, setConsumables] = useState<Consumable[]>([])
-  const [householdMembers, setHouseholdMembers] = useState(1)
-  const [fetchError, setFetchError] = useState<string | null>(null)
   const [storePeriod, setStorePeriod] = useState<StorePeriod>('monthly')
 
   const year = month.slice(0, 4)
 
-  useEffect(() => {
-    const load = async () => {
-      setFetchError(null)
-      try {
-        const [txs, yearTxs, fixed, cons, profile, budgetSettings] = await Promise.all([
-          transactionService.fetchByMonth(userId, month),
-          transactionService.fetchByYear(userId, year),
-          fixedExpenseService.fetchByUser(userId),
-          consumableService.fetchByUser(userId),
-          profileService.fetchById(userId),
-          budgetService.fetchByMonth(userId, month),
-        ])
-        setTransactions(txs)
-        setYearTransactions(yearTxs)
-        setFixedExpenses(fixed)
-        setConsumables(cons)
-        if (profile) setHouseholdMembers(profile.household_members ?? 1)
-        setBudget(budgetSettings)
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      }
-    }
-    void load()
-  }, [month, year, userId])
+  const { data: profile, isError: profileError } = useProfileQuery(userId)
+  const householdMembers = profile?.household_members ?? 1
+
+  const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
+  const { data: yearTransactions = [], isError: yearTxError } = useQuery({
+    queryKey: ['transactions', userId, year, 'yearly'],
+    queryFn: () => transactionService.fetchByYear(userId, year),
+    enabled: !!userId,
+  })
+  const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
+  const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
+  const { data: budget = emptyBudget, isError: budgetError } = useBudgetQuery(userId, month)
+
+  const fetchError = profileError || txError || yearTxError || fixedError || consumablesError || budgetError
+    ? 'データの読み込みに失敗しました'
+    : null
 
   const storeCounts = useMemo(() => {
     const source = storePeriod === 'monthly' ? transactions : yearTransactions

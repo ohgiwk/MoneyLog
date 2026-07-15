@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { CategoryInfo } from '../constants'
-import { fixedExpenseService } from '../lib/services/fixedExpenseService'
-import { budgetService } from '../lib/services/budgetService'
-import type { FixedExpense } from '../lib/database.types'
+import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
+import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
 import { todayStr } from '../utils'
 import FixedExpenseList from './FixedExpenseList'
 
@@ -22,38 +21,17 @@ interface Props {
 }
 
 export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen, onNavigate, onHeaderChange }: Props) {
-  const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
-  const [fixedBudget, setFixedBudget] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
+  const queryClient = useQueryClient()
+  const calendarMonth = todayStr().slice(0, 7)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      setFetchError(null)
-      try {
-        const [data, budget] = await Promise.all([
-          fixedExpenseService.fetchByUser(userId),
-          budgetService.fetchByMonth(userId, todayStr().slice(0, 7)),
-        ])
-        setFixedExpenses(data)
-        setFixedBudget(budget.fixed)
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      } finally {
-        setLoading(false)
-      }
-    }
-    void load()
-  }, [userId])
+  const { data: fixedExpenses = [], isError: fixedError, isFetching } = useFixedExpensesQuery(userId)
+  const { data: budget, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
+  const fixedBudget = budget?.fixed ?? 0
+  const loading = isFetching && fixedExpenses.length === 0
+  const fetchError = fixedError || budgetError ? 'データの読み込みに失敗しました' : null
 
-  async function reload() {
-    try {
-      const data = await fixedExpenseService.fetchByUser(userId)
-      setFixedExpenses(data)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    }
+  function reload() {
+    void queryClient.invalidateQueries({ queryKey: ['fixedExpenses', userId] })
   }
 
   return (

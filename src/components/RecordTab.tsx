@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CategoryInfo } from '../constants'
-import { profileService } from '../lib/services/profileService'
 import { transactionService } from '../lib/services/transactionService'
-import { budgetService, oneTimeBudgetTotal } from '../lib/services/budgetService'
+import { useProfileQuery } from '../hooks/queries/useProfileQuery'
+import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
+import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { oneTimeBudgetTotal } from '../lib/services/budgetService'
 import type { Transaction } from '../lib/database.types'
 import { periodKey, todayStr } from '../utils'
 import OneTimeTransactionList from './OneTimeTransactionList'
@@ -42,21 +45,35 @@ export default function RecordTab({
   onNavigate,
   onHeaderChange,
 }: Props) {
+  const queryClient = useQueryClient()
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [oneTimeDirection, setOneTimeDirection] = useState<NavDirection>('forward')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
-  const [monthStartDay, setMonthStartDay] = useState(1)
-  const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [availableMonths, setAvailableMonths] = useState<string[]>([])
-  const [oneTimeBudget, setOneTimeBudget] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
   const periodInitialized = useRef(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [rangeTransactions, setRangeTransactions] = useState<Transaction[] | null>(null)
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+
+  const { data: profile, isError: profileError } = useProfileQuery(userId)
+  const monthStartDay = profile?.month_start_day ?? 1
+
+  const { data: transactions = [], isError: txError, isFetching: txLoading } = useTransactionsQuery(userId, month, monthStartDay)
+  const { data: budget, isError: budgetError } = useBudgetQuery(userId, month)
+  const oneTimeBudget = budget ? oneTimeBudgetTotal(budget) : 0
+
+  const { data: availableMonths = [], isError: availableMonthsError } = useQuery({
+    queryKey: ['availableMonths', userId, monthStartDay],
+    queryFn: () => transactionService.fetchAvailableMonths(userId, monthStartDay),
+    enabled: !!userId,
+  })
+
+  const fetchError = profileError || txError || budgetError || availableMonthsError
+    ? 'データの読み込みに失敗しました'
+    : null
+
+  const loading = txLoading && transactions.length === 0
 
   // 下部タブの「記録」を再タップしたら出費一覧に戻す
   const resetSignalMounted = useRef(false)
@@ -84,53 +101,15 @@ export default function RecordTab({
     if (editingTx) onNavigate?.()
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // マウント時に全データを並列取得
+  // 月開始日が確定したら、現在いるべき集計期間に補正する（初回のみ）
   useEffect(() => {
-    const load = async () => {
-      setFetchError(null)
-      setLoading(true)
-      try {
-        const profile = await profileService.fetchById(userId)
-        const startDay = profile?.month_start_day ?? 1
-        setMonthStartDay(startDay)
-        // 月開始日の設定に応じて、現在いるべき集計期間に補正する（初回のみ）
-        let effectiveMonth = month
-        if (!periodInitialized.current) {
-          periodInitialized.current = true
-          const correctPeriod = periodKey(todayStr(), startDay)
-          if (correctPeriod !== month) {
-            effectiveMonth = correctPeriod
-            setMonth(correctPeriod)
-          }
-        }
-
-        const [months, txs, budget] = await Promise.all([
-          transactionService.fetchAvailableMonths(userId, startDay),
-          transactionService.fetchByMonth(userId, effectiveMonth, startDay),
-          budgetService.fetchByMonth(userId, effectiveMonth),
-        ])
-        setAvailableMonths(months)
-        setTransactions(txs)
-        setOneTimeBudget(oneTimeBudgetTotal(budget))
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      } finally {
-        setLoading(false)
-      }
+    if (!profile || periodInitialized.current) return
+    periodInitialized.current = true
+    const correctPeriod = periodKey(todayStr(), monthStartDay)
+    if (correctPeriod !== month) {
+      setMonth(correctPeriod)
     }
-    void load()
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // 月が変わったらトランザクションと予算を再取得
-  useEffect(() => {
-    if (!periodInitialized.current) return
-    transactionService.fetchByMonth(userId, month, monthStartDay)
-      .then(setTransactions)
-      .catch(() => {})
-    budgetService.fetchByMonth(userId, month)
-      .then((budget) => setOneTimeBudget(oneTimeBudgetTotal(budget)))
-      .catch(() => {})
-  }, [userId, month, monthStartDay])
+  }, [profile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 期間絞り込み（開始日・終了日）が指定されたら、月を跨いでその範囲のトランザクションを取得
   useEffect(() => {
@@ -143,17 +122,9 @@ export default function RecordTab({
       .catch(() => {})
   }, [userId, dateFrom, dateTo])
 
-  async function fetchTransactions() {
-    try {
-      const [txs, months] = await Promise.all([
-        transactionService.fetchByMonth(userId, month, monthStartDay),
-        transactionService.fetchAvailableMonths(userId, monthStartDay),
-      ])
-      setTransactions(txs)
-      setAvailableMonths(months)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    }
+  function refreshTransactions() {
+    void queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+    void queryClient.invalidateQueries({ queryKey: ['availableMonths', userId] })
   }
 
   function openForm(tx?: Transaction) {
@@ -169,7 +140,7 @@ export default function RecordTab({
     setOneTimeDirection('back')
     setOneTimeView('list')
     onEditDone?.()
-    void fetchTransactions()
+    refreshTransactions()
   }
 
   // 出費フォーム表示中のヘッダーは OneTimeTransactionForm 自身が管理する。
