@@ -96,7 +96,7 @@ export function useSummaryCalculations({
 
   const weekOneTimeByCat = useMemo(() => aggregateOneTimeByCategory(thisWeekTx), [thisWeekTx])
 
-  const hasBudget = oneTimeBudgetTotal(budget) > 0 || weekOneTimeByCat.size > 0
+  const hasBudget = oneTimeBudgetTotal(budget) > 0
 
   // 今日の日付範囲
   const dayRange = useMemo(() => {

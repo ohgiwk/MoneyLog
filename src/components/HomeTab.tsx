@@ -58,7 +58,7 @@ export default function HomeTab({ userId }: Props) {
     localStorage.setItem(carryOverKey(userId), String(next))
   }
 
-  const dailyBudgetTotal = budget.consumable + oneTimeBudgetTotal(budget)
+  const dailyBudgetTotal = oneTimeBudgetTotal(budget)
 
   const daysInMonth = useMemo(
     () => periodDayCount(period, monthStartDay),
@@ -189,13 +189,13 @@ export default function HomeTab({ userId }: Props) {
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left space-y-2">
                 <div className="text-sm font-semibold text-ink">本日のお小遣いとは</div>
                 <p className="text-xs text-ink-muted leading-relaxed">
-                  予算設定画面で設定した「定期購入」と「カテゴリ別出費」の合計額を、集計期間の日数で日割りした金額です。
+                  予算設定画面で設定した「カテゴリ別出費」の合計額を、集計期間の日数で日割りした金額です。
                   {carryOver
                     ? '繰り越しがONのため、期間の経過日数分の日割り予算からその期間の累計出費を差し引いた金額が表示されます。'
                     : '繰り越しがOFFのため、日割り予算から本日の出費を差し引いた金額が表示されます。'}
                 </p>
                 <div className="text-xs text-ink-muted bg-surface-subtle rounded-lg px-3 py-2 space-y-1">
-                  <div>日割り予算 = (定期購入予算 + カテゴリ別出費予算) ÷ 日数</div>
+                  <div>日割り予算 = カテゴリ別出費予算の合計 ÷ 日数</div>
                   <div>
                     {carryOver
                       ? '本日のお小遣い = 日割り予算 × 経過日数 − 期間内の累計出費'
