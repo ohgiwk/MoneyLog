@@ -196,9 +196,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                   <span className="text-sm font-semibold text-ink-strong truncate flex-1 min-w-0">
                     {groupName || 'グループなし'}
                   </span>
-                  <span className="text-xs text-ink-muted flex-shrink-0">
-                    {groupedItems.length}件
-                  </span>
 
                   {/* グループへ追加ボタン */}
                   <button
