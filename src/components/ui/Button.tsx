@@ -17,7 +17,7 @@ const variantClasses: Record<Variant, string> = {
 }
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'py-2.5 text-sm rounded-xl',
+  sm: 'py-2.5 px-4 text-sm rounded-xl',
   md: 'py-3 text-sm rounded-xl',
   lg: 'py-3.5 text-base rounded-xl',
   fab: 'py-3.5 text-sm rounded-[2rem] shadow-lg disabled:opacity-50',

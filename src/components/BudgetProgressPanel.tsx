@@ -4,6 +4,12 @@ import { calcBudgetProgress, formatYen, mondayFirstDow } from '../utils'
 
 export type PeriodMode = 'week' | 'month'
 
+const DUMMY_ROWS = [
+  { cat: '食費', icon: '🍽️', spent: 18000, budget: 30000, weekBudget: 7000, daySpent: 0, dayBudget: 0, monthSpent: 18000, monthBudget: 30000 },
+  { cat: '日用品', icon: '🧴', spent: 4500, budget: 10000, weekBudget: 2500, daySpent: 0, dayBudget: 0, monthSpent: 4500, monthBudget: 10000 },
+  { cat: '娯楽', icon: '🎮', spent: 6000, budget: 8000, weekBudget: 2000, daySpent: 0, dayBudget: 0, monthSpent: 6000, monthBudget: 8000 },
+]
+
 export default function BudgetProgressPanel({
   periodMode,
   setPeriodMode,
@@ -11,6 +17,7 @@ export default function BudgetProgressPanel({
   daysInMonth,
   month,
   oneTimeCategoryRows,
+  hasBudget = true,
   onManageBudget,
 }: {
   periodMode: PeriodMode
@@ -28,6 +35,7 @@ export default function BudgetProgressPanel({
     monthSpent: number
     monthBudget: number
   }[]
+  hasBudget?: boolean
   onManageBudget?: () => void
 }) {
   // 期間ラベルと進捗率
@@ -55,18 +63,19 @@ export default function BudgetProgressPanel({
     }
   }, [periodMode, weekRange, month, daysInMonth])
 
-  const rows = oneTimeCategoryRows.map((r) => {
+  const displayRows = hasBudget ? oneTimeCategoryRows : DUMMY_ROWS
+  const rows = displayRows.map((r) => {
     if (periodMode === 'week') return { ...r, spent: r.spent, budget: r.weekBudget }
     return { ...r, spent: r.monthSpent, budget: r.monthBudget }
   })
 
-  const weekTotalBudget = oneTimeCategoryRows.reduce((sum, r) => sum + r.weekBudget, 0)
-  const weekTotalSpent = oneTimeCategoryRows.reduce((sum, r) => sum + r.spent, 0)
-  const monthTotalBudget = oneTimeCategoryRows.reduce((sum, r) => sum + r.monthBudget, 0)
-  const monthTotalSpent = oneTimeCategoryRows.reduce((sum, r) => sum + r.monthSpent, 0)
+  const weekTotalBudget = displayRows.reduce((sum, r) => sum + r.weekBudget, 0)
+  const weekTotalSpent = displayRows.reduce((sum, r) => sum + r.spent, 0)
+  const monthTotalBudget = displayRows.reduce((sum, r) => sum + r.monthBudget, 0)
+  const monthTotalSpent = displayRows.reduce((sum, r) => sum + r.monthSpent, 0)
 
   return (
-    <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+    <div className="relative bg-surface rounded-2xl p-4 shadow-sm space-y-3">
       {/* ヘッダー行 */}
       <div className="flex items-center justify-between">
         <div className="text-sm font-semibold text-ink">予算進捗</div>
@@ -144,11 +153,24 @@ export default function BudgetProgressPanel({
         </div>
       </div>
 
-      {onManageBudget && (
+      {hasBudget && onManageBudget && (
         <div className="pt-2">
           <Button variant="secondary" fullWidth size="sm" onClick={onManageBudget}>
             予算を管理
           </Button>
+        </div>
+      )}
+
+      {!hasBudget && (
+        <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-3" style={{ backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', background: 'rgb(var(--color-surface) / 0.55)' }}>
+          <p className="text-sm font-semibold text-ink">予算がまだ設定されていません</p>
+          {onManageBudget && (
+            <div>
+              <Button variant="primary" size="sm" onClick={onManageBudget}>
+                予算を設定する
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

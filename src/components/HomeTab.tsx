@@ -236,17 +236,16 @@ export default function HomeTab({ userId }: Props) {
         </table>
       </div>
 
-      {hasBudget && (
-        <BudgetProgressPanel
-          periodMode={periodMode}
-          setPeriodMode={setPeriodMode}
-          weekRange={weekRange}
-          daysInMonth={budgetDaysInMonth}
-          month={calendarMonth}
-          oneTimeCategoryRows={oneTimeCategoryRows}
-          onManageBudget={() => navigate('/budget')}
-        />
-      )}
+      <BudgetProgressPanel
+        periodMode={periodMode}
+        setPeriodMode={setPeriodMode}
+        weekRange={weekRange}
+        daysInMonth={budgetDaysInMonth}
+        month={calendarMonth}
+        oneTimeCategoryRows={oneTimeCategoryRows}
+        hasBudget={hasBudget}
+        onManageBudget={() => navigate('/budget')}
+      />
 
       {upcomingEvents.length > 0 && (
         <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
