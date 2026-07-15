@@ -15,6 +15,16 @@ export default defineConfig({
   server: {
     port: 5175
   },
+  resolve: {
+    dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+  },
+  optimizeDeps: {
+    include: [
+      '@tanstack/react-query',
+      '@tanstack/react-query-persist-client',
+      '@tanstack/query-sync-storage-persister',
+    ],
+  },
   plugins: [react(), VitePWA({
     registerType: 'prompt',
     workbox: {

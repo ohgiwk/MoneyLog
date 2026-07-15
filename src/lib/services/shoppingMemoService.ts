@@ -1,6 +1,5 @@
 import { supabase } from '../supabase'
 import type { ShoppingItem } from '../database.types'
-import { cachedFetch, cacheInvalidateTable } from '../cache'
 
 const TABLE = 'shopping_items'
 
@@ -32,19 +31,17 @@ async function ensureOpenList(userId: string): Promise<string> {
 
 export const shoppingMemoService = {
   fetchItems: async (userId: string): Promise<ShoppingItem[]> => {
-    return cachedFetch(`${TABLE}:${userId}`, async () => {
-      const listId = await ensureOpenList(userId)
-      const { data, error } = await supabase
-        .from('shopping_items')
-        .select('*')
-        .eq('list_id', listId)
-        .eq('user_id', userId)
-        .eq('status', 'pending')
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true })
-      if (error) throw new Error(error.message)
-      return data ?? []
-    })
+    const listId = await ensureOpenList(userId)
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .eq('list_id', listId)
+      .eq('user_id', userId)
+      .eq('status', 'pending')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+    if (error) throw new Error(error.message)
+    return data ?? []
   },
 
   addItem: async (
@@ -56,7 +53,7 @@ export const shoppingMemoService = {
   ): Promise<ShoppingItem> => {
     const listId = await ensureOpenList(userId)
     const { data, error } = await supabase
-      .from('shopping_items')
+      .from(TABLE)
       .insert({
         list_id: listId,
         user_id: userId,
@@ -72,7 +69,6 @@ export const shoppingMemoService = {
       .select()
       .single()
     if (error) throw new Error(error.message)
-    cacheInvalidateTable(TABLE)
     return data
   },
 
@@ -84,23 +80,20 @@ export const shoppingMemoService = {
     group = ''
   ): Promise<void> => {
     const { error } = await supabase
-      .from('shopping_items')
+      .from(TABLE)
       .update({ name, memo, budget_amount: budgetAmount, category: group })
       .eq('id', id)
     if (error) throw new Error(error.message)
-    cacheInvalidateTable(TABLE)
   },
 
   deleteItem: async (id: string): Promise<void> => {
-    const { error } = await supabase.from('shopping_items').delete().eq('id', id)
+    const { error } = await supabase.from(TABLE).delete().eq('id', id)
     if (error) throw new Error(error.message)
-    cacheInvalidateTable(TABLE)
   },
 
   deleteItems: async (ids: string[]): Promise<void> => {
     if (ids.length === 0) return
-    const { error } = await supabase.from('shopping_items').delete().in('id', ids)
+    const { error } = await supabase.from(TABLE).delete().in('id', ids)
     if (error) throw new Error(error.message)
-    cacheInvalidateTable(TABLE)
   },
 }
