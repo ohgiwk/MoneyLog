@@ -1,5 +1,6 @@
 import Card from './ui/Card'
 import { useMemo, useState, useEffect } from 'react'
+import { useAppContext } from '../contexts/AppContext'
 import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
@@ -50,6 +51,7 @@ export default function FixedExpenseList({
   fromOnboarding,
   onWizardOpen,
 }: Props) {
+  const { scrollToTop } = useAppContext()
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [showPicker, setShowPicker] = useState(false)
@@ -65,10 +67,12 @@ export default function FixedExpenseList({
   const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {
+    scrollToTop()
     setDirection('forward')
     setEditing(v)
   }
   function closeEditing() {
+    scrollToTop()
     setDirection('back')
     setShowPicker(false)
     setEditing(null)

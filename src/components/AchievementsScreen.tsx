@@ -1,9 +1,9 @@
+import { useNavigate } from 'react-router-dom'
 import { useAchievements, type Achievement } from '../hooks/useAchievements'
 import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
   userId: string
-  onBack: () => void
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -31,7 +31,8 @@ function AchievementItem({ a }: { a: Achievement }) {
   )
 }
 
-export default function AchievementsScreen({ userId, onBack }: Props) {
+export default function AchievementsScreen({ userId }: Props) {
+  const navigate = useNavigate()
   const { achievements, loading } = useAchievements(userId)
 
   const categories = ['固定費', '出費記録'] as const
@@ -39,7 +40,7 @@ export default function AchievementsScreen({ userId, onBack }: Props) {
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
-      <ScreenHeader title="実績" onBack={onBack} />
+      <ScreenHeader title="実績" onBack={() => navigate(-1)} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
         {/* 達成サマリー */}

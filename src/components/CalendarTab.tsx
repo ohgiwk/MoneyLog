@@ -5,8 +5,8 @@ import Textarea from './ui/Textarea'
 import ErrorText from './ui/ErrorText'
 import Modal from './ui/Modal'
 import { useMemo, useState } from 'react'
+import { useAppContext } from '../contexts/AppContext'
 import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
-import type { CategoryInfo } from '../constants'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { workScheduleService } from '../lib/services/workScheduleService'
 import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
@@ -17,10 +17,6 @@ import { formatDateWithWeekday, formatYen } from '../utils'
 
 interface Props {
   userId: string
-  month: string
-  setMonth: (m: string) => void
-  initialSelectedDate?: string
-  expenseCategories: CategoryInfo[]
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
@@ -35,9 +31,11 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function CalendarTab({ userId, month, setMonth: _setMonth, initialSelectedDate, expenseCategories }: Props) {
+export default function CalendarTab({ userId }: Props) {
+  const { month, calendarSelectedDate, categories } = useAppContext()
+  const expenseCategories = categories.expenseCategories
   const queryClient = useQueryClient()
-  const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate ?? todayStr())
+  const [selectedDate, setSelectedDate] = useState<string>(calendarSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [dayTypeError, setDayTypeError] = useState<string | null>(null)

@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '../contexts/AppContext'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
 import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
@@ -13,14 +15,14 @@ import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 
 interface Props {
   userId: string
-  onManageBudget?: () => void
-  onSelectUpcomingEvent?: (date: string) => void
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
 
-export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent }: Props) {
+export default function HomeTab({ userId }: Props) {
+  const navigate = useNavigate()
+  const { setCalendarSelectedDate, setMonth } = useAppContext()
   const [carryOver, setCarryOver] = useState(() => {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
@@ -242,7 +244,7 @@ export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent 
           daysInMonth={budgetDaysInMonth}
           month={calendarMonth}
           oneTimeCategoryRows={oneTimeCategoryRows}
-          onManageBudget={onManageBudget}
+          onManageBudget={() => navigate('/budget')}
         />
       )}
 
@@ -254,7 +256,7 @@ export default function HomeTab({ userId, onManageBudget, onSelectUpcomingEvent 
               <li key={event.id}>
                 <button
                   type="button"
-                  onClick={() => onSelectUpcomingEvent?.(event.date)}
+                  onClick={() => { setMonth(event.date.slice(0, 7)); setCalendarSelectedDate(event.date); navigate('/calendar') }}
                   className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
                 >
                   <div className="flex flex-col">

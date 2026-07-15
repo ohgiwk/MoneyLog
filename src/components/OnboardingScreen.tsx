@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { profileService } from '../lib/services/profileService'
 import { wishlistService } from '../lib/services/wishlistService'
 
 interface Props {
   userId: string
-  onComplete: () => void
 }
 
 const TOTAL_PAGES = 4
 
-export default function OnboardingScreen({ userId, onComplete }: Props) {
+export default function OnboardingScreen({ userId }: Props) {
+  const navigate = useNavigate()
   const [page, setPage] = useState(0)
   const [wishName, setWishName] = useState('')
   const [wishPrice, setWishPrice] = useState('')
@@ -188,7 +189,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
               まずは固定費を登録して、削減できるものを一緒に探しましょう 💪
             </p>
             <button
-              onClick={onComplete}
+              onClick={() => navigate('/fixed', { state: { fromOnboarding: true } })}
               className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
               固定費を設定する
@@ -230,7 +231,7 @@ export default function OnboardingScreen({ userId, onComplete }: Props) {
         )}
         {page === 0 && (
           <button
-            onClick={onComplete}
+            onClick={() => navigate('/fixed', { state: { fromOnboarding: true } })}
             className="w-full mt-3 text-ink-muted text-sm py-2 active:text-ink"
           >
             スキップ

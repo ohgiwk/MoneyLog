@@ -1,17 +1,19 @@
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 
 interface Props {
-  onSettings: () => void
-  onBudget: () => void
-  onSetup: () => void
-  onAnalytics: () => void
-  onSavingTips: () => void
-  onAchievements: () => void
   onSignOut: () => void
   onClose: () => void
 }
 
-export default function DrawerMenu({ onSettings, onBudget, onSetup, onAnalytics, onSavingTips, onAchievements, onSignOut, onClose }: Props) {
+export default function DrawerMenu({ onSignOut, onClose }: Props) {
+  const navigate = useNavigate()
+
+  function go(path: string) {
+    navigate(path)
+    onClose()
+  }
+
   return (
     <>
       {/* オーバーレイ */}
@@ -42,73 +44,34 @@ export default function DrawerMenu({ onSettings, onBudget, onSetup, onAnalytics,
           </button>
         </div>
         <nav className="flex-1 py-2">
-          <button
-            onClick={() => {
-              onSetup()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/setup')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">🚀</span>
             セットアップ
           </button>
-          <button
-            onClick={() => {
-              onBudget()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/budget')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">💰</span>
             予算
           </button>
-          <button
-            onClick={() => {
-              onAnalytics()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/analytics')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">📊</span>
             分析
           </button>
-          <button
-            onClick={() => {
-              onSavingTips()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/saving-tips')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">💡</span>
             節約のコツ
           </button>
-          <button
-            onClick={() => {
-              onAchievements()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/achievements')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">🏆</span>
             実績
           </button>
-          <button
-            onClick={() => {
-              onSettings()
-              onClose()
-            }}
-            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
-          >
+          <button onClick={() => go('/settings')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">⚙️</span>
             設定
           </button>
         </nav>
         <div className="border-t border-line-subtle py-2">
           <button
-            onClick={() => {
-              onSignOut()
-              onClose()
-            }}
+            onClick={() => { onSignOut(); onClose() }}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-danger-500 active:bg-danger-50 text-sm"
           >
             <span className="text-lg">🚪</span>

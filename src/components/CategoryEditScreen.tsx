@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { CategoryInfo } from '../constants'
+import { useNavigate } from 'react-router-dom'
 import CategoryList from './CategoryList'
 import ScreenHeader from './ui/ScreenHeader'
+import { useAppContext } from '../contexts/AppContext'
 
 type TabKey = 'expense' | 'income' | 'fixed'
 
@@ -11,32 +12,17 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'fixed', label: '固定費' },
 ]
 
-interface Props {
-  expenseCategories: CategoryInfo[]
-  incomeCategories: CategoryInfo[]
-  fixedCategories: CategoryInfo[]
-  onUpdateExpense: (cats: CategoryInfo[]) => void
-  onUpdateIncome: (cats: CategoryInfo[]) => void
-  onUpdateFixed: (cats: CategoryInfo[]) => void
-  onBack: () => void
-}
-
-export default function CategoryEditScreen({
-  expenseCategories,
-  incomeCategories,
-  fixedCategories,
-  onUpdateExpense,
-  onUpdateIncome,
-  onUpdateFixed,
-  onBack,
-}: Props) {
+export default function CategoryEditScreen() {
+  const navigate = useNavigate()
+  const { categories } = useAppContext()
+  const { expenseCategories, incomeCategories, fixedCategories, updateExpenseCategories, updateIncomeCategories, updateFixedCategories } = categories
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="カテゴリ編集" onBack={onBack} />
+        <ScreenHeader title="カテゴリ編集" onBack={() => navigate(-1)} />
         <div className="flex px-4 gap-1 pb-0">
           {TABS.map((t) => (
             <button
@@ -57,13 +43,13 @@ export default function CategoryEditScreen({
 
       <div className="flex-1 p-4 overflow-y-auto pb-8">
         {activeTab === 'expense' && (
-          <CategoryList categories={expenseCategories} onChange={onUpdateExpense} />
+          <CategoryList categories={expenseCategories} onChange={updateExpenseCategories} />
         )}
         {activeTab === 'income' && (
-          <CategoryList categories={incomeCategories} onChange={onUpdateIncome} />
+          <CategoryList categories={incomeCategories} onChange={updateIncomeCategories} />
         )}
         {activeTab === 'fixed' && (
-          <CategoryList categories={fixedCategories} onChange={onUpdateFixed} />
+          <CategoryList categories={fixedCategories} onChange={updateFixedCategories} />
         )}
       </div>
     </div>

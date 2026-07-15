@@ -1,9 +1,6 @@
 import Card from './ui/Card'
 import ScreenHeader from './ui/ScreenHeader'
-
-interface Props {
-  onBack: () => void
-}
+import { useNavigate } from 'react-router-dom'
 
 const TIPS: string[] = [
   '買い物前に必要なものをリストアップし、リストにないものは買わないようにしましょう',
@@ -38,11 +35,12 @@ const TIPS: string[] = [
   '大きな買い物は「1ヶ月以内に3回検討する」ルールを設けて衝動買いを防ぎましょう',
 ]
 
-export default function SavingTipsScreen({ onBack }: Props) {
+export default function SavingTipsScreen() {
+  const navigate = useNavigate()
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="節約のコツ" onBack={onBack} />
+        <ScreenHeader title="節約のコツ" onBack={() => navigate(-1)} />
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto pb-8">

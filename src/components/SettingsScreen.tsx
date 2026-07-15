@@ -1,5 +1,7 @@
 import Card from './ui/Card'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '../contexts/AppContext'
 import {
   MONTH_START_DAY_MIN,
   MONTH_START_DAY_MAX,
@@ -9,27 +11,16 @@ import { useProfileQuery, useProfileMutation } from '../hooks/queries/useProfile
 import { useQueryClient } from '@tanstack/react-query'
 import ScreenHeader from './ui/ScreenHeader'
 import { TabGroup } from './ui/TabGroup'
-import type { ThemeMode } from '../hooks/useTheme'
 
 interface Props {
   userId: string
-  themeMode: ThemeMode
-  onThemeModeChange: (mode: ThemeMode) => void
-  onCategoryEdit: () => void
-  onExchangeRate: () => void
-  onPaymentMethods: () => void
-  onBack: () => void
 }
 
-export default function SettingsScreen({
-  userId,
-  themeMode,
-  onThemeModeChange,
-  onCategoryEdit,
-  onExchangeRate,
-  onPaymentMethods,
-  onBack,
-}: Props) {
+export default function SettingsScreen({ userId }: Props) {
+  const navigate = useNavigate()
+  const { theme } = useAppContext()
+  const themeMode = theme.mode
+  const onThemeModeChange = theme.setMode
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -54,7 +45,7 @@ export default function SettingsScreen({
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="設定" onBack={onBack} />
+        <ScreenHeader title="設定" onBack={() => navigate(-1)} />
       </div>
       <div className="flex-1 p-4 space-y-3 overflow-y-auto">
         {/* 家計の設定 */}
@@ -130,7 +121,7 @@ export default function SettingsScreen({
             </span>
           </div>
           <button
-            onClick={onCategoryEdit}
+            onClick={() => navigate('/settings/categories')}
             className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
           >
             <span className="text-xl">🏷️</span>
@@ -141,7 +132,7 @@ export default function SettingsScreen({
             <span className="text-ink-subtle text-lg">›</span>
           </button>
           <button
-            onClick={onExchangeRate}
+            onClick={() => navigate('/settings/exchange-rate')}
             className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
           >
             <span className="text-xl">💱</span>
@@ -152,7 +143,7 @@ export default function SettingsScreen({
             <span className="text-ink-subtle text-lg">›</span>
           </button>
           <button
-            onClick={onPaymentMethods}
+            onClick={() => navigate('/settings/payment-methods')}
             className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
           >
             <span className="text-xl">💳</span>

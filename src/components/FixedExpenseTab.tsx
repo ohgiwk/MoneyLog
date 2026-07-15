@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import type { CategoryInfo } from '../constants'
+import { useAppContext } from '../contexts/AppContext'
 import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
 import { todayStr } from '../utils'
@@ -7,20 +9,20 @@ import FixedExpenseList from './FixedExpenseList'
 
 interface Props {
   userId: string
-  fixedCategories: CategoryInfo[]
-  fromOnboarding?: boolean
-  onWizardOpen?: () => void
-  onNavigate?: () => void
-  onHeaderChange?: (
-    state: {
-      title: string
-      onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-    } | null
-  ) => void
 }
 
-export default function FixedExpenseTab({ userId, fixedCategories, fromOnboarding, onWizardOpen, onNavigate, onHeaderChange }: Props) {
+export default function FixedExpenseTab({ userId }: Props) {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { setHeaderBack: onHeaderChange, categories } = useAppContext()
+  const fixedCategories = categories.fixedCategories
+  const fromOnboarding = (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding ?? false
+
+  useEffect(() => {
+    if (fromOnboarding) {
+      navigate('/fixed', { replace: true, state: {} })
+    }
+  }, [fromOnboarding, navigate])
   const queryClient = useQueryClient()
   const calendarMonth = todayStr().slice(0, 7)
 
@@ -47,10 +49,10 @@ export default function FixedExpenseTab({ userId, fixedCategories, fromOnboardin
         fixedBudget={fixedBudget}
         fixedCategories={fixedCategories}
         reload={reload}
-        onEditingChange={(state) => { onNavigate?.(); onHeaderChange?.(state) }}
+        onEditingChange={(state) => { onHeaderChange(state) }}
         loading={loading}
         fromOnboarding={fromOnboarding}
-        onWizardOpen={onWizardOpen}
+        onWizardOpen={undefined}
       />
     </div>
   )

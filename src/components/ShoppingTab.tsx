@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CategoryInfo } from '../constants'
+import { useAppContext } from '../contexts/AppContext'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
 import { useQueryClient } from '@tanstack/react-query'
@@ -18,20 +18,11 @@ const SUB_TABS: { key: SubPage; label: string }[] = [
 
 interface Props {
   userId: string
-  month: string
-  expenseCategories: CategoryInfo[]
-  resetSignal?: number
-  onNavigate?: () => void
-  onHeaderChange?: (
-    state: {
-      title: string
-      onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-    } | null
-  ) => void
 }
 
-export default function ShoppingTab({ userId, expenseCategories, resetSignal, onNavigate, onHeaderChange }: Props) {
+export default function ShoppingTab({ userId }: Props) {
+  const { shoppingTapKey: resetSignal, setHeaderBack: onHeaderChange, categories } = useAppContext()
+  const expenseCategories = categories.expenseCategories
   const queryClient = useQueryClient()
   const [sub, setSub] = useState<SubPage>('shopping')
   const [consumableEditing, setConsumableEditing] = useState(false)
@@ -64,7 +55,6 @@ export default function ShoppingTab({ userId, expenseCategories, resetSignal, on
       action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
     } | null
   ) {
-    onNavigate?.()
     setConsumableEditing(state !== null)
     onHeaderChange?.(state)
   }
@@ -78,7 +68,7 @@ export default function ShoppingTab({ userId, expenseCategories, resetSignal, on
           <TabGroup
             tabs={SUB_TABS}
             active={sub}
-            onChange={(key) => { onNavigate?.(); setSub(key) }}
+            onChange={(key) => { setSub(key) }}
             size="sm"
           />
         </div>

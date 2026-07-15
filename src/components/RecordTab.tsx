@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CategoryInfo } from '../constants'
+import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
@@ -16,35 +16,12 @@ type OneTimeView = 'list' | 'form'
 
 interface Props {
   userId: string
-  month: string
-  setMonth: (m: string) => void
-  expenseCategories: CategoryInfo[]
-  incomeCategories: CategoryInfo[]
-  editingTx?: Transaction | null
-  onEditDone?: () => void
-  resetSignal?: number
-  onNavigate?: () => void
-  onHeaderChange?: (
-    state: {
-      title: string
-      onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-    } | null
-  ) => void
 }
 
-export default function RecordTab({
-  userId,
-  month,
-  setMonth,
-  expenseCategories,
-  incomeCategories,
-  editingTx,
-  onEditDone,
-  resetSignal,
-  onNavigate,
-  onHeaderChange,
-}: Props) {
+export default function RecordTab({ userId }: Props) {
+  const { month, setMonth, editingTx, setEditingTx, recordTapKey: resetSignal, setHeaderBack: onHeaderChange, categories, scrollToTop } = useAppContext()
+  const expenseCategories = categories.expenseCategories
+  const incomeCategories = categories.incomeCategories
   const queryClient = useQueryClient()
   const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
   const [oneTimeDirection, setOneTimeDirection] = useState<NavDirection>('forward')
@@ -98,7 +75,7 @@ export default function RecordTab({
     }
   }
   useEffect(() => {
-    if (editingTx) onNavigate?.()
+    if (editingTx) { /* scroll reset handled by route transition */ }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 月開始日が確定したら、現在いるべき集計期間に補正する（初回のみ）
@@ -128,18 +105,18 @@ export default function RecordTab({
   }
 
   function openForm(tx?: Transaction) {
-    onNavigate?.()
+    scrollToTop()
     setFormEditingTx(tx ?? null)
     setOneTimeDirection('forward')
     setOneTimeView('form')
   }
 
   function backToList() {
-    onNavigate?.()
+    scrollToTop()
     setFormEditingTx(null)
     setOneTimeDirection('back')
     setOneTimeView('list')
-    onEditDone?.()
+    setEditingTx(null)
     refreshTransactions()
   }
 

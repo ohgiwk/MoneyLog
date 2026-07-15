@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
@@ -10,12 +11,12 @@ import Input from './ui/Input'
 
 interface Props {
   userId: string
-  onBack: () => void
 }
 
 const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
 
-export default function BudgetScreen({ userId, onBack }: Props) {
+export default function BudgetScreen({ userId }: Props) {
+  const navigate = useNavigate()
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [budget, setBudget] = useState<BudgetSettings>(emptyBudget)
@@ -63,7 +64,7 @@ export default function BudgetScreen({ userId, onBack }: Props) {
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="bg-surface border-b border-line-subtle">
-        <ScreenHeader title="予算設定" onBack={onBack} />
+        <ScreenHeader title="予算設定" onBack={() => navigate(-1)} />
       </div>
 
       <MonthSwitcher month={month} setMonth={setMonth} />

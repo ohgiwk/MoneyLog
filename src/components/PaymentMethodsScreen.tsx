@@ -1,17 +1,15 @@
 import Card from './ui/Card'
 import Input from './ui/Input'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { PAYMENT_TYPES, type PaymentType } from '../constants'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
 import ScreenHeader from './ui/ScreenHeader'
 
 const MANAGED_TYPES = PAYMENT_TYPES.filter((t) => t.type !== 'cash')
 
-interface Props {
-  onBack: () => void
-}
-
-export default function PaymentMethodsScreen({ onBack }: Props) {
+export default function PaymentMethodsScreen() {
+  const navigate = useNavigate()
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const { methods, defaultPayment, addMethod, removeMethod, setDefaultPayment } = usePaymentMethods()
@@ -36,7 +34,7 @@ export default function PaymentMethodsScreen({ onBack }: Props) {
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="支払い方法" onBack={onBack} />
+        <ScreenHeader title="支払い方法" onBack={() => navigate(-1)} />
       </div>
 
       <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-8">

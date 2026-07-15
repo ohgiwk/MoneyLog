@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getUsdJpyRate, setUsdJpyRate } from '../lib/exchangeRate'
 import { SAVE_SUCCESS_DISPLAY_MS } from '../constants'
 import ScreenHeader from './ui/ScreenHeader'
@@ -6,11 +7,8 @@ import Input from './ui/Input'
 import Button from './ui/Button'
 import ErrorText from './ui/ErrorText'
 
-interface Props {
-  onBack: () => void
-}
-
-export default function ExchangeRateScreen({ onBack }: Props) {
+export default function ExchangeRateScreen() {
+  const navigate = useNavigate()
   const [rate, setRate] = useState(() => getUsdJpyRate().toString())
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +28,7 @@ export default function ExchangeRateScreen({ onBack }: Props) {
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="為替レート設定" onBack={onBack} />
+        <ScreenHeader title="為替レート設定" onBack={() => navigate(-1)} />
       </div>
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">

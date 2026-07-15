@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
@@ -20,12 +21,12 @@ type StorePeriod = 'monthly' | 'yearly'
 
 interface Props {
   userId: string
-  onBack: () => void
 }
 
 const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
 
-export default function AnalyticsScreen({ userId, onBack }: Props) {
+export default function AnalyticsScreen({ userId }: Props) {
+  const navigate = useNavigate()
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
   const [month, setMonth] = useState(todayStr().slice(0, 7))
@@ -78,7 +79,7 @@ export default function AnalyticsScreen({ userId, onBack }: Props) {
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="bg-surface border-b border-line-subtle">
-        <ScreenHeader title="分析" onBack={onBack} />
+        <ScreenHeader title="分析" onBack={() => navigate(-1)} />
       </div>
 
       <MonthSwitcher month={month} setMonth={setMonth} />
