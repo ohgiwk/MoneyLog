@@ -1,8 +1,9 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { SUBSCRIPTION_PRESETS } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
-import { wishlistService } from '../lib/services/wishlistService'
+import { useWishlistQuery } from '../hooks/queries/useWishlistQuery'
+import { useQueryClient } from '@tanstack/react-query'
 import type { FixedExpense } from '../lib/database.types'
 import { getUsdJpyRate, setExpenseCurrencyMeta } from '../lib/exchangeRate'
 import {
@@ -50,15 +51,12 @@ export default function FixedExpenseTutorial({
       }))
   )
   const [reviewingNames, setReviewingNames] = useState<Set<string>>(new Set())
+  const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
-  const [wishItem, setWishItem] = useState<{ name: string; target_amount: number | null } | null>(null)
 
-  useEffect(() => {
-    wishlistService.fetchByUser(userId).then((items) => {
-      const top = items.find((i) => i.priority === 1) ?? items[0] ?? null
-      if (top) setWishItem({ name: top.name, target_amount: top.target_amount })
-    })
-  }, [userId])
+  const { data: wishlistItems = [] } = useWishlistQuery(userId)
+  const topWish = wishlistItems.find((i) => i.priority === 1) ?? wishlistItems[0] ?? null
+  const wishItem = topWish ? { name: topWish.name, target_amount: topWish.target_amount } : null
 
   function toggleSub(name: string) {
     setSelectedSubs((prev) => {
@@ -175,7 +173,10 @@ export default function FixedExpenseTutorial({
     })
 
     // サブスクの保存 — DB から最新の登録済み名称を取得してから重複を除外
-    const existingSubs = await fixedExpenseService.fetchByUser(userId)
+    const existingSubs = await queryClient.fetchQuery({
+      queryKey: ['fixedExpenses', userId],
+      queryFn: () => fixedExpenseService.fetchByUser(userId),
+    })
     const existingSubNames = new Set(
       existingSubs.filter((f) => f.category === 'サブスク').map((f) => f.name)
     )
@@ -226,8 +227,12 @@ export default function FixedExpenseTutorial({
     ])
 
     // USD サブスクのメタデータを保存（insertMany後にIDを取得）
+    void queryClient.invalidateQueries({ queryKey: ['fixedExpenses', userId] })
     if (usdSubsToInsert.length > 0) {
-      const savedSubs = await fixedExpenseService.fetchByUser(userId)
+      const savedSubs = await queryClient.fetchQuery({
+        queryKey: ['fixedExpenses', userId],
+        queryFn: () => fixedExpenseService.fetchByUser(userId),
+      })
       usdSubsToInsert.forEach((p) => {
         const cycle = cycleOverrides.get(p.name) ?? p.cycle
         const saved = savedSubs.find((f) => f.name === p.name && f.category === 'サブスク')

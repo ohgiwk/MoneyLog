@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { wishlistService, type WishlistItem } from '../lib/services/wishlistService'
+import { useState } from 'react'
+import { useWishlistQuery, useWishlistInsert, useWishlistUpdate, useWishlistDelete } from '../hooks/queries/useWishlistQuery'
+import type { WishlistItem } from '../lib/services/wishlistService'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
@@ -19,34 +20,22 @@ interface FormState {
 const emptyForm = (): FormState => ({ name: '', price: '' })
 
 export default function WishlistPanel({ userId }: Props) {
-  const [items, setItems] = useState<WishlistItem[]>([])
-  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
-  const [saving, setSaving] = useState(false)
   const [moving, setMoving] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const data = await wishlistService.fetchByUser(userId)
-      setItems(data)
-    } catch {
-      setError('データの取得に失敗しました')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: items = [], isLoading: loading } = useWishlistQuery(userId)
+  const insertMutation = useWishlistInsert(userId)
+  const updateMutation = useWishlistUpdate(userId)
+  const deleteMutation = useWishlistDelete(userId)
 
-  useEffect(() => {
-    load() // eslint-disable-line react-hooks/set-state-in-effect
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const saving = insertMutation.isPending || updateMutation.isPending || deleteMutation.isPending
 
   const renormalize = async (ordered: WishlistItem[]) => {
     await Promise.all(
-      ordered.map((item, i) => wishlistService.update(item.id, { priority: i + 1 }))
+      ordered.map((item, i) => updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } }))
     )
   }
 
@@ -71,12 +60,11 @@ export default function WishlistPanel({ userId }: Props) {
   const handleSave = async () => {
     if (!form.name.trim()) { setError('商品名を入力してください'); return }
     if (!form.price) { setError('金額を入力してください'); return }
-    setSaving(true)
     setError(null)
     try {
       if (editing === 'new') {
         const nextPriority = items.length > 0 ? items[items.length - 1].priority + 1 : 1
-        await wishlistService.insert({
+        await insertMutation.mutateAsync({
           user_id: userId,
           name: form.name.trim(),
           target_amount: Number(form.price),
@@ -85,34 +73,27 @@ export default function WishlistPanel({ userId }: Props) {
           notes: null,
         })
       } else if (editing) {
-        await wishlistService.update(editing.id, {
-          name: form.name.trim(),
-          target_amount: Number(form.price),
+        await updateMutation.mutateAsync({
+          id: editing.id,
+          data: { name: form.name.trim(), target_amount: Number(form.price) },
         })
       }
-      await load()
       closeForm()
     } catch {
       setError('保存に失敗しました')
-    } finally {
-      setSaving(false)
     }
   }
 
   const handleDelete = async () => {
     if (editing === 'new' || !editing) return
-    setSaving(true)
     setConfirmDelete(false)
     try {
-      await wishlistService.delete(editing.id)
-      const remaining = items.filter(i => i.id !== editing.id)
+      await deleteMutation.mutateAsync(editing.id)
+      const remaining = items.filter(i => i.id !== (editing as WishlistItem).id)
       await renormalize(remaining)
-      await load()
       closeForm()
     } catch {
       setError('削除に失敗しました')
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -124,7 +105,6 @@ export default function WishlistPanel({ userId }: Props) {
       const reordered = [...items]
       ;[reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]]
       await renormalize(reordered)
-      await load()
     } catch {
       setError('並び替えに失敗しました')
     } finally {
@@ -249,7 +229,7 @@ export default function WishlistPanel({ userId }: Props) {
           </Modal>
           {confirmDelete && editing !== 'new' && (
             <ConfirmDialog
-              message={`「${editing.name}」を削除しますか？`}
+              message={`「${(editing as WishlistItem).name}」を削除しますか？`}
               confirmLabel="削除"
               onConfirm={handleDelete}
               onCancel={() => setConfirmDelete(false)}

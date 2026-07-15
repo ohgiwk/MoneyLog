@@ -5,8 +5,8 @@ import {
   MONTH_START_DAY_MAX,
   SAVE_SUCCESS_DISPLAY_MS,
 } from '../constants'
-import { profileService } from '../lib/services/profileService'
-import { cacheInvalidateTable } from '../lib/cache'
+import { useProfileQuery, useProfileMutation } from '../hooks/queries/useProfileQuery'
+import { useQueryClient } from '@tanstack/react-query'
 import ScreenHeader from './ui/ScreenHeader'
 import { TabGroup } from './ui/TabGroup'
 import type { ThemeMode } from '../hooks/useTheme'
@@ -30,25 +30,22 @@ export default function SettingsScreen({
   onPaymentMethods,
   onBack,
 }: Props) {
-  const [monthStartDay, setMonthStartDay] = useState(1)
+  const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
-  useEffect(() => {
-    profileService.fetchById(userId).then((p) => {
-      if (p) {
-        setMonthStartDay(p.month_start_day ?? 1)
-      }
-    })
-  }, [userId])
+  const { data: profile } = useProfileQuery(userId)
+  const monthStartDay = profile?.month_start_day ?? 1
+  const profileMutation = useProfileMutation(userId)
 
   async function saveMonthStartDay(value: number) {
     setSaving(true)
-    await profileService.update(userId, { month_start_day: value })
-    // 集計期間の起点が変わるため、キャッシュ済みの出費データを無効化する
-    cacheInvalidateTable('transactions')
+    await profileMutation.mutateAsync({ month_start_day: value })
+    // 集計期間の起点が変わるため、transactions キャッシュを無効化する
+    void queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+    void queryClient.invalidateQueries({ queryKey: ['availableMonths', userId] })
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
@@ -77,11 +74,7 @@ export default function SettingsScreen({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    const v = Math.max(MONTH_START_DAY_MIN, monthStartDay - 1)
-                    setMonthStartDay(v)
-                    saveMonthStartDay(v)
-                  }}
+                  onClick={() => saveMonthStartDay(Math.max(MONTH_START_DAY_MIN, monthStartDay - 1))}
                   className="w-8 h-8 rounded-full bg-surface-hover text-ink font-bold active:bg-surface-muted"
                 >
                   −
@@ -90,11 +83,7 @@ export default function SettingsScreen({
                   {monthStartDay}
                 </span>
                 <button
-                  onClick={() => {
-                    const v = Math.min(MONTH_START_DAY_MAX, monthStartDay + 1)
-                    setMonthStartDay(v)
-                    saveMonthStartDay(v)
-                  }}
+                  onClick={() => saveMonthStartDay(Math.min(MONTH_START_DAY_MAX, monthStartDay + 1))}
                   className="w-8 h-8 rounded-full bg-surface-hover text-ink font-bold active:bg-surface-muted"
                 >
                   ＋

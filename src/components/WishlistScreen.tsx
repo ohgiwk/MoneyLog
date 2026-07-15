@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { wishlistService, type WishlistItem } from '../lib/services/wishlistService'
+import { useState } from 'react'
+import { useWishlistQuery, useWishlistInsert, useWishlistUpdate, useWishlistDelete } from '../hooks/queries/useWishlistQuery'
+import type { WishlistItem } from '../lib/services/wishlistService'
 import ConfirmDialog from './ui/ConfirmDialog'
 import ScreenHeader from './ui/ScreenHeader'
 import Modal from './ui/Modal'
@@ -21,37 +22,22 @@ interface FormState {
 const emptyForm = (): FormState => ({ name: '', price: '' })
 
 export default function WishlistScreen({ userId, onBack }: Props) {
-  const [items, setItems] = useState<WishlistItem[]>([])
-  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
-  const [saving, setSaving] = useState(false)
   const [moving, setMoving] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const load = async () => {
-    setLoading(true)
-    try {
-      const data = await wishlistService.fetchByUser(userId)
-      setItems(data)
-    } catch {
-      setError('データの取得に失敗しました')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const { data: items = [], isLoading: loading } = useWishlistQuery(userId)
+  const insertMutation = useWishlistInsert(userId)
+  const updateMutation = useWishlistUpdate(userId)
+  const deleteMutation = useWishlistDelete(userId)
 
-  useEffect(() => {
-    load() // eslint-disable-line react-hooks/set-state-in-effect -- マウント時の非同期データ取得
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const saving = insertMutation.isPending || updateMutation.isPending || deleteMutation.isPending
 
-  // 優先順位を 1..N に正規化して一括保存
   const renormalize = async (ordered: WishlistItem[]) => {
     await Promise.all(
-      ordered.map((item, i) =>
-        wishlistService.update(item.id, { priority: i + 1 })
-      )
+      ordered.map((item, i) => updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } }))
     )
   }
 
@@ -76,13 +62,11 @@ export default function WishlistScreen({ userId, onBack }: Props) {
   const handleSave = async () => {
     if (!form.name.trim()) { setError('商品名を入力してください'); return }
     if (!form.price) { setError('金額を入力してください'); return }
-    setSaving(true)
     setError(null)
     try {
       if (editing === 'new') {
-        // 最下位に追加
         const nextPriority = items.length > 0 ? items[items.length - 1].priority + 1 : 1
-        await wishlistService.insert({
+        await insertMutation.mutateAsync({
           user_id: userId,
           name: form.name.trim(),
           target_amount: Number(form.price),
@@ -91,47 +75,38 @@ export default function WishlistScreen({ userId, onBack }: Props) {
           notes: null,
         })
       } else if (editing) {
-        await wishlistService.update(editing.id, {
-          name: form.name.trim(),
-          target_amount: Number(form.price),
+        await updateMutation.mutateAsync({
+          id: editing.id,
+          data: { name: form.name.trim(), target_amount: Number(form.price) },
         })
       }
-      await load()
       closeForm()
     } catch {
       setError('保存に失敗しました')
-    } finally {
-      setSaving(false)
     }
   }
 
   const handleDelete = async () => {
     if (editing === 'new' || !editing) return
-    setSaving(true)
     setConfirmDelete(false)
     try {
-      await wishlistService.delete(editing.id)
-      const remaining = items.filter(i => i.id !== editing.id)
+      await deleteMutation.mutateAsync(editing.id)
+      const remaining = items.filter(i => i.id !== (editing as WishlistItem).id)
       await renormalize(remaining)
-      await load()
       closeForm()
     } catch {
       setError('削除に失敗しました')
-    } finally {
-      setSaving(false)
     }
   }
 
   const moveItem = async (index: number, direction: 'up' | 'down') => {
     const swapIndex = direction === 'up' ? index - 1 : index + 1
     if (swapIndex < 0 || swapIndex >= items.length) return
-
     setMoving(items[index].id)
     try {
       const reordered = [...items]
       ;[reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]]
       await renormalize(reordered)
-      await load()
     } catch {
       setError('並び替えに失敗しました')
     } finally {
@@ -141,12 +116,10 @@ export default function WishlistScreen({ userId, onBack }: Props) {
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
-      {/* ヘッダー */}
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="🎯 目標・欲しいもの" onBack={onBack} />
       </div>
 
-      {/* コンテンツ */}
       <div className="flex-1 px-4 py-4 pb-24 overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-12 text-ink-muted text-sm">読み込み中...</div>
@@ -159,59 +132,38 @@ export default function WishlistScreen({ userId, onBack }: Props) {
         ) : (
           <ul className="space-y-3">
             {items.map((item, index) => (
-              <li
-                key={item.id}
-                className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden"
-              >
-                {/* 並び替えボタン */}
+              <li key={item.id} className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden">
                 <div className="flex flex-col border-r border-line-subtle py-1">
                   <button
                     onClick={() => moveItem(index, 'up')}
                     disabled={index === 0 || moving !== null}
                     className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
                     aria-label="上に移動"
-                  >
-                    ▲
-                  </button>
+                  >▲</button>
                   <button
                     onClick={() => moveItem(index, 'down')}
                     disabled={index === items.length - 1 || moving !== null}
                     className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
                     aria-label="下に移動"
-                  >
-                    ▼
-                  </button>
+                  >▼</button>
                 </div>
-
-                {/* 優先順位バッジ */}
-                <span
-                  className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    item.priority === 1
-                      ? 'bg-warning-400 text-white'
-                      : item.priority === 2
-                      ? 'bg-surface-muted text-white'
-                      : item.priority === 3
-                      ? 'bg-orange-300 text-white'
-                      : 'bg-surface-muted text-ink-muted'
-                  }`}
-                >
+                <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                  item.priority === 1 ? 'bg-warning-400 text-white'
+                  : item.priority === 2 ? 'bg-surface-muted text-white'
+                  : item.priority === 3 ? 'bg-orange-300 text-white'
+                  : 'bg-surface-muted text-ink-muted'
+                }`}>
                   {item.priority}
                 </span>
-
-                {/* コンテンツ（タップで編集） */}
                 <button
                   onClick={() => openEdit(item)}
                   className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-surface-subtle"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
-                    {item.notes && (
-                      <p className="text-ink-muted text-xs truncate">{item.notes}</p>
-                    )}
+                    {item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
                   </div>
-                  <span className="text-ink font-semibold text-sm flex-shrink-0">
-                    ¥{item.target_amount.toLocaleString()}
-                  </span>
+                  <span className="text-ink font-semibold text-sm flex-shrink-0">¥{item.target_amount.toLocaleString()}</span>
                   <span className="text-ink-subtle text-lg flex-shrink-0">›</span>
                 </button>
               </li>
@@ -220,20 +172,16 @@ export default function WishlistScreen({ userId, onBack }: Props) {
         )}
       </div>
 
-      {/* FAB */}
       {editing === null && (
         <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6 flex justify-end pointer-events-none z-10">
           <button
             onClick={openNew}
             className="w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-primary-600 pointer-events-auto"
             aria-label="目標を追加"
-          >
-            ＋
-          </button>
+          >＋</button>
         </div>
       )}
 
-      {/* 編集フォームオーバーレイ（中央表示） */}
       {editing !== null && (
         <>
           <Modal isOpen onClose={closeForm} position="center" className="w-full max-w-sm mx-4 px-5 pt-5 pb-6">
@@ -243,9 +191,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
               </h2>
               <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
             </div>
-
             <ErrorText className="mb-3">{error}</ErrorText>
-
             <div className="space-y-3">
               <div>
                 <FormLabel className="font-medium">商品名</FormLabel>
@@ -269,7 +215,6 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                 />
               </div>
             </div>
-
             <div className="mt-5 space-y-2">
               <Button fullWidth onClick={handleSave} disabled={saving}>
                 {saving ? '保存中...' : '保存する'}
@@ -287,10 +232,9 @@ export default function WishlistScreen({ userId, onBack }: Props) {
               )}
             </div>
           </Modal>
-
           {confirmDelete && editing !== 'new' && (
             <ConfirmDialog
-              message={`「${editing.name}」を削除しますか？`}
+              message={`「${(editing as WishlistItem).name}」を削除しますか？`}
               confirmLabel="削除"
               onConfirm={handleDelete}
               onCancel={() => setConfirmDelete(false)}

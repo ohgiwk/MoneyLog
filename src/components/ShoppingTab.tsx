@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { CategoryInfo } from '../constants'
-import type { Consumable } from '../lib/database.types'
-import { consumableService } from '../lib/services/consumableService'
-import { profileService } from '../lib/services/profileService'
+import { useProfileQuery } from '../hooks/queries/useProfileQuery'
+import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
+import { useQueryClient } from '@tanstack/react-query'
 import { TabGroup } from './ui/TabGroup'
 import ConsumablesList from './ConsumablesList'
 import ShoppingMemo from './ShoppingMemo'
@@ -32,11 +32,8 @@ interface Props {
 }
 
 export default function ShoppingTab({ userId, expenseCategories, resetSignal, onNavigate, onHeaderChange }: Props) {
+  const queryClient = useQueryClient()
   const [sub, setSub] = useState<SubPage>('shopping')
-  const [consumables, setConsumables] = useState<Consumable[]>([])
-  const [householdMembers, setHouseholdMembers] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
   const [consumableEditing, setConsumableEditing] = useState(false)
 
   // 下部タブの「買い物メモ」を再タップしたら定期購入に戻す
@@ -46,38 +43,18 @@ export default function ShoppingTab({ userId, expenseCategories, resetSignal, on
     setSub('shopping')
   }
 
-  useEffect(() => {
-    const load = async () => {
-      setFetchError(null)
-      setLoading(true)
-      try {
-        const [profile, consumablesData] = await Promise.all([
-          profileService.fetchById(userId),
-          consumableService.fetchByUser(userId),
-        ])
-        if (profile) setHouseholdMembers(profile.household_members ?? 1)
-        setConsumables(consumablesData)
-      } catch (err) {
-        setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-      } finally {
-        setLoading(false)
-      }
-    }
-    void load()
-  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: profile, isError: profileError } = useProfileQuery(userId)
+  const householdMembers = profile?.household_members ?? 1
+  const { data: consumables = [], isError: consumablesError, isFetching } = useConsumablesQuery(userId)
+  const loading = isFetching && consumables.length === 0
+  const fetchError = profileError || consumablesError ? 'データの読み込みに失敗しました' : null
 
-async function fetchConsumables() {
-    try {
-      const data = await consumableService.fetchByUser(userId)
-      setConsumables(data)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    }
+  function fetchConsumables() {
+    void queryClient.invalidateQueries({ queryKey: ['consumables', userId] })
   }
 
-  async function fetchTransactions() {
-    // ShoppingMemoからの出費追加後に定期購入リストを再取得
-    await fetchConsumables()
+  function fetchTransactions() {
+    fetchConsumables()
   }
 
   function handleConsumableEditingChange(

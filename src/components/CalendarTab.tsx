@@ -4,12 +4,15 @@ import Input from './ui/Input'
 import Textarea from './ui/Textarea'
 import ErrorText from './ui/ErrorText'
 import Modal from './ui/Modal'
-import { useEffect, useMemo, useState } from 'react'
-import type { CalendarEvent, Transaction, WorkSchedule } from '../lib/database.types'
+import { useMemo, useState } from 'react'
+import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { workScheduleService } from '../lib/services/workScheduleService'
-import { transactionService } from '../lib/services/transactionService'
+import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
+import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
+import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
+import { useQueryClient } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen } from '../utils'
 
 interface Props {
@@ -33,34 +36,17 @@ function todayStr() {
 }
 
 export default function CalendarTab({ userId, month, setMonth: _setMonth, initialSelectedDate, expenseCategories }: Props) {
-  const [events, setEvents] = useState<CalendarEvent[]>([])
-  const [workSchedule, setWorkSchedule] = useState<WorkSchedule[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState<string>(initialSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
-  const [fetchError, setFetchError] = useState<string | null>(null)
   const [dayTypeError, setDayTypeError] = useState<string | null>(null)
 
-  useEffect(() => {
-    void load()
-  }, [month, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { data: events = [], isError: eventsError } = useCalendarEventsQuery(userId, month)
+  const { data: workSchedule = [], isError: scheduleError } = useWorkScheduleQuery(userId, month)
+  const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
 
-  async function load() {
-    setFetchError(null)
-    try {
-      const [eventData, scheduleData, txData] = await Promise.all([
-        calendarEventService.fetchByMonth(userId, month),
-        workScheduleService.fetchByMonth(userId, month),
-        transactionService.fetchByMonth(userId, month),
-      ])
-      setEvents(eventData)
-      setWorkSchedule(scheduleData)
-      setTransactions(txData)
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'データの読み込みに失敗しました')
-    }
-  }
+  const fetchError = eventsError || scheduleError || txError ? 'データの読み込みに失敗しました' : null
 
   const dayTypeByDate = useMemo(() => {
     const map = new Map<string, WorkSchedule['day_type']>()
@@ -76,7 +62,7 @@ export default function CalendarTab({ userId, month, setMonth: _setMonth, initia
       } else {
         await workScheduleService.setDayType(userId, selectedDate, next)
       }
-      await load()
+      void queryClient.invalidateQueries({ queryKey: ['workSchedule', userId, month] })
     } catch (err) {
       setDayTypeError(err instanceof Error ? err.message : '保存に失敗しました')
     }
@@ -333,7 +319,7 @@ export default function CalendarTab({ userId, month, setMonth: _setMonth, initia
           date={selectedDate}
           event={editingEvent}
           onClose={closeForm}
-          onSaved={() => { closeForm(); void load() }}
+          onSaved={() => { closeForm(); void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] }) }}
         />
       )}
     </div>
