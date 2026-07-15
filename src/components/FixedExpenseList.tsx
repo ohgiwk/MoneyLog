@@ -401,7 +401,7 @@ export default function FixedExpenseList({
         onClick={() => setTutorialOpen(true)}
         className="w-full py-3 rounded-xl border border-line bg-surface text-sm text-ink-muted font-medium active:bg-surface-subtle flex items-center justify-center gap-2"
       >
-        <span>🧭</span> 初期設定ウィザードを起動
+        <span>🧭</span> 固定費チュートリアルを開始
       </button>
 
       {/* FAB */}
