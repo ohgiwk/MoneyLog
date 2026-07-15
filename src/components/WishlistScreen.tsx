@@ -8,6 +8,65 @@ import Button from './ui/Button'
 import Input from './ui/Input'
 import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
+function SortableWishlistItem({ item, onEdit }: { item: WishlistItem; onEdit: (item: WishlistItem) => void }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+  return (
+    <li ref={setNodeRef} style={style} className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden">
+      <button
+        {...attributes}
+        {...listeners}
+        className="px-3 py-4 text-ink-subtle touch-none cursor-grab active:cursor-grabbing border-r border-line-subtle self-stretch flex items-center"
+        aria-label="並び替え"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="8" x2="20" y2="8"/>
+          <line x1="4" y1="16" x2="20" y2="16"/>
+        </svg>
+      </button>
+      <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+        item.priority === 1 ? 'bg-warning-400 text-white'
+        : item.priority === 2 ? 'bg-surface-muted text-white'
+        : item.priority === 3 ? 'bg-orange-300 text-white'
+        : 'bg-surface-muted text-ink-muted'
+      }`}>
+        {item.priority}
+      </span>
+      <button
+        onClick={() => onEdit(item)}
+        className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-surface-subtle"
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
+          {item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
+        </div>
+        <span className="text-ink font-semibold text-sm flex-shrink-0">¥{item.target_amount.toLocaleString()}</span>
+        <span className="text-ink-subtle text-lg flex-shrink-0">›</span>
+      </button>
+    </li>
+  )
+}
 
 interface Props {
   userId: string
@@ -24,7 +83,6 @@ const emptyForm = (): FormState => ({ name: '', price: '' })
 export default function WishlistScreen({ userId, onBack }: Props) {
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
-  const [moving, setMoving] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -99,18 +157,20 @@ export default function WishlistScreen({ userId, onBack }: Props) {
     }
   }
 
-  const moveItem = async (index: number, direction: 'up' | 'down') => {
-    const swapIndex = direction === 'up' ? index - 1 : index + 1
-    if (swapIndex < 0 || swapIndex >= items.length) return
-    setMoving(items[index].id)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  )
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = items.findIndex(i => i.id === active.id)
+    const newIndex = items.findIndex(i => i.id === over.id)
     try {
-      const reordered = [...items]
-      ;[reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]]
-      await renormalize(reordered)
+      await renormalize(arrayMove(items, oldIndex, newIndex))
     } catch {
       setError('並び替えに失敗しました')
-    } finally {
-      setMoving(null)
     }
   }
 
@@ -130,45 +190,15 @@ export default function WishlistScreen({ userId, onBack }: Props) {
             <p className="text-sm mt-1">下の＋ボタンから追加できます</p>
           </div>
         ) : (
-          <ul className="space-y-3">
-            {items.map((item, index) => (
-              <li key={item.id} className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden">
-                <div className="flex flex-col border-r border-line-subtle py-1">
-                  <button
-                    onClick={() => moveItem(index, 'up')}
-                    disabled={index === 0 || moving !== null}
-                    className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
-                    aria-label="上に移動"
-                  >▲</button>
-                  <button
-                    onClick={() => moveItem(index, 'down')}
-                    disabled={index === items.length - 1 || moving !== null}
-                    className="px-2 py-1.5 text-ink-muted disabled:text-ink-subtle active:text-ink text-base leading-none"
-                    aria-label="下に移動"
-                  >▼</button>
-                </div>
-                <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                  item.priority === 1 ? 'bg-warning-400 text-white'
-                  : item.priority === 2 ? 'bg-surface-muted text-white'
-                  : item.priority === 3 ? 'bg-orange-300 text-white'
-                  : 'bg-surface-muted text-ink-muted'
-                }`}>
-                  {item.priority}
-                </span>
-                <button
-                  onClick={() => openEdit(item)}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-surface-subtle"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
-                    {item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
-                  </div>
-                  <span className="text-ink font-semibold text-sm flex-shrink-0">¥{item.target_amount.toLocaleString()}</span>
-                  <span className="text-ink-subtle text-lg flex-shrink-0">›</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              <ul className="space-y-3">
+                {items.map((item) => (
+                  <SortableWishlistItem key={item.id} item={item} onEdit={openEdit} />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

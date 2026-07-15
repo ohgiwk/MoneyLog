@@ -26,6 +26,7 @@ export default defineConfig({
     ],
   },
   plugins: [react(), VitePWA({
+    devOptions: { enabled: false },
     registerType: 'prompt',
     workbox: {
       globPatterns: ['**/*.{js,css,html,ico,png,svg}']
