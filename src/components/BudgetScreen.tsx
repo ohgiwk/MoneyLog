@@ -160,8 +160,6 @@ export default function BudgetScreen({ userId }: Props) {
             />
           </div>
 
-          <div className="h-px bg-surface-hover" />
-
           {/* 出費（カテゴリ別 / 合計） */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
