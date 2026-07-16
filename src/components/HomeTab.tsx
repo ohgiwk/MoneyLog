@@ -107,6 +107,20 @@ export default function HomeTab({ userId }: Props) {
     month: calendarMonth,
   })
 
+  const categoryMode = localStorage.getItem(`budgetCategoryMode_${userId}`) ?? 'detail'
+  const displayCategoryRows = categoryMode === 'total' && oneTimeCategoryRows.length > 0
+    ? [{
+        cat: '通常出費',
+        icon: '⚡',
+        spent: oneTimeCategoryRows.reduce((s, r) => s + r.spent, 0),
+        weekBudget: oneTimeCategoryRows.reduce((s, r) => s + r.weekBudget, 0),
+        daySpent: oneTimeCategoryRows.reduce((s, r) => s + r.daySpent, 0),
+        dayBudget: oneTimeCategoryRows.reduce((s, r) => s + r.dayBudget, 0),
+        monthSpent: oneTimeCategoryRows.reduce((s, r) => s + r.monthSpent, 0),
+        monthBudget: oneTimeCategoryRows.reduce((s, r) => s + r.monthBudget, 0),
+      }]
+    : oneTimeCategoryRows
+
   return (
     <div className="p-4 space-y-4">
       {fetchError && (
@@ -282,7 +296,7 @@ export default function HomeTab({ userId }: Props) {
         weekRange={weekRange}
         daysInMonth={budgetDaysInMonth}
         month={calendarMonth}
-        oneTimeCategoryRows={oneTimeCategoryRows}
+        oneTimeCategoryRows={displayCategoryRows}
         hasBudget={hasBudget}
         onManageBudget={() => navigate('/budget')}
       />
