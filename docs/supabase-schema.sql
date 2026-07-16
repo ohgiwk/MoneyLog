@@ -119,6 +119,7 @@ create table public.wishlist_items (
   target_amount numeric not null,
   priority int not null default 1,
   purchased_at date,
+  target_date date,
   notes text,
   created_at timestamptz not null default now()
 );

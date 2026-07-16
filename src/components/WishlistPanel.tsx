@@ -59,7 +59,12 @@ function SortableWishlistItem({ item, onEdit }: { item: WishlistItem; onEdit: (i
       >
         <div className="flex-1 min-w-0">
           <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
-          {item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
+          {item.target_date && (
+            <p className="text-ink-muted text-xs truncate">
+              {item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃
+            </p>
+          )}
+          {!item.target_date && item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
         </div>
         <span className="text-ink font-semibold text-sm flex-shrink-0">¥{item.target_amount.toLocaleString()}</span>
       </button>
@@ -74,9 +79,11 @@ interface Props {
 interface FormState {
   name: string
   price: string
+  targetYear: string
+  targetMonth: string
 }
 
-const emptyForm = (): FormState => ({ name: '', price: '' })
+const emptyForm = (): FormState => ({ name: '', price: '', targetYear: '', targetMonth: '' })
 
 export default function WishlistPanel({ userId }: Props) {
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
@@ -127,7 +134,14 @@ export default function WishlistPanel({ userId }: Props) {
   }
 
   const openEdit = (item: WishlistItem) => {
-    setForm({ name: item.name, price: String(item.target_amount) })
+    let targetYear = ''
+    let targetMonth = ''
+    if (item.target_date) {
+      const [y, m] = item.target_date.split('-')
+      targetYear = y
+      targetMonth = String(Number(m))
+    }
+    setForm({ name: item.name, price: String(item.target_amount), targetYear, targetMonth })
     setEditing(item)
     setError(null)
   }
@@ -144,6 +158,9 @@ export default function WishlistPanel({ userId }: Props) {
     setError(null)
     try {
       if (editing === 'new') {
+        const targetDate = form.targetYear && form.targetMonth
+        ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
+        : null
         const nextPriority = items.length > 0 ? items[items.length - 1].priority + 1 : 1
         await insertMutation.mutateAsync({
           user_id: userId,
@@ -151,12 +168,16 @@ export default function WishlistPanel({ userId }: Props) {
           target_amount: Number(form.price),
           priority: nextPriority,
           purchased_at: null,
+          target_date: targetDate,
           notes: null,
         })
       } else if (editing) {
+        const targetDate = form.targetYear && form.targetMonth
+          ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
+          : null
         await updateMutation.mutateAsync({
           id: editing.id,
-          data: { name: form.name.trim(), target_amount: Number(form.price) },
+          data: { name: form.name.trim(), target_amount: Number(form.price), target_date: targetDate },
         })
       }
       closeForm()
@@ -246,22 +267,52 @@ export default function WishlistPanel({ userId }: Props) {
                   inputMode="numeric"
                 />
               </div>
+              <div>
+                <FormLabel className="font-medium">目標購入時期（任意）</FormLabel>
+                <div className="flex gap-2">
+                  <select
+                    value={form.targetYear}
+                    onChange={e => setForm(f => ({ ...f, targetYear: e.target.value }))}
+                    className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  >
+                    <option value="">年</option>
+                    {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map(y => (
+                      <option key={y} value={String(y)}>{y}年</option>
+                    ))}
+                  </select>
+                  <select
+                    value={form.targetMonth}
+                    onChange={e => setForm(f => ({ ...f, targetMonth: e.target.value }))}
+                    className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  >
+                    <option value="">月</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                      <option key={m} value={String(m)}>{m}月</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="mt-5 space-y-2">
+            <div className="mt-5 flex items-center gap-2">
+              {editing !== 'new' && (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  disabled={saving}
+                  className="bg-danger-500 text-white w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 active:bg-danger-600 disabled:opacity-40"
+                  aria-label="削除"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                </button>
+              )}
               <Button fullWidth onClick={handleSave} disabled={saving}>
                 {saving ? '保存中...' : '保存する'}
               </Button>
-              {editing !== 'new' && (
-                <Button
-                  variant="ghost"
-                  fullWidth
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={saving}
-                  className="text-danger-500 active:bg-danger-50 py-2.5"
-                >
-                  削除する
-                </Button>
-              )}
             </div>
           </Modal>
           {confirmDelete && editing !== 'new' && (

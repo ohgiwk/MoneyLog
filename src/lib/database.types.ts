@@ -130,6 +130,7 @@ export interface Database {
           target_amount: number
           priority: number
           purchased_at: string | null
+          target_date: string | null
           notes: string | null
           created_at: string
         }
