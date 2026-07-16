@@ -12,6 +12,7 @@ import { formatDateWithWeekday, formatYen, periodDayCount, periodDayIndex, perio
 import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
+import { Row } from './ui/Row'
 
 interface Props {
   userId: string
@@ -27,7 +28,7 @@ export default function HomeTab({ userId }: Props) {
     return localStorage.getItem(carryOverKey(userId)) === 'true'
   })
   const [optionsOpen, setOptionsOpen] = useState(false)
-  const [periodMode, setPeriodMode] = useState<PeriodMode>('week')
+  const [periodMode, setPeriodMode] = useState<PeriodMode>('month')
   const [infoOpen, setInfoOpen] = useState(false)
 
   const today = todayStr()
@@ -93,6 +94,10 @@ export default function HomeTab({ userId }: Props) {
     weekRange,
     daysInMonth: budgetDaysInMonth,
     oneTimeCategoryRows,
+    income,
+    totalFixed,
+    oneTimeExpense,
+    balance,
   } = useSummaryCalculations({
     transactions: budgetMonthTx,
     fixedExpenses,
@@ -189,22 +194,43 @@ export default function HomeTab({ userId }: Props) {
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left space-y-2">
                 <div className="text-sm font-semibold text-ink">本日のお小遣いとは</div>
                 <p className="text-xs text-ink-muted leading-relaxed">
-                  予算設定画面で設定した「カテゴリ別出費」の合計額を、集計期間の日数で日割りした金額です。
-                  {carryOver
-                    ? '繰り越しがONのため、期間の経過日数分の日割り予算からその期間の累計出費を差し引いた金額が表示されます。'
-                    : '繰り越しがOFFのため、日割り予算から本日の出費を差し引いた金額が表示されます。'}
+                  予算に設定した金額を元に、月の日数で日割りした金額です。繰り越しをONにすると、日々のお小遣いが繰り越されて、本日のお小遣いとなります。
                 </p>
-                <div className="text-xs text-ink-muted bg-surface-subtle rounded-lg px-3 py-2 space-y-1">
-                  <div>日割り予算 = カテゴリ別出費予算の合計 ÷ 日数</div>
-                  <div>
-                    {carryOver
-                      ? '本日のお小遣い = 日割り予算 × 経過日数 − 期間内の累計出費'
-                      : '本日のお小遣い = 日割り予算 − 本日の出費'}
-                  </div>
-                </div>
+                {(() => {
+                  const remaining = daysInMonth - dayOfMonth
+                  const count = Math.min(remaining, 5)
+                  if (count === 0) return null
+                  return (
+                    <div className="text-xs text-ink-muted bg-surface-subtle rounded-lg px-3 py-2 space-y-1">
+                      {Array.from({ length: count }, (_, i) => {
+                        const n = i + 1
+                        const future = carryOver
+                          ? Math.round(dailyAllowance * (dayOfMonth + n) - monthToDateExpense)
+                          : Math.round(dailyAllowance)
+                        return (
+                          <div key={n} className="flex justify-between">
+                            <span>{n}日後</span>
+                            <span className="flex items-center gap-1">
+                              <span className={future >= 0 ? 'text-income-600' : 'text-danger-500'}>{formatYen(future)}</span>
+                              <span className="text-[10px] text-income-600">
+                                (+{formatYen(Math.round(dailyAllowance))})
+                              </span>
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </div>
             </>
           )}
+        </div>
+        <div className="space-y-1 !mt-1">
+          <hr className="border-line-subtle" />
+          <div className="text-sm font-bold text-danger-500 text-center">
+            残り{daysInMonth - dayOfMonth + 1}日
+          </div>
         </div>
 
         <table className="w-full text-xs text-ink-muted">
@@ -234,6 +260,20 @@ export default function HomeTab({ userId }: Props) {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
+        <div className="text-sm font-semibold text-ink">収支</div>
+        <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
+        <Row label="固定費" value={`-${formatYen(Math.round(totalFixed))}`} valueColor="text-ink-muted" />
+        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-warning-500" />
+        <div className="h-px bg-surface-hover" />
+        <Row
+          label="収支"
+          value={(balance >= 0 ? '+' : '') + formatYen(balance)}
+          valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
+          bold
+        />
       </div>
 
       <BudgetProgressPanel

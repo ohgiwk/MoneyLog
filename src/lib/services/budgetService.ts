@@ -6,10 +6,11 @@ export interface BudgetSettings {
   income: number
   fixed: number
   consumable: number
+  savings: number
   oneTimeByCategory: Record<string, number>
 }
 
-const empty = (): BudgetSettings => ({ income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} })
+const empty = (): BudgetSettings => ({ income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} })
 
 export const budgetService = {
   fetchByMonth: async (userId: string, month: string): Promise<BudgetSettings> => {
@@ -25,6 +26,7 @@ export const budgetService = {
       income: data.income ?? 0,
       fixed: data.fixed,
       consumable: data.consumable,
+      savings: data.savings ?? 0,
       oneTimeByCategory: (data.one_time_by_category as Record<string, number>) ?? {},
     }
   },
@@ -36,6 +38,7 @@ export const budgetService = {
       income: budget.income,
       fixed: budget.fixed,
       consumable: budget.consumable,
+      savings: budget.savings,
       one_time_by_category: budget.oneTimeByCategory,
     })
     if (error) throw new Error(error.message)

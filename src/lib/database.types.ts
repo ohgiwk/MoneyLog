@@ -218,6 +218,7 @@ export interface Database {
           income: number
           fixed: number
           consumable: number
+          savings: number
           one_time_by_category: Json
           created_at: string
         }
