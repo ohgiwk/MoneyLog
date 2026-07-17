@@ -152,6 +152,27 @@ export default function OneTimeTransactionForm({
           <DatePicker label="日付" value={values.date} onChange={(v) => setValue('date', v)} />
         </div>
 
+        {/* 金額 */}
+        <div className="bg-danger-500 rounded-xl px-4 py-3">
+          <label className="text-xs text-white/80 font-bold">金額</label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={values.amount}
+              onChange={(e) => {
+                setValue('amount', e.target.value)
+                if (amountError) setAmountError(null)
+              }}
+              error={!!amountError}
+              className="flex-1 text-2xl font-bold"
+            />
+            <span className="text-base text-white font-medium">円</span>
+          </div>
+          <ErrorText>{amountError}</ErrorText>
+        </div>
+
         {/* カテゴリ */}
         <div>
           <label className="text-xs text-ink-muted">カテゴリ</label>
@@ -201,27 +222,6 @@ export default function OneTimeTransactionForm({
             </div>
           </div>
         )}
-
-        {/* 金額 */}
-        <div>
-          <label className="text-xs text-ink-muted">金額</label>
-          <div className="flex items-center gap-2 mt-1">
-            <Input
-              type="number"
-              inputMode="numeric"
-              placeholder="0"
-              value={values.amount}
-              onChange={(e) => {
-                setValue('amount', e.target.value)
-                if (amountError) setAmountError(null)
-              }}
-              error={!!amountError}
-              className="flex-1 text-lg font-semibold"
-            />
-            <span className="text-sm text-ink-muted font-medium">円</span>
-          </div>
-          <ErrorText>{amountError}</ErrorText>
-        </div>
 
         {/* 店舗種別 */}
         {values.type === 'expense' && (
