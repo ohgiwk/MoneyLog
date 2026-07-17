@@ -9,7 +9,7 @@ import { shiftMonth, monthLabel } from '../../utils'
 const TABS = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/fixed', label: '固定費', icon: '📋' },
-  { path: '/record', label: '記録', icon: '✏️' },
+  { path: '/record', label: '入力', icon: '✏️', special: true },
   { path: '/shopping', label: 'メモ', icon: '🛒' },
   { path: '/calendar', label: 'カレンダー', icon: '📅' },
 ]
@@ -142,11 +142,37 @@ export default function MainLayout() {
       <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-t border-line flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(1,38,100,0.06)]">
         {TABS.map((t) => {
           const isActive = location.pathname === t.path
+          if (t.special) {
+            return (
+              <button
+                key={t.path}
+                onClick={() => {
+                  if (location.pathname === '/record') {
+                    bumpRecordTap()
+                  } else {
+                    navigate(t.path)
+                  }
+                }}
+                className="flex flex-col items-center gap-0.5 px-4 py-1 -mt-6"
+              >
+                <span
+                  className={
+                    'w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-md transition-colors ' +
+                    (isActive ? 'bg-blue-500' : 'bg-primary-500')
+                  }
+                >
+                  <span className="text-2xl leading-none">{t.icon}</span>
+                  <span className={'text-xs font-bold leading-none mt-1.5 text-white'}>
+                    {isActive ? '入力' : '記録'}
+                  </span>
+                </span>
+              </button>
+            )
+          }
           return (
             <button
               key={t.path}
               onClick={() => {
-                if (t.path === '/record') bumpRecordTap()
                 if (t.path === '/shopping') bumpShoppingTap()
                 if (t.path === '/calendar') setCalendarSelectedDate(undefined)
                 navigate(t.path)

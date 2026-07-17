@@ -350,8 +350,8 @@ export default function OneTimeTransactionForm({
         <ErrorText>{error}</ErrorText>
       </form>
 
-      {/* 保存ボタン（タブメニュー上にフローティング表示） */}
-      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
+      {/* 保存ボタン */}
+      <div className="sticky bottom-0 left-0 right-0 px-0 py-3 bg-surface-subtle flex justify-center">
         <Button
           type="button"
           size="fab"

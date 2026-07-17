@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
@@ -10,22 +11,18 @@ import type { Transaction } from '../lib/database.types'
 import { periodKey, todayStr } from '../utils'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
-import PageTransition, { type NavDirection } from './PageTransition'
-
-type OneTimeView = 'list' | 'form'
 
 interface Props {
   userId: string
 }
 
 export default function RecordTab({ userId }: Props) {
-  const { month, setMonth, editingTx, setEditingTx, recordTapKey: resetSignal, setHeaderBack: onHeaderChange, categories, scrollToTop } = useAppContext()
+  const { month, setMonth, editingTx, setEditingTx, recordTapKey: resetSignal, categories } = useAppContext()
   const expenseCategories = categories.expenseCategories
   const incomeCategories = categories.incomeCategories
   const queryClient = useQueryClient()
-  const [oneTimeView, setOneTimeView] = useState<OneTimeView>('list')
-  const [oneTimeDirection, setOneTimeDirection] = useState<NavDirection>('forward')
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
   const periodInitialized = useRef(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -52,15 +49,12 @@ export default function RecordTab({ userId }: Props) {
 
   const loading = txLoading && transactions.length === 0
 
-  // 下部タブの「記録」を再タップしたら出費一覧に戻す
-  const resetSignalMounted = useRef(false)
+  // 下部タブの「入力」を再タップしたら入力モーダルを開く
+  const initialResetSignal = useRef(resetSignal)
   useEffect(() => {
-    if (!resetSignalMounted.current) {
-      resetSignalMounted.current = true
-      return
-    }
-    setOneTimeDirection('back')
-    setOneTimeView('list')
+    if (resetSignal === initialResetSignal.current) return
+    setFormEditingTx(null)
+    setModalOpen(true)
   }, [resetSignal])
 
   // 外部からの編集リクエスト（サマリー画面など）
@@ -70,8 +64,7 @@ export default function RecordTab({ userId }: Props) {
     setPrevEditingTx(editingTx)
     if (editingTx) {
       setFormEditingTx(editingTx)
-      setOneTimeDirection('forward')
-      setOneTimeView('form')
+      setModalOpen(true)
     }
   }
   useEffect(() => {
@@ -105,28 +98,16 @@ export default function RecordTab({ userId }: Props) {
   }
 
   function openForm(tx?: Transaction) {
-    scrollToTop()
     setFormEditingTx(tx ?? null)
-    setOneTimeDirection('forward')
-    setOneTimeView('form')
+    setModalOpen(true)
   }
 
-  function backToList() {
-    scrollToTop()
+  function closeModal() {
+    setModalOpen(false)
     setFormEditingTx(null)
-    setOneTimeDirection('back')
-    setOneTimeView('list')
     setEditingTx(null)
     refreshTransactions()
   }
-
-  // 出費フォーム表示中のヘッダーは OneTimeTransactionForm 自身が管理する。
-  // それ以外のビューに切り替わったらヘッダーをクリアする
-  useEffect(() => {
-    if (oneTimeView !== 'form') {
-      onHeaderChange?.(null)
-    }
-  }, [oneTimeView]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 記録がある期間 + 現在の集計期間（記録なしでも）を含むリストを構築
   const currentPeriod = periodKey(todayStr(), monthStartDay)
@@ -141,40 +122,76 @@ export default function RecordTab({ userId }: Props) {
         </div>
       )}
 
-      <PageTransition pageKey={oneTimeView} direction={oneTimeDirection}>
-          {oneTimeView === 'list' ? (
-            <OneTimeTransactionList
-              transactions={rangeTransactions ?? transactions}
-              month={month}
-              setMonth={setMonth}
-              availableMonths={months}
-              loading={loading}
-              onAdd={() => openForm()}
-              onEditTx={(tx) => openForm(tx)}
-              startDay={monthStartDay}
-              budget={oneTimeBudget}
-              dateFrom={dateFrom}
-              setDateFrom={setDateFrom}
-              dateTo={dateTo}
-              setDateTo={setDateTo}
-              typeFilter={typeFilter}
-              setTypeFilter={setTypeFilter}
-              categoryFilter={categoryFilter}
-              setCategoryFilter={setCategoryFilter}
+      <OneTimeTransactionList
+        transactions={rangeTransactions ?? transactions}
+        month={month}
+        setMonth={setMonth}
+        availableMonths={months}
+        loading={loading}
+        onAdd={() => openForm()}
+        onEditTx={(tx) => openForm(tx)}
+        startDay={monthStartDay}
+        budget={oneTimeBudget}
+        dateFrom={dateFrom}
+        setDateFrom={setDateFrom}
+        dateTo={dateTo}
+        setDateTo={setDateTo}
+        typeFilter={typeFilter}
+        setTypeFilter={setTypeFilter}
+        categoryFilter={categoryFilter}
+        setCategoryFilter={setCategoryFilter}
+      />
+
+      {/* 入力モーダル */}
+      <AnimatePresence>
+        {modalOpen && (
+          <>
+            <motion.div
+              key="modal-backdrop"
+              className="fixed inset-0 z-40 bg-black/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeModal}
             />
-          ) : (
-            <div className="min-h-screen bg-surface-subtle p-4 pb-28">
-              <OneTimeTransactionForm
-                userId={userId}
-                expenseCategories={expenseCategories}
-                incomeCategories={incomeCategories}
-                editingTx={formEditingTx}
-                onBack={backToList}
-                onHeaderChange={onHeaderChange}
-              />
-            </div>
-          )}
-      </PageTransition>
+            <motion.div
+              key="modal-sheet"
+              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col"
+              style={{ height: '92dvh' }}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            >
+              <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2">
+                <h2 className="text-base font-semibold text-ink-strong">
+                  {formEditingTx ? '出費を編集' : '出費を入力'}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-subtle"
+                  aria-label="閉じる"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+                <OneTimeTransactionForm
+                  userId={userId}
+                  expenseCategories={expenseCategories}
+                  incomeCategories={incomeCategories}
+                  editingTx={formEditingTx}
+                  onBack={closeModal}
+                  onHeaderChange={() => {}}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
