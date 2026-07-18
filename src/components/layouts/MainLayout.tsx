@@ -183,7 +183,7 @@ export default function MainLayout() {
               }
             >
               <span className="text-xl">{t.icon}</span>
-              <span className="text-[11px] font-medium">{t.label}</span>
+              <span className="text-[11px] font-medium whitespace-nowrap">{t.label}</span>
               <span className={`block h-0.5 w-5 rounded-full mt-0.5 transition-all ${isActive ? 'bg-primary-500' : 'bg-transparent'}`} />
             </button>
           )
