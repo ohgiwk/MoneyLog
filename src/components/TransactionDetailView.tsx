@@ -57,8 +57,11 @@ function SwipeableRow({
 
   function onPointerUp(e: React.PointerEvent) {
     setIsDragging(false)
+    const dx = Math.abs(e.clientX - startX.current)
+    const dy = Math.abs(e.clientY - startY.current)
+    const isTap = dx < 8 && dy < 8
     if (!moved.current) {
-      if (axisLocked.current !== 'h') {
+      if (isTap) {
         if (openRef.current) {
           setOffset(0); openRef.current = false
         } else {
@@ -68,15 +71,15 @@ function SwipeableRow({
       return
     }
     if (axisLocked.current !== 'h') return
-    const dx = e.clientX - startX.current
+    const swipeDx = e.clientX - startX.current
     if (openRef.current) {
-      if (dx > ACTIONS_TOTAL / 2) {
+      if (swipeDx > ACTIONS_TOTAL / 2) {
         setOffset(0); openRef.current = false
       } else {
         setOffset(-ACTIONS_TOTAL); openRef.current = true
       }
     } else {
-      if (dx < -ACTIONS_TOTAL / 2) {
+      if (swipeDx < -ACTIONS_TOTAL / 2) {
         setOffset(-ACTIONS_TOTAL); openRef.current = true
       } else {
         setOffset(0); openRef.current = false
