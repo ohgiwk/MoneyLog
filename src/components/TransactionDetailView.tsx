@@ -1,7 +1,7 @@
 import Card from './ui/Card'
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
-import { STORE_TYPES } from '../constants'
+import { MEAL_TYPES, STORE_TYPES } from '../constants'
 import { categoryInfo, formatDateWithWeekday, formatYen } from '../utils'
 import { useTransactionFilters } from '../hooks/useTransactionFilters'
 import Spinner from './ui/Spinner'
@@ -386,6 +386,7 @@ export default function TransactionDetailView({
               {txs.map((t) => {
                 const info = categoryInfo(t.category)
                 const store = t.store_type ? STORE_TYPES.find((s) => s.name === t.store_type) : undefined
+                const meal = t.category === '食費' && t.meal_type ? MEAL_TYPES.find((m) => m.name === t.meal_type) : undefined
                 return (
                   <button
                     key={t.id}
@@ -396,8 +397,15 @@ export default function TransactionDetailView({
                       <span className="text-lg">{info.icon}</span>
                       <div>
                         <div className="text-sm text-ink">{t.category}</div>
-                        {(store || t.memo) && (
+                        {(meal || store || t.memo) && (
                           <div className="text-xs text-ink-muted flex items-center gap-1">
+                            {meal && (
+                              <span className="flex items-center gap-0.5">
+                                <span>{meal.icon}</span>
+                                <span>{meal.name}</span>
+                              </span>
+                            )}
+                            {meal && (store || t.memo) && <span>/</span>}
                             {store && (
                               <span className="flex items-center gap-0.5">
                                 <span>{store.icon}</span>
