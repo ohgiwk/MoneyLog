@@ -13,6 +13,7 @@ import {
   setExpenseCurrencyMeta,
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
+import { todayStr } from '../utils'
 import ConfirmDialog from './ui/ConfirmDialog'
 import CelebrationDialog from './ui/CelebrationDialog'
 import Input from './ui/Input'
@@ -169,7 +170,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           cycle: values.cycle,
           status: values.status,
           notes: values.notes || null,
-          start_date: new Date().toISOString().slice(0, 10),
+          start_date: todayStr(),
           billing_day: null,
         })
         if (currency === 'USD' && inserted?.id) {

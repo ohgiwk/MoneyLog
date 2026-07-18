@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { CONSUMABLE_CYCLE_PRESETS, type CategoryInfo, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
-import { formatYen, effectiveCycleDays } from '../utils'
+import { formatYen, effectiveCycleDays, todayStr } from '../utils'
 import { useForm, useIsDirty } from '../hooks/useForm'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -48,7 +48,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     quantity: consumable?.quantity.toString() ?? preset?.quantity.toString() ?? '1',
     cycleDays: consumable?.cycle_days.toString() ?? preset?.cycle_days.toString() ?? '30',
     membersScale: consumable?.members_scale ?? preset?.members_scale ?? false,
-    lastPurchased: consumable?.last_purchased ?? new Date().toISOString().slice(0, 10),
+    lastPurchased: consumable?.last_purchased ?? todayStr(),
     notes: consumable?.notes ?? '',
   })
 

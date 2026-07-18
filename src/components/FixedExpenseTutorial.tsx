@@ -6,6 +6,7 @@ import { useWishlistQuery } from '../hooks/queries/useWishlistQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import type { FixedExpense } from '../lib/database.types'
 import { getUsdJpyRate, setExpenseCurrencyMeta } from '../lib/exchangeRate'
+import { todayStr } from '../utils'
 import {
   STEPS,
   GUIDE_ITEMS,
@@ -80,7 +81,7 @@ export default function FixedExpenseTutorial({
   }
 
   const isLast = stepIndex === STEPS.length - 1
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayStr()
 
   // review ページ用: 入力・選択済み項目を集計
   const reviewItems = useMemo(() => {

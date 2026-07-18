@@ -13,7 +13,7 @@ import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen } from '../utils'
+import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
 
 interface Props {
   userId: string
@@ -27,9 +27,6 @@ const DAY_TYPE_LABELS: Record<WorkSchedule['day_type'], { label: string; color: 
   holiday: { label: 'その他', color: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900', cellBg: 'bg-warning-50 dark:bg-warning-950/50' },
 }
 
-function todayStr() {
-  return new Date().toISOString().slice(0, 10)
-}
 
 export default function CalendarTab({ userId }: Props) {
   const { month, calendarSelectedDate, categories } = useAppContext()

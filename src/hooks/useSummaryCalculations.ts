@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, mondayFirstDow, monthKey, monthlyConsumableCost } from '../utils'
+import { categoryInfo, mondayFirstDow, monthKey, monthlyConsumableCost, todayStr } from '../utils'
 import { WEEKS_PER_MONTH } from '../constants'
 import type { BudgetSettings } from '../lib/services/budgetService'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
@@ -100,7 +100,7 @@ export function useSummaryCalculations({
 
   // 今日の日付範囲
   const dayRange = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = todayStr()
     return { start: today, end: today }
   }, [])
 

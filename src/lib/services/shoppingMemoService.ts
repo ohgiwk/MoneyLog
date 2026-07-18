@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import type { ShoppingItem } from '../database.types'
+import { todayStr } from '../../utils'
 
 const TABLE = 'shopping_items'
 
@@ -19,7 +20,7 @@ async function ensureOpenList(userId: string): Promise<string> {
     .insert({
       user_id: userId,
       name: '買い物メモ',
-      planned_date: new Date().toISOString().slice(0, 10),
+      planned_date: todayStr(),
       status: 'open',
       total_budget: 0,
     })
