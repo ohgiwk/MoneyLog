@@ -1,10 +1,132 @@
 import Card from './ui/Card'
+import ConfirmDialog from './ui/ConfirmDialog'
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
 import { categoryInfo, formatDateWithWeekday, formatYen } from '../utils'
 import { useTransactionFilters } from '../hooks/useTransactionFilters'
 import Spinner from './ui/Spinner'
+
+const DELETE_BTN_WIDTH = 72
+
+function SwipeableRow({
+  onEdit,
+  onDelete,
+  children,
+}: {
+  onEdit: () => void
+  onDelete: () => void
+  children: React.ReactNode
+}) {
+  const [offset, setOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const openRef = useRef(false)
+  const startX = useRef(0)
+  const startY = useRef(0)
+  const axisLocked = useRef<'h' | 'v' | null>(null)
+  const moved = useRef(false)
+
+  function onPointerDown(e: React.PointerEvent) {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    startX.current = e.clientX
+    startY.current = e.clientY
+    axisLocked.current = null
+    moved.current = false
+    setIsDragging(true)
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    const dx = e.clientX - startX.current
+    const dy = e.clientY - startY.current
+    if (!axisLocked.current) {
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        axisLocked.current = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v'
+      }
+    }
+    if (axisLocked.current !== 'h') return
+    e.preventDefault()
+    moved.current = true
+    const base = openRef.current ? -DELETE_BTN_WIDTH : 0
+    const next = Math.min(0, Math.max(-DELETE_BTN_WIDTH, base + dx))
+    setOffset(next)
+  }
+
+  function onPointerUp(e: React.PointerEvent) {
+    setIsDragging(false)
+    if (!moved.current) {
+      // タップとして扱う
+      if (axisLocked.current !== 'h') {
+        if (openRef.current) {
+          setOffset(0); openRef.current = false
+        } else {
+          onEdit()
+        }
+      }
+      return
+    }
+    if (axisLocked.current !== 'h') return
+    const dx = e.clientX - startX.current
+    if (openRef.current) {
+      if (dx > DELETE_BTN_WIDTH / 2) {
+        setOffset(0); openRef.current = false
+      } else {
+        setOffset(-DELETE_BTN_WIDTH); openRef.current = true
+      }
+    } else {
+      if (dx < -DELETE_BTN_WIDTH / 2) {
+        setOffset(-DELETE_BTN_WIDTH); openRef.current = true
+      } else {
+        setOffset(0); openRef.current = false
+      }
+    }
+  }
+
+  return (
+    <div className="relative overflow-hidden">
+      {/* 削除ボタン（背景） */}
+      <div
+        className="absolute right-0 top-0 bottom-0 flex items-center justify-center bg-danger-500"
+        style={{ width: DELETE_BTN_WIDTH }}
+      >
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); setConfirmOpen(true) }}
+          className="w-full h-full flex flex-col items-center justify-center gap-0.5 text-white active:bg-danger-600"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14H6L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4h6v2" />
+          </svg>
+          <span className="text-[10px] font-medium">削除</span>
+        </button>
+      </div>
+      {/* スワイプ対象コンテンツ */}
+      <div
+        style={{
+          transform: `translateX(${offset}px)`,
+          transition: isDragging ? 'none' : 'transform 0.2s ease',
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        className="relative bg-surface touch-pan-y select-none"
+      >
+        {children}
+      </div>
+      {confirmOpen && (
+        <ConfirmDialog
+          message="この記録を削除しますか？"
+          onConfirm={() => { setConfirmOpen(false); onDelete() }}
+          onCancel={() => { setConfirmOpen(false); setOffset(0); openRef.current = false }}
+        />
+      )}
+    </div>
+  )
+}
 
 interface Props {
   transactions: Transaction[]
@@ -13,6 +135,7 @@ interface Props {
   availableMonths?: string[]
   loading?: boolean
   onEditTx?: (tx: Transaction) => void
+  onDeleteTx?: (id: string) => void
   startDay?: number
   budget?: number
   dateFrom?: string
@@ -32,6 +155,7 @@ export default function TransactionDetailView({
   availableMonths,
   loading,
   onEditTx,
+  onDeleteTx,
   startDay = 1,
   budget = 0,
   dateFrom: controlledDateFrom,
@@ -382,52 +506,54 @@ export default function TransactionDetailView({
                 {dayExpense > 0 && <span className="text-danger-400">-{formatYen(dayExpense)}</span>}
               </div>
             </div>
-            <div className="px-4 divide-y divide-line-subtle">
+            <div className="divide-y divide-line-subtle">
               {txs.map((t) => {
                 const info = categoryInfo(t.category)
                 const store = t.store_type ? STORE_TYPES.find((s) => s.name === t.store_type) : undefined
                 const meal = t.category === '食費' && t.meal_type ? MEAL_TYPES.find((m) => m.name === t.meal_type) : undefined
                 return (
-                  <button
+                  <SwipeableRow
                     key={t.id}
-                    onClick={() => onEditTx?.(t)}
-                    className="w-full flex justify-between items-center py-3 text-left active:bg-surface-subtle"
+                    onEdit={() => onEditTx?.(t)}
+                    onDelete={() => onDeleteTx?.(t.id)}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-lg">{info.icon}</span>
-                      <div>
-                        <div className="text-sm text-ink">{t.category}</div>
-                        {(meal || store || t.memo) && (
-                          <div className="text-xs text-ink-muted flex items-center gap-1">
-                            {meal && (
-                              <span className="flex items-center gap-0.5">
-                                <span>{meal.icon}</span>
-                                <span>{meal.name}</span>
-                              </span>
-                            )}
-                            {meal && (store || t.memo) && <span>/</span>}
-                            {store && (
-                              <span className="flex items-center gap-0.5">
-                                <span>{store.icon}</span>
-                                <span>{store.name}</span>
-                              </span>
-                            )}
-                            {store && t.memo && <span>/</span>}
-                            {t.memo && <span>{t.memo}</span>}
-                          </div>
-                        )}
+                    <div className="px-4 flex justify-between items-center py-3 active:bg-surface-subtle">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">{info.icon}</span>
+                        <div>
+                          <div className="text-sm text-ink">{t.category}</div>
+                          {(meal || store || t.memo) && (
+                            <div className="text-xs text-ink-muted flex items-center gap-1">
+                              {meal && (
+                                <span className="flex items-center gap-0.5">
+                                  <span>{meal.icon}</span>
+                                  <span>{meal.name}</span>
+                                </span>
+                              )}
+                              {meal && (store || t.memo) && <span>/</span>}
+                              {store && (
+                                <span className="flex items-center gap-0.5">
+                                  <span>{store.icon}</span>
+                                  <span>{store.name}</span>
+                                </span>
+                              )}
+                              {store && t.memo && <span>/</span>}
+                              {t.memo && <span>{t.memo}</span>}
+                            </div>
+                          )}
+                        </div>
                       </div>
+                      <span
+                        className={
+                          'text-sm font-semibold ' +
+                          (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
+                        }
+                      >
+                        {t.type === 'income' ? '+' : '-'}
+                        {formatYen(t.amount)}
+                      </span>
                     </div>
-                    <span
-                      className={
-                        'text-sm font-semibold ' +
-                        (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
-                      }
-                    >
-                      {t.type === 'income' ? '+' : '-'}
-                      {formatYen(t.amount)}
-                    </span>
-                  </button>
+                  </SwipeableRow>
                 )
               })}
             </div>

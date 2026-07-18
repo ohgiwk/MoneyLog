@@ -9,6 +9,7 @@ interface Props {
   loading?: boolean
   onAdd: () => void
   onEditTx: (tx: Transaction) => void
+  onDeleteTx?: (id: string) => void
   startDay?: number
   budget?: number
   dateFrom?: string
@@ -28,6 +29,7 @@ export default function OneTimeTransactionList({
   availableMonths,
   loading,
   onEditTx,
+  onDeleteTx,
   startDay,
   budget,
   dateFrom,
@@ -49,6 +51,7 @@ export default function OneTimeTransactionList({
           availableMonths={availableMonths}
           loading={loading}
           onEditTx={onEditTx}
+          onDeleteTx={onDeleteTx}
           startDay={startDay}
           budget={budget}
           dateFrom={dateFrom}

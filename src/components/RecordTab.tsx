@@ -4,7 +4,7 @@ import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
-import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
+import { useTransactionsQuery, useTransactionDelete } from '../hooks/queries/useTransactionsQuery'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
 import type { Transaction } from '../lib/database.types'
@@ -36,6 +36,7 @@ export default function RecordTab({ userId }: Props) {
   const monthStartDay = profile?.month_start_day ?? 1
 
   const { data: transactions = [], isError: txError, isFetching: txLoading } = useTransactionsQuery(userId, month, monthStartDay)
+  const deleteMutation = useTransactionDelete(userId)
   const { data: budget, isError: budgetError } = useBudgetQuery(userId, month)
   const oneTimeBudget = budget ? oneTimeBudgetTotal(budget) : 0
 
@@ -133,6 +134,7 @@ export default function RecordTab({ userId }: Props) {
         loading={loading}
         onAdd={() => openForm()}
         onEditTx={(tx) => openForm(tx)}
+        onDeleteTx={(id) => deleteMutation.mutate(id)}
         startDay={monthStartDay}
         budget={oneTimeBudget}
         dateFrom={dateFrom}
