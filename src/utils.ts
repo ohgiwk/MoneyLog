@@ -27,7 +27,14 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 // 「M月D日（曜）」形式の日付表示
 export function formatDateWithWeekday(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
-  return `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  const base = `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
+  if (d.getTime() === today.getTime()) return `今日（${DAY_LABELS[d.getDay()]}）`
+  if (d.getTime() === yesterday.getTime()) return `昨日（${DAY_LABELS[d.getDay()]}）`
+  return base
 }
 
 export function formatYen(n: number): string {
