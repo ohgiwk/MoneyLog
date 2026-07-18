@@ -2,7 +2,7 @@ import { ALL_CATEGORIES, type CategoryInfo } from './constants'
 import type { Consumable } from './lib/database.types'
 
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
 export function monthKey(dateStr: string): string {
@@ -27,13 +27,11 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 // 「M月D日（曜）」形式の日付表示
 export function formatDateWithWeekday(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const yesterday = new Date(today)
-  yesterday.setDate(today.getDate() - 1)
+  const today = todayStr()
+  const yesterday = new Date(new Date(today + 'T00:00:00').getTime() - 86400000).toISOString().slice(0, 10)
   const base = `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
-  if (d.getTime() === today.getTime()) return `今日（${DAY_LABELS[d.getDay()]}）`
-  if (d.getTime() === yesterday.getTime()) return `昨日（${DAY_LABELS[d.getDay()]}）`
+  if (dateStr === today) return `今日（${DAY_LABELS[d.getDay()]}）`
+  if (dateStr === yesterday) return `昨日（${DAY_LABELS[d.getDay()]}）`
   return base
 }
 
