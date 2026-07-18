@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes } from 'react'
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost'
+type Variant = 'primary' | 'secondary' | 'danger' | 'income' | 'ghost'
 type Size = 'sm' | 'md' | 'lg' | 'fab'
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,6 +13,7 @@ const variantClasses: Record<Variant, string> = {
   primary: 'bg-primary-500 text-white font-semibold active:bg-primary-600 disabled:opacity-50',
   secondary: 'border border-line text-ink-muted font-medium active:bg-surface-subtle',
   danger: 'bg-danger-500 text-white font-semibold active:bg-danger-600 disabled:opacity-50',
+  income: 'bg-income-500 text-white font-semibold active:bg-income-600 disabled:opacity-50',
   ghost: 'text-ink-muted active:bg-surface-subtle',
 }
 

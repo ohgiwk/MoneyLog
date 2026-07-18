@@ -23,6 +23,8 @@ export default function RecordTab({ userId }: Props) {
   const queryClient = useQueryClient()
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [formType, setFormType] = useState<'expense' | 'income'>('expense')
+  const submitRef = useRef<(() => void) | null>(null)
   const periodInitialized = useRef(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -99,6 +101,7 @@ export default function RecordTab({ userId }: Props) {
 
   function openForm(tx?: Transaction) {
     setFormEditingTx(tx ?? null)
+    setFormType('expense')
     setModalOpen(true)
   }
 
@@ -165,7 +168,9 @@ export default function RecordTab({ userId }: Props) {
             >
               <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2">
                 <h2 className="text-base font-semibold text-ink-strong">
-                  {formEditingTx ? '出費を編集' : '出費を入力'}
+                  {formEditingTx
+                    ? (formType === 'income' ? '収入を編集' : '出費を編集')
+                    : (formType === 'income' ? '収入を入力' : '出費を入力')}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -178,15 +183,29 @@ export default function RecordTab({ userId }: Props) {
                   </svg>
                 </button>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+              <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
                 <OneTimeTransactionForm
                   userId={userId}
                   expenseCategories={expenseCategories}
                   incomeCategories={incomeCategories}
                   editingTx={formEditingTx}
                   onBack={closeModal}
+                  onTypeChange={setFormType}
                   onHeaderChange={() => {}}
+                  submitRef={submitRef}
                 />
+              </div>
+              <div className="flex-shrink-0 px-4 py-3 pb-[calc(2rem+env(safe-area-inset-bottom))] bg-surface-subtle flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => submitRef.current?.()}
+                  className={
+                    'flex-1 py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold ' +
+                    (formType === 'expense' ? 'bg-danger-500 active:bg-danger-600' : 'bg-income-500 active:bg-income-600')
+                  }
+                >
+                  {formEditingTx ? '更新する' : '記録する'}
+                </button>
               </div>
             </motion.div>
           </>

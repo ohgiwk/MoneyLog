@@ -16,6 +16,7 @@ interface Props {
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
   onBack: () => void
+  onTypeChange?: (type: 'expense' | 'income') => void
   onHeaderChange?: (
     state: {
       title: string
@@ -23,6 +24,7 @@ interface Props {
       action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
     } | null
   ) => void
+  submitRef?: React.MutableRefObject<(() => void) | null>
 }
 
 export default function OneTimeTransactionForm({
@@ -31,7 +33,9 @@ export default function OneTimeTransactionForm({
   incomeCategories,
   editingTx,
   onBack,
+  onTypeChange,
   onHeaderChange,
+  submitRef,
 }: Props) {
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
@@ -60,6 +64,8 @@ export default function OneTimeTransactionForm({
     handleSubmit,
     handleDelete,
   } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack: closeAndNotify })
+
+  if (submitRef) submitRef.current = () => { void handleSubmit() }
 
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
@@ -127,7 +133,7 @@ export default function OneTimeTransactionForm({
         <div className="flex rounded-xl bg-surface-hover p-1">
           <button
             type="button"
-            onClick={() => handleTypeChange('expense')}
+            onClick={() => { handleTypeChange('expense'); onTypeChange?.('expense') }}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
               (values.type === 'expense' ? 'bg-danger-500 text-white shadow' : 'text-ink-muted')
@@ -137,7 +143,7 @@ export default function OneTimeTransactionForm({
           </button>
           <button
             type="button"
-            onClick={() => handleTypeChange('income')}
+            onClick={() => { handleTypeChange('income'); onTypeChange?.('income') }}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
               (values.type === 'income' ? 'bg-income-500 text-white shadow' : 'text-ink-muted')
@@ -153,7 +159,7 @@ export default function OneTimeTransactionForm({
         </div>
 
         {/* 金額 */}
-        <div className="bg-danger-500 rounded-xl px-4 py-3">
+        <div className={`rounded-xl px-4 py-3 ${values.type === 'expense' ? 'bg-danger-500' : 'bg-income-500'}`}>
           <label className="text-xs text-white/80 font-bold">金額</label>
           <div className="flex items-center gap-2 mt-1">
             <Input
@@ -340,7 +346,7 @@ export default function OneTimeTransactionForm({
           <label className="text-xs text-ink-muted">メモ（任意）</label>
           <Input
             type="text"
-            placeholder="例: スーパーで買い物"
+            placeholder={values.type === 'income' ? '例: 7月分給与' : '例: スーパーで買い物'}
             value={values.memo}
             onChange={(e) => setValue('memo', e.target.value)}
             className="mt-1"
@@ -349,20 +355,6 @@ export default function OneTimeTransactionForm({
 
         <ErrorText>{error}</ErrorText>
       </form>
-
-      {/* 保存ボタン */}
-      <div className="sticky bottom-0 left-0 right-0 px-0 py-3 bg-surface-subtle flex justify-center">
-        <Button
-          type="button"
-          size="fab"
-          variant={values.type === 'expense' ? 'danger' : 'primary'}
-          onClick={() => handleSubmit()}
-          disabled={isSubmitting}
-          className="w-[60%]"
-        >
-          {isSubmitting ? (editingTx ? '更新中...' : '記録中...') : (editingTx ? '更新する' : '記録する')}
-        </Button>
-      </div>
     </>
   )
 }
