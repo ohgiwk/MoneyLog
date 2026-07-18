@@ -19,7 +19,7 @@ interface Props {
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
-const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
+const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
 
 export default function HomeTab({ userId }: Props) {
   const navigate = useNavigate()

@@ -47,6 +47,7 @@ export default function OnboardingScreen({ userId }: Props) {
           target_amount: price,
           priority: existing.length + 1,
           purchased_at: null,
+          target_date: null,
           notes: null,
         })
       } else if (page === 2) {

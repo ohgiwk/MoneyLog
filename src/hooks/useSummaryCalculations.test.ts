@@ -60,7 +60,7 @@ function makeConsumable(overrides: Partial<Consumable> = {}): Consumable {
 }
 
 function emptyBudget(overrides: Partial<BudgetSettings> = {}): BudgetSettings {
-  return { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {}, ...overrides }
+  return { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {}, ...overrides }
 }
 
 function setup(options: Partial<Parameters<typeof useSummaryCalculations>[0]> = {}) {

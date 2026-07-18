@@ -130,6 +130,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
           target_amount: Number(form.price),
           priority: nextPriority,
           purchased_at: null,
+          target_date: null,
           notes: null,
         })
       } else if (editing) {

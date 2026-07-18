@@ -13,7 +13,7 @@ interface Props {
   userId: string
 }
 
-const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, oneTimeByCategory: {} }
+const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
 
 export default function BudgetScreen({ userId }: Props) {
   const navigate = useNavigate()
