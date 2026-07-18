@@ -28,7 +28,7 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 export function formatDateWithWeekday(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   const today = todayStr()
-  const yesterday = new Date(new Date(today + 'T00:00:00').getTime() - 86400000).toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10)
   const base = `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
   if (dateStr === today) return `今日（${DAY_LABELS[d.getDay()]}）`
   if (dateStr === yesterday) return `昨日（${DAY_LABELS[d.getDay()]}）`
