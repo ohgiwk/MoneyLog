@@ -7,15 +7,18 @@ import { categoryInfo, formatDateWithWeekday, formatYen } from '../utils'
 import { useTransactionFilters } from '../hooks/useTransactionFilters'
 import Spinner from './ui/Spinner'
 
-const DELETE_BTN_WIDTH = 72
+const ACTION_WIDTH = 72
+const ACTIONS_TOTAL = ACTION_WIDTH * 2
 
 function SwipeableRow({
   onEdit,
   onDelete,
+  onDuplicate,
   children,
 }: {
   onEdit: () => void
   onDelete: () => void
+  onDuplicate: () => void
   children: React.ReactNode
 }) {
   const [offset, setOffset] = useState(0)
@@ -47,15 +50,14 @@ function SwipeableRow({
     if (axisLocked.current !== 'h') return
     e.preventDefault()
     moved.current = true
-    const base = openRef.current ? -DELETE_BTN_WIDTH : 0
-    const next = Math.min(0, Math.max(-DELETE_BTN_WIDTH, base + dx))
+    const base = openRef.current ? -ACTIONS_TOTAL : 0
+    const next = Math.min(0, Math.max(-ACTIONS_TOTAL, base + dx))
     setOffset(next)
   }
 
   function onPointerUp(e: React.PointerEvent) {
     setIsDragging(false)
     if (!moved.current) {
-      // タップとして扱う
       if (axisLocked.current !== 'h') {
         if (openRef.current) {
           setOffset(0); openRef.current = false
@@ -68,14 +70,14 @@ function SwipeableRow({
     if (axisLocked.current !== 'h') return
     const dx = e.clientX - startX.current
     if (openRef.current) {
-      if (dx > DELETE_BTN_WIDTH / 2) {
+      if (dx > ACTIONS_TOTAL / 2) {
         setOffset(0); openRef.current = false
       } else {
-        setOffset(-DELETE_BTN_WIDTH); openRef.current = true
+        setOffset(-ACTIONS_TOTAL); openRef.current = true
       }
     } else {
-      if (dx < -DELETE_BTN_WIDTH / 2) {
-        setOffset(-DELETE_BTN_WIDTH); openRef.current = true
+      if (dx < -ACTIONS_TOTAL / 2) {
+        setOffset(-ACTIONS_TOTAL); openRef.current = true
       } else {
         setOffset(0); openRef.current = false
       }
@@ -84,15 +86,30 @@ function SwipeableRow({
 
   return (
     <div className="relative overflow-hidden">
-      {/* 削除ボタン（背景） */}
+      {/* アクションボタン（背景） */}
       <div
-        className="absolute right-0 top-0 bottom-0 flex items-center justify-center bg-danger-500"
-        style={{ width: DELETE_BTN_WIDTH }}
+        className="absolute right-0 top-0 bottom-0 flex"
+        style={{ width: ACTIONS_TOTAL }}
       >
+        {/* 複製ボタン */}
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onDuplicate(); setOffset(0); openRef.current = false }}
+          className="flex flex-col items-center justify-center gap-0.5 text-white bg-ink-muted active:bg-ink"
+          style={{ width: ACTION_WIDTH }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span className="text-[10px] font-medium">複製</span>
+        </button>
+        {/* 削除ボタン */}
         <button
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); setConfirmOpen(true) }}
-          className="w-full h-full flex flex-col items-center justify-center gap-0.5 text-white active:bg-danger-600"
+          className="flex flex-col items-center justify-center gap-0.5 text-white bg-danger-500 active:bg-danger-600"
+          style={{ width: ACTION_WIDTH }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6" />
@@ -136,6 +153,7 @@ interface Props {
   loading?: boolean
   onEditTx?: (tx: Transaction) => void
   onDeleteTx?: (id: string) => void
+  onDuplicateTx?: (tx: Transaction) => void
   startDay?: number
   budget?: number
   dateFrom?: string
@@ -156,6 +174,7 @@ export default function TransactionDetailView({
   loading,
   onEditTx,
   onDeleteTx,
+  onDuplicateTx,
   startDay = 1,
   budget = 0,
   dateFrom: controlledDateFrom,
@@ -516,6 +535,7 @@ export default function TransactionDetailView({
                     key={t.id}
                     onEdit={() => onEditTx?.(t)}
                     onDelete={() => onDeleteTx?.(t.id)}
+                    onDuplicate={() => onDuplicateTx?.(t)}
                   >
                     <div className="px-4 flex justify-between items-center py-3 active:bg-surface-subtle">
                       <div className="flex items-center gap-2.5">

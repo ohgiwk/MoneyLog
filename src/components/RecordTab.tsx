@@ -22,6 +22,7 @@ export default function RecordTab({ userId }: Props) {
   const incomeCategories = categories.incomeCategories
   const queryClient = useQueryClient()
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
+  const [formDuplicateTx, setFormDuplicateTx] = useState<Transaction | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [formType, setFormType] = useState<'expense' | 'income'>('expense')
   const submitRef = useRef<(() => void) | null>(null)
@@ -109,6 +110,7 @@ export default function RecordTab({ userId }: Props) {
   function closeModal() {
     setModalOpen(false)
     setFormEditingTx(null)
+    setFormDuplicateTx(null)
     setEditingTx(null)
     refreshTransactions()
   }
@@ -135,6 +137,12 @@ export default function RecordTab({ userId }: Props) {
         onAdd={() => openForm()}
         onEditTx={(tx) => openForm(tx)}
         onDeleteTx={(id) => deleteMutation.mutate(id)}
+        onDuplicateTx={(tx) => {
+          setFormEditingTx(null)
+          setFormDuplicateTx(tx)
+          setFormType(tx.type as 'expense' | 'income')
+          setModalOpen(true)
+        }}
         startDay={monthStartDay}
         budget={oneTimeBudget}
         dateFrom={dateFrom}
@@ -172,6 +180,8 @@ export default function RecordTab({ userId }: Props) {
                 <h2 className="text-base font-semibold text-ink-strong">
                   {formEditingTx
                     ? (formType === 'income' ? '収入を編集' : '出費を編集')
+                    : formDuplicateTx
+                    ? (formType === 'income' ? '収入を複製' : '出費を複製')
                     : (formType === 'income' ? '収入を入力' : '出費を入力')}
                 </h2>
                 <button
@@ -191,6 +201,7 @@ export default function RecordTab({ userId }: Props) {
                   expenseCategories={expenseCategories}
                   incomeCategories={incomeCategories}
                   editingTx={formEditingTx}
+                  duplicateTx={formDuplicateTx}
                   onBack={closeModal}
                   onTypeChange={setFormType}
                   onHeaderChange={() => {}}
@@ -206,7 +217,7 @@ export default function RecordTab({ userId }: Props) {
                     (formType === 'expense' ? 'bg-danger-500 active:bg-danger-600' : 'bg-income-500 active:bg-income-600')
                   }
                 >
-                  {formEditingTx ? '更新する' : '記録する'}
+                  {formEditingTx ? '更新する' : formDuplicateTx ? '複製して記録する' : '記録する'}
                 </button>
               </div>
             </motion.div>

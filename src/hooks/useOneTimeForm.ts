@@ -23,6 +23,7 @@ interface Options {
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
+  duplicateTx?: Transaction | null
   onBack?: () => void
 }
 
@@ -31,6 +32,7 @@ export function useOneTimeForm({
   expenseCategories,
   incomeCategories,
   editingTx,
+  duplicateTx,
   onBack,
 }: Options) {
   const [showSuccess, setShowSuccess] = useState(false)
@@ -66,8 +68,16 @@ export function useOneTimeForm({
     }
   }
 
+  function buildDuplicateValues(tx: Transaction): OneTimeFormValues {
+    return { ...buildValuesFromTx(tx), date: todayStr() }
+  }
+
   const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
-    useForm<OneTimeFormValues>(editingTx ? buildValuesFromTx(editingTx) : buildDefaultValues())
+    useForm<OneTimeFormValues>(
+      editingTx ? buildValuesFromTx(editingTx)
+      : duplicateTx ? buildDuplicateValues(duplicateTx)
+      : buildDefaultValues()
+    )
 
   const { isDirty, resetSnapshot } = useIsDirty(values)
 
@@ -80,6 +90,16 @@ export function useOneTimeForm({
     setPrevEditingTx(editingTx)
     if (editingTx) {
       const loaded = buildValuesFromTx(editingTx)
+      setValues(loaded)
+      resetSnapshot(loaded)
+    }
+  }
+
+  const [prevDuplicateTx, setPrevDuplicateTx] = useState(duplicateTx)
+  if (duplicateTx !== prevDuplicateTx) {
+    setPrevDuplicateTx(duplicateTx)
+    if (duplicateTx) {
+      const loaded = buildDuplicateValues(duplicateTx)
       setValues(loaded)
       resetSnapshot(loaded)
     }

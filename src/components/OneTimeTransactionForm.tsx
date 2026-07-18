@@ -15,6 +15,7 @@ interface Props {
   expenseCategories: CategoryInfo[]
   incomeCategories: CategoryInfo[]
   editingTx?: Transaction | null
+  duplicateTx?: Transaction | null
   onBack: () => void
   onTypeChange?: (type: 'expense' | 'income') => void
   onHeaderChange?: (
@@ -32,6 +33,7 @@ export default function OneTimeTransactionForm({
   expenseCategories,
   incomeCategories,
   editingTx,
+  duplicateTx,
   onBack,
   onTypeChange,
   onHeaderChange,
@@ -63,7 +65,7 @@ export default function OneTimeTransactionForm({
     selectPaymentType,
     handleSubmit,
     handleDelete,
-  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, onBack: closeAndNotify })
+  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, duplicateTx, onBack: closeAndNotify })
 
   if (submitRef) submitRef.current = () => { void handleSubmit() }
 

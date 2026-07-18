@@ -10,6 +10,7 @@ interface Props {
   onAdd: () => void
   onEditTx: (tx: Transaction) => void
   onDeleteTx?: (id: string) => void
+  onDuplicateTx?: (tx: Transaction) => void
   startDay?: number
   budget?: number
   dateFrom?: string
@@ -30,6 +31,7 @@ export default function OneTimeTransactionList({
   loading,
   onEditTx,
   onDeleteTx,
+  onDuplicateTx,
   startDay,
   budget,
   dateFrom,
@@ -52,6 +54,7 @@ export default function OneTimeTransactionList({
           loading={loading}
           onEditTx={onEditTx}
           onDeleteTx={onDeleteTx}
+          onDuplicateTx={onDuplicateTx}
           startDay={startDay}
           budget={budget}
           dateFrom={dateFrom}
