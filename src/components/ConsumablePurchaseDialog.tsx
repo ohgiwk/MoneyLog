@@ -7,6 +7,7 @@ import ErrorText from './ui/ErrorText'
 import type { Consumable } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
 import { todayStr } from '../utils'
+import DatePicker from './ui/DatePicker'
 
 interface Props {
   consumable: Consumable
@@ -62,8 +63,7 @@ export default function ConsumablePurchaseDialog({
       </div>
 
       <div>
-        <FormLabel>購入日</FormLabel>
-        <Input variant="dialog" type="date" value={date} onChange={e => setDate(e.target.value)} />
+        <DatePicker label="購入日" value={date} onChange={setDate} />
       </div>
 
       <div>

@@ -2,6 +2,7 @@ import Card from './ui/Card'
 import FabButton from './ui/FabButton'
 import Button from './ui/Button'
 import Input from './ui/Input'
+import DatePicker from './ui/DatePicker'
 import Textarea from './ui/Textarea'
 import ErrorText from './ui/ErrorText'
 import Modal from './ui/Modal'
@@ -411,8 +412,7 @@ function EventForm({ userId, date, event, onClose, onSaved }: EventFormProps) {
         )}
 
         <div>
-          <label className="text-xs text-ink-muted">予定日</label>
-          <Input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="mt-1" />
+          <DatePicker label="予定日" value={eventDate} onChange={setEventDate} />
         </div>
 
         <div>

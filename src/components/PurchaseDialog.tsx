@@ -7,6 +7,7 @@ import ErrorText from './ui/ErrorText'
 import { PAYMENT_TYPES, STORE_TYPES, type PaymentType } from '../constants'
 import type { CategoryInfo } from '../constants'
 import { todayStr } from '../utils'
+import DatePicker from './ui/DatePicker'
 
 const DEFAULT_PAYMENT_KEY = 'moneylog_default_payment'
 function loadDefaultPaymentType(): PaymentType {
@@ -64,8 +65,7 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
       </div>
 
       <div>
-        <FormLabel>購入日</FormLabel>
-        <Input variant="dialog" type="date" value={date} onChange={e => setDate(e.target.value)} />
+        <DatePicker label="購入日" value={date} onChange={setDate} />
       </div>
 
       <div>
