@@ -125,7 +125,7 @@ export default function FixedExpenseList({
 
   if (editing !== null) {
     content = (
-      <div className="relative -m-4 p-4 min-h-screen bg-surface-subtle">
+      <div className="relative -m-4 p-4 pb-28 min-h-screen bg-surface-subtle">
         <FixedExpenseForm
           userId={userId}
           expense={editing === 'new' ? undefined : editing}
@@ -397,12 +397,7 @@ export default function FixedExpenseList({
         </Card>
       ))}
 
-      <button
-        onClick={() => setTutorialOpen(true)}
-        className="w-full py-3 rounded-xl border border-line bg-surface text-sm text-ink-muted font-medium active:bg-surface-subtle flex items-center justify-center gap-2"
-      >
-        <span>🧭</span> 固定費チュートリアルを開始
-      </button>
+      <div className="h-24" />
 
       {/* FAB */}
       <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
