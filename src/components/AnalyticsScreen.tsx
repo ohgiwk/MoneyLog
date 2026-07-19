@@ -103,26 +103,6 @@ export default function AnalyticsScreen({ userId }: Props) {
       )}
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
-        {/* 収支サマリー */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
-          <div className="text-sm font-semibold text-ink">収支</div>
-          <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
-          <Row
-            label="固定費"
-            value={`-${formatYen(Math.round(totalFixed))}`}
-            valueColor="text-ink-muted"
-          />
-          <Row label="定期購入" value={`-${formatYen(consumableExpense)}`} valueColor="text-danger-500" />
-          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-warning-500" />
-          <div className="h-px bg-surface-hover" />
-          <Row
-            label="収支"
-            value={(balance >= 0 ? '+' : '') + formatYen(balance)}
-            valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
-            bold
-          />
-        </div>
-
         {/* 節約進捗 */}
         {totalSaved > 0 && (
           <div className="bg-surface rounded-2xl p-4 shadow-sm">
