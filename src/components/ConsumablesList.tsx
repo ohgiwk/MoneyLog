@@ -11,6 +11,7 @@ import ConsumableForm from './ConsumableForm'
 import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
+import FabButton from './ui/FabButton'
 
 interface HeaderState {
   title: string
@@ -270,16 +271,7 @@ export default function ConsumablesList({
 
       {/* FAB */}
       <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
-        <button
-          onClick={() => openEditing('new')}
-          className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg active:bg-primary-600 flex items-center justify-center"
-          aria-label="定期購入を追加"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
+        <FabButton onClick={() => openEditing('new')} ariaLabel="定期購入を追加" />
       </div>
 
       {/* おすすめ品目 */}

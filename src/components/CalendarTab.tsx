@@ -1,4 +1,5 @@
 import Card from './ui/Card'
+import FabButton from './ui/FabButton'
 import Button from './ui/Button'
 import Input from './ui/Input'
 import Textarea from './ui/Textarea'
@@ -298,13 +299,7 @@ export default function CalendarTab({ userId }: Props) {
 
       {/* FAB */}
       <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
-        <button
-          onClick={openAdd}
-          className="pointer-events-auto w-14 h-14 rounded-full bg-primary-500 active:bg-primary-600 text-white shadow-lg flex items-center justify-center text-2xl"
-          aria-label="予定を追加"
-        >
-          ＋
-        </button>
+        <FabButton onClick={openAdd} ariaLabel="予定を追加" />
       </div>
 
       {/* 追加・編集フォーム */}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import FabButton from './ui/FabButton'
 import { useQueryClient } from '@tanstack/react-query'
 import { useWishlistQuery, useWishlistInsert, useWishlistUpdate, useWishlistDelete } from '../hooks/queries/useWishlistQuery'
 import type { WishlistItem } from '../lib/services/wishlistService'
@@ -225,13 +226,7 @@ export default function WishlistPanel({ userId }: Props) {
 
       {editing === null && (
         <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
-          <div className="pointer-events-auto">
-            <button
-              onClick={openNew}
-              className="w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-primary-600"
-              aria-label="目標を追加"
-            >＋</button>
-          </div>
+          <FabButton onClick={openNew} ariaLabel="目標を追加" />
         </div>
       )}
 
