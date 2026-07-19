@@ -34,8 +34,10 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
   const [storeType, setStoreType] = useState<string>(initialStoreType ?? '')
   const [paymentType, setPaymentType] = useState<PaymentType | ''>(loadDefaultPaymentType)
   const [showDetails, setShowDetails] = useState(false)
+  const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const selectedStoreType = STORE_TYPES.find(s => s.name === storeType)
 
   async function handleSubmit() {
     const parsed = parseInt(amount, 10)
@@ -68,6 +70,22 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
         <DatePicker label="購入日" value={date} onChange={setDate} />
       </div>
 
+      <div className="rounded-xl px-4 py-3 bg-danger-500">
+        <label className="text-xs text-white/80 font-bold">合計金額</label>
+        <div className="flex items-center gap-2 mt-1">
+          <Input
+            variant="dialog"
+            type="number"
+            inputMode="numeric"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            placeholder="0"
+            className="flex-1 bg-white border-white/30 text-ink"
+          />
+          <span className="text-base text-white font-medium">円</span>
+        </div>
+      </div>
+
       <div>
         <FormLabel>カテゴリ</FormLabel>
         <div className="grid grid-cols-3 gap-2">
@@ -86,22 +104,6 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
               <span className="truncate">{cat.name}</span>
             </button>
           ))}
-        </div>
-      </div>
-
-      <div>
-        <FormLabel>合計金額</FormLabel>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
-          <Input
-            variant="dialog"
-            type="number"
-            inputMode="numeric"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-            placeholder="0"
-            className="pl-7"
-          />
         </div>
       </div>
 
@@ -130,25 +132,50 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
 
       {showDetails && (
         <>
-          <div>
+          <div className="relative">
             <FormLabel>店舗種別（任意）</FormLabel>
-            <div className="grid grid-cols-3 gap-2">
-              {STORE_TYPES.map(s => (
+            <button
+              type="button"
+              onClick={() => setStoreTypeOpen(v => !v)}
+              className="w-full mt-1 flex items-center justify-between border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-lg">{selectedStoreType?.icon ?? '🏷️'}</span>
+                <span>{selectedStoreType?.name ?? '未選択'}</span>
+              </span>
+              <span className="text-ink-muted text-xs">{storeTypeOpen ? '▲' : '▼'}</span>
+            </button>
+            {storeTypeOpen && (
+              <>
                 <button
-                  key={s.name}
-                  onClick={() => setStoreType(prev => prev === s.name ? '' : s.name)}
-                  className={
-                    'flex items-center gap-1.5 px-2 py-2 rounded-xl border text-xs font-medium transition-colors ' +
-                    (storeType === s.name
-                      ? 'border-primary-400 bg-primary-50 text-primary-700'
-                      : 'border-line text-ink active:bg-surface-subtle')
-                  }
-                >
-                  <span>{s.icon}</span>
-                  <span className="truncate">{s.name}</span>
-                </button>
-              ))}
-            </div>
+                  type="button"
+                  aria-label="閉じる"
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setStoreTypeOpen(false)}
+                />
+                <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => { setStoreType(''); setStoreTypeOpen(false) }}
+                    className={'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' + (storeType === '' ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')}
+                  >
+                    <span className="text-lg">🏷️</span>
+                    <span>未選択</span>
+                  </button>
+                  {STORE_TYPES.map(s => (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => { setStoreType(s.name); setStoreTypeOpen(false) }}
+                      className={'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' + (storeType === s.name ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')}
+                    >
+                      <span className="text-lg">{s.icon}</span>
+                      <span>{s.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div>
