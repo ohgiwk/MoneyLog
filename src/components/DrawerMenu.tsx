@@ -74,7 +74,7 @@ export default function DrawerMenu({ onSignOut, onClose }: Props) {
             設定
           </button>
         </nav>
-        <div className="border-t border-line-subtle py-2">
+        <div className="border-t border-line-subtle py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <button
             onClick={() => { onSignOut(); onClose() }}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-danger-500 active:bg-danger-50 text-sm"
