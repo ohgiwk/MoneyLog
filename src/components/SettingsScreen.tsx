@@ -2,11 +2,6 @@ import Card from './ui/Card'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../contexts/AppContext'
-import {
-  MONTH_START_DAY_MIN,
-  MONTH_START_DAY_MAX,
-  SAVE_SUCCESS_DISPLAY_MS,
-} from '../constants'
 import { useProfileQuery, useProfileMutation } from '../hooks/queries/useProfileQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import ScreenHeader from './ui/ScreenHeader'
@@ -23,7 +18,6 @@ export default function SettingsScreen({ userId }: Props) {
   const onThemeModeChange = theme.setMode
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [])
 
@@ -38,8 +32,6 @@ export default function SettingsScreen({ userId }: Props) {
     void queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
     void queryClient.invalidateQueries({ queryKey: ['availableMonths', userId] })
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), SAVE_SUCCESS_DISPLAY_MS)
   }
 
   return (
@@ -59,33 +51,18 @@ export default function SettingsScreen({ userId }: Props) {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-ink">月の開始日</div>
-                <div className="text-xs text-ink-muted">
-                  ホーム画面の累計・記録タブの集計期間の起点に使用
-                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => saveMonthStartDay(Math.max(MONTH_START_DAY_MIN, monthStartDay - 1))}
-                  className="w-8 h-8 rounded-full bg-surface-hover text-ink font-bold active:bg-surface-muted"
-                >
-                  −
-                </button>
-                <span className="text-lg font-semibold text-ink w-6 text-center">
-                  {monthStartDay}
-                </span>
-                <button
-                  onClick={() => saveMonthStartDay(Math.min(MONTH_START_DAY_MAX, monthStartDay + 1))}
-                  className="w-8 h-8 rounded-full bg-surface-hover text-ink font-bold active:bg-surface-muted"
-                >
-                  ＋
-                </button>
-              </div>
+              <select
+                value={monthStartDay}
+                onChange={(e) => saveMonthStartDay(Number(e.target.value))}
+                disabled={saving}
+                className="border border-line rounded-xl px-3 py-1.5 text-sm font-semibold text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-300"
+              >
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d}日</option>
+                ))}
+              </select>
             </div>
-            {(saving || saved) && (
-              <div className="text-xs text-primary-500 text-right">
-                {saving ? '保存中...' : '保存しました'}
-              </div>
-            )}
           </div>
         </Card>
 
