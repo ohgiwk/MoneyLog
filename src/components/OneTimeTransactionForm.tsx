@@ -6,6 +6,7 @@ import { usePaymentMethods } from '../hooks/usePaymentMethods'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Modal from './ui/Modal'
+import { TIPS } from './SavingTipsScreen'
 import Button from './ui/Button'
 import Input from './ui/Input'
 import ErrorText from './ui/ErrorText'
@@ -42,6 +43,8 @@ export default function OneTimeTransactionForm({
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
   const closedRef = useRef(false)
+  const [successTip, setSuccessTip] = useState('')
+
   function closeAndNotify() {
     closedRef.current = true
     onBack()
@@ -83,6 +86,10 @@ export default function OneTimeTransactionForm({
     }
   }
 
+  useEffect(() => {
+    if (showSuccess) setSuccessTip(TIPS[Math.floor(Math.random() * TIPS.length)])
+  }, [showSuccess])
+
   // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
   useEffect(() => {
     if (closedRef.current) return
@@ -119,6 +126,15 @@ export default function OneTimeTransactionForm({
         <div className="p-6 flex flex-col items-center gap-4">
           <div className="text-3xl">✅</div>
           <p className="text-base font-semibold text-ink">記録しました！</p>
+          {successTip && (
+            <>
+              <div className="w-full border-t border-line-subtle" />
+              <div className="w-full bg-primary-50 rounded-xl px-4 py-3">
+                <p className="text-sm text-primary-600 font-semibold mb-2">💡 節約のコツ</p>
+                <p className="text-sm text-primary-800 leading-relaxed">{successTip}</p>
+              </div>
+            </>
+          )}
           <div className="flex flex-col gap-2 w-full">
             <Button fullWidth type="button" onClick={() => setShowSuccess(false)}>
               続けて記録する

@@ -2,7 +2,7 @@ import Card from './ui/Card'
 import ScreenHeader from './ui/ScreenHeader'
 import { useNavigate } from 'react-router-dom'
 
-const TIPS: string[] = [
+export const TIPS: string[] = [
   '買い物前に必要なものをリストアップし、リストにないものは買わないようにしましょう',
   '空腹時のスーパーでの買い物は避け、衝動買いを防ぎましょう',
   '固定費（サブスク・保険・通信費）を年に一度は見直しましょう',
