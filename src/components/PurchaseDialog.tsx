@@ -55,7 +55,17 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
 
   return (
     <Modal isOpen onClose={onCancel} position="bottom" className="p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-      <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="p-1.5 text-ink-muted active:text-ink"
+          aria-label="閉じる"
+        >
+          ✕
+        </button>
+      </div>
 
       <div className="bg-surface-subtle rounded-xl px-4 py-3">
         <p className="text-xs text-ink-muted mb-1">購入した商品</p>
@@ -203,9 +213,8 @@ export default function PurchaseDialog({ itemNames, expenseCategories, initialSt
 
       <ErrorText>{error}</ErrorText>
 
-      <div className="flex gap-2 pt-1">
-        <Button variant="secondary" onClick={onCancel}>キャンセル</Button>
-        <Button onClick={handleSubmit} disabled={submitting}>
+      <div className="pt-1">
+        <Button onClick={handleSubmit} disabled={submitting} className="w-full">
           {submitting ? '記録中...' : '記録する'}
         </Button>
       </div>
