@@ -120,7 +120,7 @@ export default function BudgetScreen({ userId }: Props) {
 
         {/* 収入 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink pb-3 -mx-4 px-4 border-b border-income-400">
             <span>💰</span>
             収入
           </div>
@@ -133,7 +133,7 @@ export default function BudgetScreen({ userId }: Props) {
 
         {/* 貯蓄 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink pb-3 -mx-4 px-4 border-b border-income-400">
             <span>🏦</span>
             貯蓄
           </div>
@@ -146,7 +146,7 @@ export default function BudgetScreen({ userId }: Props) {
 
         {/* 固定費・定期購入・出費 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <div className="flex items-center gap-2 text-sm font-semibold text-ink pb-3 -mx-4 px-4 border-b border-danger-400">
             <span>💸</span>
             支出
           </div>
