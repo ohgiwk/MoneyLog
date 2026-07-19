@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EXPENSE_CATEGORIES } from '../constants'
-import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
 import { calcBudgetProgress, formatYen, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
@@ -27,8 +27,40 @@ export default function BudgetScreen({ userId }: Props) {
   )
   const [categoryTotal, setCategoryTotal] = useState(0)
 
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [copyMsg, setCopyMsg] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
   const { data: fetchedBudget, isError } = useBudgetQuery(userId, month)
   const mutation = useBudgetMutation(userId, month)
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
+
+  async function handleCopyLastMonth() {
+    setMenuOpen(false)
+    const [year, mon] = month.split('-').map(Number)
+    const prev = mon === 1
+      ? `${year - 1}-12`
+      : `${year}-${String(mon - 1).padStart(2, '0')}`
+    const lastBudget = await budgetService.fetchByMonth(userId, prev)
+    if (!lastBudget || lastBudget.income === 0) {
+      setCopyMsg('先月の予算データがありません')
+      setTimeout(() => setCopyMsg(null), 3000)
+      return
+    }
+    setBudget(lastBudget)
+    setCategoryTotal(oneTimeBudgetTotal(lastBudget))
+    setSaved(false)
+    setCopyMsg('先月の予算をコピーしました')
+    setTimeout(() => setCopyMsg(null), 3000)
+  }
 
   // サーバーから取得したデータをフォームに反映（月切替時もリセット）
   useEffect(() => {
@@ -106,12 +138,43 @@ export default function BudgetScreen({ userId }: Props) {
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       {/* ヘッダー */}
       <div className="bg-surface border-b border-line-subtle">
-        <ScreenHeader title="予算設定" onBack={() => navigate(-1)} />
+        <ScreenHeader
+          title="予算設定"
+          onBack={() => navigate(-1)}
+          rightAction={
+            <div ref={menuRef} className="relative">
+              <button
+                onClick={() => setMenuOpen((v) => !v)}
+                className="text-ink-muted active:text-ink p-1"
+                aria-label="メニュー"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-full mt-1 w-44 bg-surface rounded-xl shadow-lg border border-line-subtle z-50 overflow-hidden">
+                  <button
+                    onClick={handleCopyLastMonth}
+                    className="w-full text-left px-4 py-3 text-sm text-ink active:bg-surface-subtle"
+                  >
+                    先月の予算をコピー
+                  </button>
+                </div>
+              )}
+            </div>
+          }
+        />
       </div>
 
       <MonthSwitcher month={month} setMonth={setMonth} />
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-48">
+        {copyMsg && (
+          <div className="bg-primary-50 dark:bg-primary-950/50 border border-primary-200 dark:border-primary-800 rounded-xl px-4 py-3 text-sm text-primary-700 dark:text-primary-300">
+            {copyMsg}
+          </div>
+        )}
         {fetchError && (
           <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
             {fetchError}

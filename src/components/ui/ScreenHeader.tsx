@@ -1,9 +1,12 @@
+import { type ReactNode } from 'react'
+
 interface Props {
   title: string
   onBack: () => void
+  rightAction?: ReactNode
 }
 
-export default function ScreenHeader({ title, onBack }: Props) {
+export default function ScreenHeader({ title, onBack, rightAction }: Props) {
   return (
     <div className="px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] grid grid-cols-[2.5rem_1fr_2.5rem] items-center bg-surface-subtle border-b-2 border-primary-500">
       <button
@@ -16,7 +19,7 @@ export default function ScreenHeader({ title, onBack }: Props) {
         </svg>
       </button>
       <span className="font-semibold text-ink-strong text-center truncate">{title}</span>
-      <span />
+      <span className="justify-self-end">{rightAction}</span>
     </div>
   )
 }
