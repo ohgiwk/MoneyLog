@@ -178,8 +178,8 @@ export default function OneTimeTransactionForm({
             />
             <span className="text-base text-white font-medium">円</span>
           </div>
-          <ErrorText>{amountError}</ErrorText>
         </div>
+        <ErrorText className="px-4">{amountError}</ErrorText>
 
         {/* カテゴリ */}
         <div>
