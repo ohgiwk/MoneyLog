@@ -52,7 +52,17 @@ export default function ConsumablePurchaseDialog({
 
   return (
     <Modal isOpen onClose={onCancel} position="center" className="p-5 space-y-4 max-h-[85vh] overflow-y-auto w-full max-w-md mx-4">
-      <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-ink-strong">購入済みとして記録</h2>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="p-1.5 text-ink-muted active:text-ink"
+          aria-label="閉じる"
+        >
+          ✕
+        </button>
+      </div>
 
       <div className="bg-surface-subtle rounded-xl px-4 py-3">
         <p className="text-xs text-ink-muted mb-0.5">定期購入品目</p>
@@ -64,6 +74,21 @@ export default function ConsumablePurchaseDialog({
 
       <div>
         <DatePicker label="購入日" value={date} onChange={setDate} />
+      </div>
+
+      <div className="rounded-xl px-4 py-3 bg-danger-500">
+        <label className="text-xs text-white/80 font-bold">金額</label>
+        <div className="flex items-center gap-2 mt-1">
+          <Input
+            variant="dialog"
+            type="number"
+            inputMode="numeric"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            className="flex-1 bg-white border-white/30 text-ink"
+          />
+          <span className="text-base text-white font-medium">円</span>
+        </div>
       </div>
 
       <div>
@@ -88,30 +113,14 @@ export default function ConsumablePurchaseDialog({
       </div>
 
       <div>
-        <FormLabel>金額</FormLabel>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
-          <Input
-            variant="dialog"
-            type="number"
-            inputMode="numeric"
-            value={amount}
-            onChange={e => setAmount(e.target.value)}
-            className="pl-7"
-          />
-        </div>
-      </div>
-
-      <div>
         <FormLabel>メモ（任意）</FormLabel>
         <Input variant="dialog" type="text" value={memo} onChange={e => setMemo(e.target.value)} />
       </div>
 
       <ErrorText>{error}</ErrorText>
 
-      <div className="flex gap-2 pt-1">
-        <Button variant="secondary" onClick={onCancel}>キャンセル</Button>
-        <Button onClick={handleSubmit} disabled={submitting}>
+      <div className="pt-1">
+        <Button onClick={handleSubmit} disabled={submitting} className="w-full">
           {submitting ? '記録中...' : '記録する'}
         </Button>
       </div>
