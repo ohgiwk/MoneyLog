@@ -378,8 +378,7 @@ export default function FixedExpenseTutorial({
                     <div className="text-5xl mb-6">📋</div>
                     <h2 className="text-xl font-bold text-ink-strong mb-4">{s.title}</h2>
                     <div className="space-y-3 text-sm text-ink leading-relaxed">
-                      <p>このページは<span className="font-semibold text-ink-strong">固定費の一覧画面</span>です。</p>
-                      <p>家賃・通信費・サブスクなど、毎月かならず出ていく費用をここに登録することで、節約できるポイントが一目でわかるようになります。</p>
+                      <p>家賃・通信費・サブスクなど、毎月かならず出ていく費用を登録することで、節約できるポイントが一目でわかるようになります。</p>
                       <p>次のステップで、基本的な固定費を一緒に入力していきましょう 💪</p>
                     </div>
                   </div>

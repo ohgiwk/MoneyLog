@@ -31,7 +31,7 @@ export const STEPS: Step[] = [
   {
     key: 'intro',
     icon: '📋',
-    title: '固定費一覧へようこそ',
+    title: '固定費の記録を始めよう',
     description: 'まずは基本的な固定費を登録してみましょう',
   },
   {
