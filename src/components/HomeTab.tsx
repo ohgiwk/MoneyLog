@@ -96,6 +96,7 @@ export default function HomeTab({ userId }: Props) {
     oneTimeCategoryRows,
     income,
     totalFixed,
+    savings,
     oneTimeExpense,
     balance,
   } = useSummaryCalculations({
@@ -279,8 +280,9 @@ export default function HomeTab({ userId }: Props) {
       <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
         <div className="text-sm font-semibold text-ink">収支</div>
         <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
-        <Row label="固定費" value={`-${formatYen(Math.round(totalFixed))}`} valueColor="text-ink-muted" />
-        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-warning-500" />
+        <Row label="貯蓄" value={`-${formatYen(savings)}`} valueColor="text-ink-muted" />
+        <Row label="固定費" value={`-${formatYen(Math.round(totalFixed))}`} valueColor="text-danger-500" />
+        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-danger-500" />
         <div className="h-px bg-surface-hover" />
         <Row
           label="収支"

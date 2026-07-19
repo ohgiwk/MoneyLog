@@ -75,7 +75,9 @@ export function useSummaryCalculations({
     return totalBaseline - totalFixed
   }, [activeFixed, totalFixed])
 
-  const balance = income - totalFixed - consumableExpense - oneTimeExpense
+  const savings = budget.savings ?? 0
+
+  const balance = income - totalFixed - savings - oneTimeExpense
 
   // 今週（月曜始まり）の日付範囲
   const weekRange = useMemo(() => {
@@ -165,6 +167,7 @@ export function useSummaryCalculations({
   return {
     income,
     consumableExpense,
+    savings,
     oneTimeExpense,
     totalFixed,
     totalSaved,
