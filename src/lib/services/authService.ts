@@ -9,4 +9,6 @@ export const authService = {
   signUp: (email: string, password: string) => supabase.auth.signUp({ email, password }),
   signInWithGoogle: () => supabase.auth.signInWithOAuth({ provider: 'google' }),
   signOut: () => supabase.auth.signOut(),
+  updatePassword: (newPassword: string) => supabase.auth.updateUser({ password: newPassword }),
+  deleteAccount: () => supabase.rpc('delete_user'),
 }

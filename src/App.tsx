@@ -18,6 +18,7 @@ import OnboardingScreen from './components/OnboardingScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
 import AchievementsScreen from './components/AchievementsScreen'
+import MyPageScreen from './components/MyPageScreen'
 
 const TAB_PATHS = ['/', '/record', '/shopping', '/fixed', '/calendar']
 
@@ -56,6 +57,7 @@ function AppRoutes() {
         <Route path="saving-tips" element={<SavingTipsScreen />} />
         <Route path="achievements" element={<AchievementsScreen userId={user.id} />} />
         <Route path="setup" element={<OnboardingScreen userId={user.id} />} />
+        <Route path="mypage" element={<MyPageScreen userId={user.id} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PageTransition>
