@@ -204,7 +204,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
       </div>
 
       {editing === null && (
-        <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6 flex justify-end pointer-events-none z-10">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-6 flex justify-end pointer-events-none z-10">
           <button
             onClick={openNew}
             className="w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-primary-600 pointer-events-auto"

@@ -224,8 +224,8 @@ export default function WishlistPanel({ userId }: Props) {
       </div>
 
       {editing === null && (
-        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 max-w-md mx-auto z-10 flex justify-end pointer-events-none" style={{ left: 0, right: 0 }}>
-          <div className="pointer-events-auto mr-4">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
+          <div className="pointer-events-auto">
             <button
               onClick={openNew}
               className="w-14 h-14 rounded-full bg-primary-500 text-white shadow-lg text-2xl flex items-center justify-center active:bg-primary-600"
