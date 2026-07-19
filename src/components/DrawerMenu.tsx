@@ -57,10 +57,6 @@ export default function DrawerMenu({ onSignOut, onClose }: Props) {
             <span className="text-lg">💰</span>
             予算
           </button>
-          <button onClick={() => go('/analytics')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
-            <span className="text-lg">📊</span>
-            分析
-          </button>
           <button onClick={() => go('/saving-tips')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
             <span className="text-lg">💡</span>
             節約のコツ

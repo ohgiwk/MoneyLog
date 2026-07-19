@@ -85,12 +85,6 @@ export default function MyPageScreen({ userId }: Props) {
       <ScreenHeader title="マイページ" onBack={() => navigate(-1)} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
-        {/* メールアドレス */}
-        <div className="bg-surface rounded-xl p-4 shadow-sm">
-          <div className="text-xs text-ink-muted mb-1">メールアドレス</div>
-          <div className="text-sm text-ink font-medium">{user?.email ?? '―'}</div>
-        </div>
-
         {/* 累計記録 */}
         <div className="bg-surface rounded-xl p-4 shadow-sm">
           <div className="text-sm font-semibold text-ink mb-3">累計記録</div>
@@ -108,6 +102,22 @@ export default function MyPageScreen({ userId }: Props) {
               </div>
             </div>
           )}
+        </div>
+
+        {/* 分析 */}
+        <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
+          <button
+            onClick={() => navigate('/analytics')}
+            className="w-full flex items-center justify-between px-4 py-3.5 text-sm text-ink active:bg-surface-subtle"
+          >
+            <span className="flex items-center gap-2">
+              <span>📊</span>
+              分析
+            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-muted">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
         </div>
 
         {/* パスワード変更 */}
