@@ -193,7 +193,7 @@ export default function OnboardingScreen({ userId }: Props) {
               onClick={() => navigate('/fixed', { state: { fromOnboarding: true } })}
               className="w-full bg-primary-500 active:bg-primary-600 text-white font-semibold py-4 rounded-xl text-base transition-colors"
             >
-              固定費を設定する
+              固定費の記録を始める
             </button>
           </div>
         </div>
@@ -232,7 +232,7 @@ export default function OnboardingScreen({ userId }: Props) {
         )}
         {page === 0 && (
           <button
-            onClick={() => navigate('/fixed', { state: { fromOnboarding: true } })}
+            onClick={() => setPage(TOTAL_PAGES - 1)}
             className="w-full mt-3 text-ink-muted text-sm py-2 active:text-ink"
           >
             スキップ
