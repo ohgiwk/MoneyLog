@@ -16,6 +16,7 @@ import {
   type StepKey,
   type MultiItem,
 } from './fixedExpenseTutorial/data'
+import ConfirmDialog from './ui/ConfirmDialog'
 import { MultiStep } from './fixedExpenseTutorial/MultiStep'
 import { SubscriptionStep } from './fixedExpenseTutorial/SubscriptionStep'
 import { CustomItemStep } from './fixedExpenseTutorial/CustomItemStep'
@@ -54,6 +55,7 @@ export default function FixedExpenseTutorial({
   const [reviewingNames, setReviewingNames] = useState<Set<string>>(new Set())
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false)
 
   const { data: wishlistItems = [] } = useWishlistQuery(userId)
   const topWish = wishlistItems.find((i) => i.priority === 1) ?? wishlistItems[0] ?? null
@@ -254,7 +256,7 @@ export default function FixedExpenseTutorial({
     <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto">
       {/* 右上バツボタン */}
       <button
-        onClick={onClose}
+        onClick={() => setCloseConfirmOpen(true)}
         className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover z-10"
         style={{ top: 'calc(1rem + env(safe-area-inset-top))' }}
       >
@@ -263,6 +265,16 @@ export default function FixedExpenseTutorial({
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
+
+      {closeConfirmOpen && (
+        <ConfirmDialog
+          message="固定費の入力を終了してよろしいですか？"
+          confirmLabel="終了する"
+          cancelLabel="キャンセル"
+          onConfirm={() => { setCloseConfirmOpen(false); onClose() }}
+          onCancel={() => setCloseConfirmOpen(false)}
+        />
+      )}
 
       {/* ドットインジケーター */}
       <div className="flex justify-center gap-2 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-2">
@@ -477,10 +489,10 @@ export default function FixedExpenseTutorial({
           {saving
             ? '保存中...'
             : STEPS[stepIndex].key === 'review'
-              ? '保存して次へ →'
+              ? '保存して次へ'
               : isLast
                 ? 'はじめる'
-                : '次へ →'}
+                : '次へ'}
         </button>
         <div className="flex justify-between mt-3">
           {stepIndex > 0 && (
@@ -488,7 +500,7 @@ export default function FixedExpenseTutorial({
               onClick={() => setStepIndex((i) => i - 1)}
               className="text-ink-muted text-sm py-2 px-2 active:text-ink"
             >
-              ← 戻る
+              戻る
             </button>
           )}
           {stepIndex === 0 && <span />}
