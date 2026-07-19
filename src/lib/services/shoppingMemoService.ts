@@ -94,7 +94,7 @@ export const shoppingMemoService = {
 
   deleteItems: async (ids: string[]): Promise<void> => {
     if (ids.length === 0) return
-    const { error } = await supabase.from(TABLE).delete().in('id', ids)
+    const { error } = await supabase.from(TABLE).update({ status: 'bought' }).in('id', ids)
     if (error) throw new Error(error.message)
   },
 }

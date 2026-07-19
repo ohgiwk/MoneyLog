@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 
 export interface Achievement {
   id: string
-  category: '固定費' | '出費記録'
+  category: '固定費' | '出費記録' | '買い物メモ'
   title: string
   description: string
   achieved: boolean
@@ -72,6 +72,15 @@ const ACHIEVEMENT_DEFS: Omit<Achievement, 'achieved' | 'achievedAt'>[] = [
   { id: 'streak_90', category: '出費記録', title: '3ヶ月継続', description: '90日連続で出費を記録する' },
   { id: 'streak_180', category: '出費記録', title: '6ヶ月継続', description: '180日連続で出費を記録する' },
   { id: 'streak_365', category: '出費記録', title: '1年継続', description: '365日連続で出費を記録する' },
+  // 買い物メモ - 作成
+  { id: 'shopping_add_1', category: '買い物メモ', title: '買い物メモスタート', description: '初めてアイテムを買い物メモに追加する' },
+  { id: 'shopping_add_10', category: '買い物メモ', title: 'メモ活用中', description: '買い物メモに10品追加する' },
+  { id: 'shopping_add_50', category: '買い物メモ', title: 'メモ達人', description: '買い物メモに50品追加する' },
+  // 買い物メモ - 購入
+  { id: 'shopping_buy_1', category: '買い物メモ', title: '初めての購入記録', description: '買い物メモから初めて購入済みにする' },
+  { id: 'shopping_buy_10', category: '買い物メモ', title: '買い物上手', description: '買い物メモから10品を購入済みにする' },
+  { id: 'shopping_buy_50', category: '買い物メモ', title: '買い物達人', description: '買い物メモから50品を購入済みにする' },
+  { id: 'shopping_plan', category: '買い物メモ', title: '計画的な買い物', description: '予算を設定したアイテムを購入する' },
 ]
 
 export function useAchievements(userId: string) {
@@ -83,7 +92,7 @@ export function useAchievements(userId: string) {
     let cancelled = false
 
     async function evaluate() {
-      const [fixedRes, unsubRes, txRes] = await Promise.all([
+      const [fixedRes, unsubRes, txRes, shoppingAllRes, shoppingBoughtRes, shoppingPlanRes] = await Promise.all([
         supabase
           .from('fixed_expenses')
           .select('id', { count: 'exact' })
@@ -98,12 +107,30 @@ export function useAchievements(userId: string) {
           .select('date')
           .eq('user_id', userId)
           .eq('type', 'expense'),
+        supabase
+          .from('shopping_items')
+          .select('id', { count: 'exact' })
+          .eq('user_id', userId),
+        supabase
+          .from('shopping_items')
+          .select('id', { count: 'exact' })
+          .eq('user_id', userId)
+          .eq('status', 'bought'),
+        supabase
+          .from('shopping_items')
+          .select('id', { count: 'exact' })
+          .eq('user_id', userId)
+          .eq('status', 'bought')
+          .gt('budget_amount', 0),
       ])
 
       if (cancelled) return
 
       const fixedCount = fixedRes.count ?? 0
       const unsubCount = unsubRes.count ?? 0
+      const shoppingAllCount = shoppingAllRes.count ?? 0
+      const shoppingBoughtCount = shoppingBoughtRes.count ?? 0
+      const shoppingPlanCount = shoppingPlanRes.count ?? 0
       const txDates: string[] = (txRes.data ?? []).map((r) => r.date)
       const txCount = txDates.length
       const streak = longestStreak(txDates)
@@ -134,7 +161,13 @@ export function useAchievements(userId: string) {
       check('streak_90', streak >= 90)
       check('streak_180', streak >= 180)
       check('streak_365', streak >= 365)
-
+      check('shopping_add_1', shoppingAllCount >= 1)
+      check('shopping_add_10', shoppingAllCount >= 10)
+      check('shopping_add_50', shoppingAllCount >= 50)
+      check('shopping_buy_1', shoppingBoughtCount >= 1)
+      check('shopping_buy_10', shoppingBoughtCount >= 10)
+      check('shopping_buy_50', shoppingBoughtCount >= 50)
+      check('shopping_plan', shoppingPlanCount >= 1)
 
       saveState(userId, next)
 

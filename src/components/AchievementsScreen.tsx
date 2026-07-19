@@ -9,6 +9,7 @@ interface Props {
 const CATEGORY_ICONS: Record<string, string> = {
   '固定費': '📋',
   '出費記録': '✏️',
+  '買い物メモ': '🛒',
 }
 
 function AchievementItem({ a }: { a: Achievement }) {
@@ -35,7 +36,7 @@ export default function AchievementsScreen({ userId }: Props) {
   const navigate = useNavigate()
   const { achievements, loading } = useAchievements(userId)
 
-  const categories = ['固定費', '出費記録'] as const
+  const categories = ['固定費', '出費記録', '買い物メモ'] as const
   const achievedCount = achievements.filter((a) => a.achieved).length
 
   return (
