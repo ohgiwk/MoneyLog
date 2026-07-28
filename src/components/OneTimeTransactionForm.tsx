@@ -43,6 +43,7 @@ export default function OneTimeTransactionForm({
   // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
   // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
   const closedRef = useRef(false)
+  const amountRef = useRef<HTMLInputElement>(null)
   const [successTip, setSuccessTip] = useState('')
 
   function closeAndNotify() {
@@ -89,6 +90,12 @@ export default function OneTimeTransactionForm({
   useEffect(() => {
     if (showSuccess) setSuccessTip(TIPS[Math.floor(Math.random() * TIPS.length)])
   }, [showSuccess])
+
+  // ページ遷移アニメーション(320ms)完了後にフォーカスしてキーボードを表示
+  useEffect(() => {
+    const id = setTimeout(() => amountRef.current?.focus(), 350)
+    return () => clearTimeout(id)
+  }, [])
 
   // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
   useEffect(() => {
@@ -181,6 +188,7 @@ export default function OneTimeTransactionForm({
           <label className="text-xs text-white/80 font-bold">金額</label>
           <div className="flex items-center gap-2 mt-1">
             <Input
+              ref={amountRef}
               type="number"
               inputMode="numeric"
               placeholder="0"
