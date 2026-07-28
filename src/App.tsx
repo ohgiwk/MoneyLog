@@ -30,8 +30,19 @@ function AppRoutes() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-surface-subtle flex items-center justify-center">
-        <div className="text-ink-muted text-sm">読み込み中...</div>
+      <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-6">
+        <img src="/icon.png" alt="キンカク手帖" className="w-24 h-24 rounded-2xl shadow-lg" />
+        <p className="text-ink-strong text-xl font-bold tracking-wide">キンカク手帖</p>
+        <div className="w-48 h-1 bg-surface-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary-500 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
+        </div>
+        <style>{`
+          @keyframes loading {
+            0%   { transform: translateX(-100%); }
+            50%  { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+          }
+        `}</style>
       </div>
     )
   }

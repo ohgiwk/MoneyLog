@@ -13,7 +13,6 @@ import { type BudgetSettings } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
-import { Row } from './ui/Row'
 import ScreenHeader from './ui/ScreenHeader'
 
 type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
@@ -75,12 +74,10 @@ export default function AnalyticsScreen({ userId }: Props) {
   }, [storePeriod, transactions, yearTransactions])
 
   const {
-    income,
     consumableExpense,
     oneTimeExpense,
     totalFixed,
     totalSaved,
-    balance,
     oneTimeByCat,
     fixedByCat,
     consumableByCat,
