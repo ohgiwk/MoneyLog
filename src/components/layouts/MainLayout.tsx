@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useAppContext } from '../../contexts/AppContext'
 import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
@@ -144,7 +144,7 @@ export default function MainLayout() {
           const isActive = location.pathname === t.path
           if (t.special) {
             return (
-              <button
+              <motion.button
                 key={t.path}
                 onClick={() => {
                   if (location.pathname === '/record') {
@@ -154,6 +154,8 @@ export default function MainLayout() {
                   }
                 }}
                 className="flex flex-col items-center gap-0.5 px-4 py-1 -mt-6"
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               >
                 <span
                   className={
@@ -166,11 +168,11 @@ export default function MainLayout() {
                     {isActive ? '入力' : '記録'}
                   </span>
                 </span>
-              </button>
+              </motion.button>
             )
           }
           return (
-            <button
+            <motion.button
               key={t.path}
               onClick={() => {
                 if (t.path === '/shopping') bumpShoppingTap()
@@ -181,11 +183,13 @@ export default function MainLayout() {
                 'flex flex-col items-center gap-0.5 px-6 py-1 ' +
                 (isActive ? 'text-primary-500' : 'text-ink-muted')
               }
+              whileTap={{ scale: 0.82 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             >
               <span className="text-xl">{t.icon}</span>
               <span className="text-[11px] font-medium whitespace-nowrap">{t.label}</span>
               <span className={`block h-0.5 w-5 rounded-full mt-0.5 transition-all ${isActive ? 'bg-primary-500' : 'bg-transparent'}`} />
-            </button>
+            </motion.button>
           )
         })}
       </div>
