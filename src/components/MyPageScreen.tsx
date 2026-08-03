@@ -99,7 +99,7 @@ export default function MyPageScreen({ userId }: Props) {
               <span className="text-sm font-normal text-ink-muted ml-1">円</span>
             </div>
           )}
-          <div className="text-xs text-ink-muted mt-1">予算の貯蓄額 + 各月の出費予算の残余額</div>
+          <div className="text-xs text-ink-muted mt-1">予算の貯蓄額 + 先月までの収支の合計</div>
         </div>
 
         {/* 累計記録 */}
