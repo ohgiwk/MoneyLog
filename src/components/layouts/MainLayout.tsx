@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useAppContext } from '../../contexts/AppContext'
 import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
+import NewMonthBudgetDialog from '../NewMonthBudgetDialog'
 import { shiftMonth, monthLabel } from '../../utils'
 
 const TABS = [
@@ -17,7 +18,7 @@ const TABS = [
 export default function MainLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signOut, headerBack, setHeaderBack, month, setMonth, setCalendarSelectedDate, bumpRecordTap, bumpShoppingTap, registerScrollToTop } = useAppContext()
+  const { user, signOut, headerBack, setHeaderBack, month, setMonth, setCalendarSelectedDate, bumpRecordTap, bumpShoppingTap, registerScrollToTop } = useAppContext()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const isCalendar = !!useMatch('/calendar')
@@ -38,6 +39,7 @@ export default function MainLayout() {
   return (
     <div id="app-root" className="relative max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
       <UpdateNotification />
+      {user && <NewMonthBudgetDialog userId={user.id} />}
 
       {/* ヘッダー */}
       <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-b-2 border-primary-500 pt-[env(safe-area-inset-top)]">
