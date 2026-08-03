@@ -6,7 +6,7 @@ import DatePicker from './ui/DatePicker'
 import Textarea from './ui/Textarea'
 import ErrorText from './ui/ErrorText'
 import Modal from './ui/Modal'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
 import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
@@ -38,6 +38,13 @@ export default function CalendarTab({ userId }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [dayTypeError, setDayTypeError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (selectedDate.slice(0, 7) !== month) {
+      const today = todayStr()
+      setSelectedDate(month === today.slice(0, 7) ? today : `${month}-01`)
+    }
+  }, [month])
 
   const { data: events = [], isError: eventsError } = useCalendarEventsQuery(userId, month)
   const { data: workSchedule = [], isError: scheduleError } = useWorkScheduleQuery(userId, month)
