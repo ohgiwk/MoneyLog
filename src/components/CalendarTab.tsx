@@ -186,9 +186,10 @@ export default function CalendarTab({ userId }: Props) {
                   {dayNum}
                 </span>
                 {expense > 0 && (
-                  <span className="text-[9px] text-danger-500 font-medium leading-tight">
-                    -{(expense >= 1000 ? `${Math.round(expense / 1000)}k` : expense)}
-                  </span>
+                  <span className={
+                    'rounded-full bg-danger-400 mt-0.5 ' +
+                    (expense >= 15000 ? 'w-2.5 h-2.5' : expense >= 5000 ? 'w-2 h-2' : expense >= 1000 ? 'w-1.5 h-1.5' : 'w-1 h-1')
+                  } />
                 )}
                 {planned > 0 && (
                   <span className="text-[9px] text-ink-muted leading-tight">
@@ -273,7 +274,12 @@ export default function CalendarTab({ userId }: Props) {
       {/* 選択日の出費記録 */}
       {selectedTransactions.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs text-ink-muted px-1">出費記録</span>
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-ink-muted">出費記録</span>
+            <span className="text-xs font-semibold text-danger-500">
+              -{formatYen(selectedTransactions.reduce((s, tx) => s + tx.amount, 0))}
+            </span>
+          </div>
           <div className="space-y-2">
             {selectedTransactions.map((tx) => (
               <div
