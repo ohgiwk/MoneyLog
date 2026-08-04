@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { authService } from '../lib/services/authService'
 import { useAppContext } from '../contexts/AppContext'
-import { useCumulativeSavings } from '../hooks/useCumulativeSavings'
 import ScreenHeader from './ui/ScreenHeader'
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 export default function MyPageScreen({ userId }: Props) {
   const navigate = useNavigate()
   const { signOut } = useAppContext()
-  const { total: cumulativeSavings, loading: savingsLoading } = useCumulativeSavings(userId)
 
   const [recordDays, setRecordDays] = useState<number | null>(null)
   const [recordCount, setRecordCount] = useState<number | null>(null)
@@ -87,21 +85,6 @@ export default function MyPageScreen({ userId }: Props) {
       <ScreenHeader title="マイページ" onBack={() => navigate(-1)} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
-        {/* 累計貯蓄額 */}
-        <div className="bg-surface rounded-xl p-4 shadow-sm">
-          <div className="text-xs text-ink-muted mb-1">累計貯蓄額</div>
-          {savingsLoading ? (
-            <div className="text-sm text-ink-muted">読み込み中...</div>
-          ) : (
-            <div className={`text-2xl font-bold ${(cumulativeSavings ?? 0) >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
-              {(cumulativeSavings ?? 0) >= 0 ? '+' : ''}
-              {(cumulativeSavings ?? 0).toLocaleString('ja-JP')}
-              <span className="text-sm font-normal text-ink-muted ml-1">円</span>
-            </div>
-          )}
-          <div className="text-xs text-ink-muted mt-1">予算の貯蓄額 + 先月までの収支の合計</div>
-        </div>
-
         {/* 累計記録 */}
         <div className="bg-surface rounded-xl p-4 shadow-sm">
           <div className="text-sm font-semibold text-ink mb-3">累計記録</div>

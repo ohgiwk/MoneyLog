@@ -73,6 +73,16 @@ export default function AnalyticsScreen({ userId }: Props) {
     return [...map.entries()].sort(([, a], [, b]) => b - a)
   }, [storePeriod, transactions, yearTransactions])
 
+  const storeAmounts = useMemo(() => {
+    const source = storePeriod === 'monthly' ? transactions : yearTransactions
+    const map = new Map<string, number>()
+    for (const t of source) {
+      if (!t.store_type || t.type !== 'expense') continue
+      map.set(t.store_type, (map.get(t.store_type) ?? 0) + t.amount)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [storePeriod, transactions, yearTransactions])
+
   const {
     consumableExpense,
     oneTimeExpense,
@@ -165,10 +175,10 @@ export default function AnalyticsScreen({ userId }: Props) {
           <DailyExpenseChart entries={dailyExpenses} />
         </div>
 
-        {/* 店舗種別の記録数 */}
+        {/* 店舗種別の合計額 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-ink">店舗種別の記録数</div>
+            <div className="text-sm font-semibold text-ink">店舗種別の合計額</div>
             <div className="flex rounded-lg overflow-hidden border border-line text-xs">
               <button
                 onClick={() => setStorePeriod('monthly')}
@@ -183,6 +193,14 @@ export default function AnalyticsScreen({ userId }: Props) {
                 年間
               </button>
             </div>
+          </div>
+          <StoreAmountBars entries={storeAmounts} />
+        </div>
+
+        {/* 店舗種別の記録数 */}
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-semibold text-ink">店舗種別の記録数</div>
           </div>
           <StoreCountBars entries={storeCounts} />
         </div>
@@ -262,6 +280,44 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
             )
           })}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Store Amount Bars ──────────────────────────────────────────
+
+function StoreAmountBars({ entries }: { entries: [string, number][] }) {
+  if (entries.length === 0) {
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
+  }
+  const max = Math.max(...entries.map(([, amt]) => amt))
+  const total = entries.reduce((s, [, amt]) => s + amt, 0)
+  return (
+    <div className="space-y-2">
+      {entries.map(([storeName, amt]) => {
+        const info = STORE_TYPES.find((s) => s.name === storeName)
+        const pct = max > 0 ? (amt / max) * 100 : 0
+        return (
+          <div key={storeName}>
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-xs text-ink flex items-center gap-1">
+                <span>{info?.icon ?? '🏷️'}</span>{storeName}
+              </span>
+              <span className="text-xs font-semibold text-danger-500">-{formatYen(Math.round(amt))}</span>
+            </div>
+            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
+              <div
+                className="h-full bg-danger-400 rounded-full transition-all"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        )
+      })}
+      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
+        <span className="text-xs text-ink-muted">合計</span>
+        <span className="text-sm font-semibold text-danger-500">-{formatYen(Math.round(total))}</span>
       </div>
     </div>
   )

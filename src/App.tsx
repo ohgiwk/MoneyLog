@@ -30,9 +30,11 @@ function AppRoutes() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-6">
-        <img src="/icon.png" alt="キンカク手帖" className="w-24 h-24 rounded-2xl shadow-lg" />
-        <p className="text-ink-strong text-xl font-bold tracking-wide">キンカク手帖</p>
+      <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-8">
+        <div className="flex items-center gap-3">
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-16 h-16 object-contain" />
+          <p className="text-3xl text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>キンカク手帖</p>
+        </div>
         <div className="w-48 h-1 bg-surface-muted rounded-full overflow-hidden">
           <div className="h-full bg-primary-500 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
         </div>
