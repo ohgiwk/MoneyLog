@@ -13,6 +13,7 @@ import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
 import FabButton from './ui/FabButton'
+import PeriodToggle from './ui/PeriodToggle'
 
 interface Props {
   userId: string
@@ -111,6 +112,29 @@ export default function ConsumablesList({
     items: unregisteredDefaults.filter((d) => d.category === cat.name),
   })).filter((g) => g.items.length > 0)
 
+  function renderConsumableItem(c: Consumable, urgent?: boolean) {
+    return (
+      <div key={c.id} className="flex items-center gap-2">
+        <Card className="flex-1">
+          <ConsumableRow
+            consumable={c}
+            householdMembers={householdMembers}
+            onClick={() => openEditing(c)}
+            border={false}
+            urgent={urgent}
+          />
+        </Card>
+        <button
+          onClick={() => setPurchasing(c)}
+          className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
+          title="購入済"
+        >
+          <IconShoppingCartCopy size={20} />
+        </button>
+      </div>
+    )
+  }
+
   let content: ReactNode
 
   if (editing !== null) {
@@ -137,28 +161,7 @@ export default function ConsumablesList({
           <div className="text-sm font-semibold text-ink mb-1">
             定期購入合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
           </div>
-          <div className="shrink-0 flex rounded-lg border border-line overflow-hidden text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setSummaryPeriod('monthly')}
-              className={
-                'px-2.5 py-1 ' +
-                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
-              }
-            >
-              月
-            </button>
-            <button
-              type="button"
-              onClick={() => setSummaryPeriod('yearly')}
-              className={
-                'px-2.5 py-1 ' +
-                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
-              }
-            >
-              年
-            </button>
-          </div>
+          <PeriodToggle value={summaryPeriod} onChange={setSummaryPeriod} />
         </div>
         <div className="text-2xl font-bold text-ink">
           {formatYen(summaryPeriod === 'monthly' ? totalMonthly : totalMonthly * 12)}
@@ -177,26 +180,7 @@ export default function ConsumablesList({
             <span>⚠️</span> そろそろ買い時（7日以内）
           </div>
           <div className="space-y-1.5">
-            {urgent.map((c) => (
-              <div key={c.id} className="flex items-center gap-2">
-                <Card className="flex-1">
-                  <ConsumableRow
-                    consumable={c}
-                    householdMembers={householdMembers}
-                    onClick={() => openEditing(c)}
-                    border={false}
-                    urgent
-                  />
-                </Card>
-                <button
-                  onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
-                  title="購入済"
-                >
-                  <IconShoppingCartCopy size={20} />
-                </button>
-              </div>
-            ))}
+            {urgent.map((c) => renderConsumableItem(c, true))}
           </div>
         </div>
       )}
@@ -209,25 +193,7 @@ export default function ConsumablesList({
             <span>{cat.name}</span>
           </div>
           <div className="space-y-1.5">
-            {items.map((c) => (
-              <div key={c.id} className="flex items-center gap-2">
-                <Card className="flex-1">
-                  <ConsumableRow
-                    consumable={c}
-                    householdMembers={householdMembers}
-                    onClick={() => openEditing(c)}
-                    border={false}
-                  />
-                </Card>
-                <button
-                  onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
-                  title="購入済"
-                >
-                  <IconShoppingCartCopy size={20} />
-                </button>
-              </div>
-            ))}
+            {items.map((c) => renderConsumableItem(c))}
           </div>
         </div>
       ))}
@@ -237,25 +203,7 @@ export default function ConsumablesList({
         <div>
           <div className="text-xs font-semibold text-ink-muted mt-2 mb-2">その他</div>
           <div className="space-y-1.5">
-            {uncategorized.map((c) => (
-              <div key={c.id} className="flex items-center gap-2">
-                <Card className="flex-1">
-                  <ConsumableRow
-                    consumable={c}
-                    householdMembers={householdMembers}
-                    onClick={() => openEditing(c)}
-                    border={false}
-                  />
-                </Card>
-                <button
-                  onClick={() => setPurchasing(c)}
-                  className="shrink-0 w-8 self-stretch rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-900 active:bg-primary-100 dark:active:bg-primary-900/60 flex flex-col items-center justify-center gap-0.5"
-                  title="購入済"
-                >
-                  <IconShoppingCartCopy size={20} />
-                </button>
-              </div>
-            ))}
+            {uncategorized.map((c) => renderConsumableItem(c))}
           </div>
         </div>
       )}

@@ -17,6 +17,7 @@ import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
 import type { ReactNode } from 'react'
 import FabButton from './ui/FabButton'
+import PeriodToggle from './ui/PeriodToggle'
 
 const STATUS_FILTER_TABS = [
   { key: 'active' as const, label: STATUS_LABELS.active.label },
@@ -223,28 +224,7 @@ export default function FixedExpenseList({
           <div className="text-sm font-semibold text-ink mb-1">
             固定費合計（{summaryPeriod === 'monthly' ? '月額' : '年額'}換算）
           </div>
-          <div className="shrink-0 flex rounded-lg border border-line overflow-hidden text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setSummaryPeriod('monthly')}
-              className={
-                'px-2.5 py-1 ' +
-                (summaryPeriod === 'monthly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
-              }
-            >
-              月
-            </button>
-            <button
-              type="button"
-              onClick={() => setSummaryPeriod('yearly')}
-              className={
-                'px-2.5 py-1 ' +
-                (summaryPeriod === 'yearly' ? 'bg-primary-500 text-white' : 'bg-surface text-ink-muted')
-              }
-            >
-              年
-            </button>
-          </div>
+          <PeriodToggle value={summaryPeriod} onChange={setSummaryPeriod} />
         </div>
         <div className="text-2xl font-bold text-ink">
           {formatYen(summaryPeriod === 'monthly' ? totalAmount : totalAmount * 12)}
