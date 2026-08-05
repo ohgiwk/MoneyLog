@@ -19,6 +19,7 @@ export default function BudgetProgressPanel({
   oneTimeCategoryRows,
   hasBudget = true,
   onManageBudget,
+  naked = false,
 }: {
   periodMode: PeriodMode
   setPeriodMode: (m: PeriodMode) => void
@@ -37,6 +38,7 @@ export default function BudgetProgressPanel({
   }[]
   hasBudget?: boolean
   onManageBudget?: () => void
+  naked?: boolean
 }) {
   // 期間ラベルと進捗率
   const { rangeLabel, filledDots, totalDots, periodLabel } = useMemo(() => {
@@ -74,8 +76,8 @@ export default function BudgetProgressPanel({
   const monthTotalBudget = displayRows.reduce((sum, r) => sum + r.monthBudget, 0)
   const monthTotalSpent = displayRows.reduce((sum, r) => sum + r.monthSpent, 0)
 
-  return (
-    <div className="relative bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+  const inner = (
+    <div className={`relative space-y-3 ${naked ? 'p-4' : 'bg-surface rounded-2xl p-4 shadow-sm'}`}>
       {/* ヘッダー行 */}
       <div className="flex items-center justify-between">
         <div className="text-sm font-semibold text-ink">予算進捗</div>
@@ -175,6 +177,8 @@ export default function BudgetProgressPanel({
       )}
     </div>
   )
+
+  return inner
 }
 
 function BudgetProgress({
