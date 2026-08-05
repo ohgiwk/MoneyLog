@@ -10,6 +10,7 @@ import Button from './ui/Button'
 import Input from './ui/Input'
 import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
+import SortableWishlistItem from './ui/SortableWishlistItem'
 import { formatYen, todayStr } from '../utils'
 import {
   DndContext,
@@ -23,57 +24,8 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
   arrayMove,
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-
-function SortableWishlistItem({ item, onEdit }: { item: WishlistItem; onEdit: (item: WishlistItem) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-  return (
-    <li ref={setNodeRef} style={style} className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden">
-      <button
-        {...attributes}
-        {...listeners}
-        className="px-3 self-stretch flex items-center text-ink-subtle touch-none cursor-grab active:cursor-grabbing border-r border-line-subtle"
-        aria-label="並び替え"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="4" y1="8" x2="20" y2="8"/>
-          <line x1="4" y1="16" x2="20" y2="16"/>
-        </svg>
-      </button>
-      <span className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-        item.priority === 1 ? 'bg-warning-400 text-white'
-        : item.priority === 2 ? 'bg-surface-muted text-white'
-        : item.priority === 3 ? 'bg-orange-300 text-white'
-        : 'bg-surface-muted text-ink-muted'
-      }`}>
-        {item.priority}
-      </span>
-      <button
-        onClick={() => onEdit(item)}
-        className="flex-1 min-w-0 flex items-center gap-2 py-3.5 pr-3 text-left active:bg-surface-subtle"
-      >
-        <div className="flex-1 min-w-0">
-          <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
-          {item.target_date && (
-            <p className="text-ink-muted text-xs truncate">
-              {item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃
-            </p>
-          )}
-          {!item.target_date && item.notes && <p className="text-ink-muted text-xs truncate">{item.notes}</p>}
-        </div>
-        <span className="text-ink font-semibold text-sm flex-shrink-0">¥{item.target_amount.toLocaleString()}</span>
-      </button>
-    </li>
-  )
-}
 
 interface Props {
   userId: string
@@ -343,7 +295,15 @@ export default function WishlistPanel({ userId }: Props) {
                 <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
                   <ul className="space-y-3">
                     {activeItems.map((item) => (
-                      <SortableWishlistItem key={item.id} item={item} onEdit={openEdit} />
+                      <SortableWishlistItem
+                        key={item.id}
+                        item={item}
+                        onEdit={openEdit}
+                        detail={item.target_date
+                          ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
+                          : item.notes ?? undefined
+                        }
+                      />
                     ))}
                   </ul>
                 </SortableContext>

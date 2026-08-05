@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { IconShoppingCartCopy } from '@tabler/icons-react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
 import type { Consumable } from '../lib/database.types'
+import type { HeaderState } from '../types/layout'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
 import { consumableService } from '../lib/services/consumableService'
 import { transactionService } from '../lib/services/transactionService'
@@ -12,12 +13,6 @@ import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
 import PageTransition, { type NavDirection } from './PageTransition'
 import FabButton from './ui/FabButton'
-
-interface HeaderState {
-  title: string
-  onBack: () => void
-  action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-}
 
 interface Props {
   userId: string

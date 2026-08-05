@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EXPENSE_CATEGORIES } from '../constants'
-import { budgetService, oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { budgetService, oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS, type BudgetSettings } from '../lib/services/budgetService'
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
 import { calcBudgetProgress, formatYen, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
@@ -13,13 +13,11 @@ interface Props {
   userId: string
 }
 
-const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
-
 export default function BudgetScreen({ userId }: Props) {
   const navigate = useNavigate()
   useEffect(() => { window.scrollTo(0, 0) }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
-  const [budget, setBudget] = useState<BudgetSettings>(emptyBudget)
+  const [budget, setBudget] = useState<BudgetSettings>(EMPTY_BUDGET_SETTINGS)
   const [saved, setSaved] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [categoryMode, setCategoryMode] = useState<'total' | 'detail'>(

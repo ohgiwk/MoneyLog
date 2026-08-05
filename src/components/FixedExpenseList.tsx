@@ -4,6 +4,7 @@ import { useAppContext } from '../contexts/AppContext'
 import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
+import type { HeaderState } from '../types/layout'
 import { formatYen } from '../utils'
 import { getAllCurrencyMeta } from '../lib/exchangeRate'
 import { TabGroup } from './ui/TabGroup'
@@ -22,12 +23,6 @@ const STATUS_FILTER_TABS = [
   { key: 'unsubscribed' as const, label: STATUS_LABELS.unsubscribed.label },
   { key: 'cancelled' as const, label: STATUS_LABELS.cancelled.label },
 ]
-
-interface HeaderState {
-  title: string
-  onBack: () => void
-  action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-}
 
 interface Props {
   userId: string
@@ -121,6 +116,73 @@ export default function FixedExpenseList({
     [fixedExpenses]
   )
   const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
+
+  function renderRows(list: FixedExpense[]): ReactNode[] {
+    const rows: ReactNode[] = []
+    let prevCategory = ''
+    list.forEach((f, i) => {
+      if (f.category !== prevCategory) {
+        const cat = fixedCategories.find((c) => c.name === f.category)
+        rows.push(
+          <div
+            key={`header-${f.category}-${f.status}-${i}`}
+            className={`flex items-center gap-2 px-4 py-1.5 bg-surface-hover ${i > 0 ? 'border-t border-line-subtle' : ''}`}
+          >
+            {cat && <span className="text-sm">{cat.icon}</span>}
+            <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
+          </div>
+        )
+        prevCategory = f.category
+      }
+      const meta = currencyMeta[f.id]
+      rows.push(
+        <div
+          key={f.id}
+          className="flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer border-t border-line-subtle"
+          onClick={() => openEditing(f)}
+        >
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium text-ink truncate">{f.name}</div>
+            {f.cycle === 'yearly' && (
+              <div className="text-xs text-indigo-400 font-medium">年払い</div>
+            )}
+            {f.status === 'reviewing' && f.amount != null && f.amount > 0 && (
+              <div className="text-xs text-warning-600 font-medium">
+                解約すれば年間 {formatYen(f.cycle === 'yearly' ? f.amount : f.amount * 12)} 削減
+              </div>
+            )}
+          </div>
+          <div className="text-right shrink-0">
+            {meta?.currency === 'USD' ? (
+              <>
+                <div className="text-sm font-semibold text-ink">
+                  ${meta.usdAmount.toLocaleString()}{f.cycle === 'yearly' ? '/年' : ''}
+                </div>
+                <div className="text-xs text-ink-muted">
+                  {f.cycle === 'yearly'
+                    ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
+                    : formatYen(f.amount ?? 0)}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}>
+                  {f.amount == null ? '未入力' : f.cycle === 'yearly' ? `${formatYen(f.amount)}/年` : formatYen(f.amount)}
+                </div>
+                {f.cycle === 'yearly' && f.amount != null && (
+                  <div className="text-xs text-ink-muted">月換算 {formatYen(Math.round(f.amount / 12))}</div>
+                )}
+              </>
+            )}
+          </div>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
+            {STATUS_LABELS[f.status].label}
+          </span>
+        </div>
+      )
+    })
+    return rows
+  }
 
   let content: ReactNode
 
@@ -226,176 +288,25 @@ export default function FixedExpenseList({
         (() => {
           const reviewingList = filtered.filter((f) => f.status === 'reviewing')
           const activeList = filtered.filter((f) => f.status === 'active')
-          const renderGroup = (list: FixedExpense[]) => {
-            const rows: ReactNode[] = []
-            let prevCategory = ''
-            list.forEach((f, i) => {
-              if (f.category !== prevCategory) {
-                const cat = fixedCategories.find((c) => c.name === f.category)
-                rows.push(
-                  <div
-                    key={`header-${f.category}-${f.status}`}
-                    className={`flex items-center gap-2 px-4 py-1.5 bg-surface-hover ${i > 0 ? 'border-t border-line-subtle' : ''}`}
-                  >
-                    {cat && <span className="text-sm">{cat.icon}</span>}
-                    <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
-                  </div>
-                )
-                prevCategory = f.category
-              }
-              rows.push(
-                <div
-                  key={f.id}
-                  className="flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer border-t border-line-subtle"
-                  onClick={() => openEditing(f)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">{f.name}</div>
-                    {f.cycle === 'yearly' && (
-                      <div className="text-xs text-indigo-400 font-medium">年払い</div>
-                    )}
-                    {f.status === 'reviewing' && f.amount != null && f.amount > 0 && (
-                      <div className="text-xs text-warning-600 font-medium">
-                        解約すれば年間 {formatYen(f.cycle === 'yearly' ? f.amount : f.amount * 12)} 削減
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    {(() => {
-                      const meta = currencyMeta[f.id]
-                      if (meta?.currency === 'USD') {
-                        return (
-                          <>
-                            <div className="text-sm font-semibold text-ink">
-                              ${meta.usdAmount.toLocaleString()}
-                              {f.cycle === 'yearly' ? '/年' : ''}
-                            </div>
-                            <div className="text-xs text-ink-muted">
-                              {f.cycle === 'yearly'
-                                ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
-                                : formatYen(f.amount ?? 0)}
-                            </div>
-                          </>
-                        )
-                      }
-                      return (
-                        <>
-                          <div className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}>
-                            {f.amount == null ? '未入力' : f.cycle === 'yearly' ? `${formatYen(f.amount)}/年` : formatYen(f.amount)}
-                          </div>
-                          {f.cycle === 'yearly' && f.amount != null && (
-                            <div className="text-xs text-ink-muted">月換算 {formatYen(Math.round(f.amount / 12))}</div>
-                          )}
-                        </>
-                      )
-                    })()}
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
-                    {STATUS_LABELS[f.status].label}
-                  </span>
-                </div>
-              )
-            })
-            return rows
-          }
           return (
             <div className="space-y-3">
               {reviewingList.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-warning-600 px-1 pb-1">見直し中</div>
-                  <Card>{renderGroup(reviewingList)}</Card>
+                  <Card>{renderRows(reviewingList)}</Card>
                 </div>
               )}
               {activeList.length > 0 && (
                 <div>
                   <div className="text-xs font-semibold text-ink-muted px-1 pb-1">契約中</div>
-                  <Card>{renderGroup(activeList)}</Card>
+                  <Card>{renderRows(activeList)}</Card>
                 </div>
               )}
             </div>
           )
         })()
       ) : (
-        <Card>
-        {((() => {
-          const rows: ReactNode[] = []
-          let prevCategory = ''
-          filtered.forEach((f, i) => {
-            if (f.category !== prevCategory) {
-              const cat = fixedCategories.find((c) => c.name === f.category)
-              rows.push(
-                <div
-                  key={`header-${f.category}`}
-                  className={`flex items-center gap-2 px-4 py-1.5 bg-surface-hover ${i > 0 ? 'border-t border-line-subtle' : ''}`}
-                >
-                  {cat && <span className="text-sm">{cat.icon}</span>}
-                    <span className="text-xs font-semibold text-ink-muted">{f.category}</span>
-                  </div>
-                )
-                prevCategory = f.category
-              }
-              rows.push(
-                <div
-                  key={f.id}
-                  className="flex items-center px-4 py-3 gap-3 active:bg-surface-subtle cursor-pointer border-t border-line-subtle"
-                  onClick={() => openEditing(f)}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-ink truncate">{f.name}</div>
-                    {f.cycle === 'yearly' && (
-                      <div className="text-xs text-indigo-400 font-medium">年払い</div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    {(() => {
-                      const meta = currencyMeta[f.id]
-                      if (meta?.currency === 'USD') {
-                        return (
-                          <>
-                            <div className="text-sm font-semibold text-ink">
-                              ${meta.usdAmount.toLocaleString()}
-                              {f.cycle === 'yearly' ? '/年' : ''}
-                            </div>
-                            <div className="text-xs text-ink-muted">
-                              {f.cycle === 'yearly'
-                                ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
-                                : formatYen(f.amount ?? 0)}
-                            </div>
-                          </>
-                        )
-                      }
-                      return (
-                        <>
-                          <div
-                            className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}
-                          >
-                            {f.amount == null
-                              ? '未入力'
-                              : f.cycle === 'yearly'
-                                ? `${formatYen(f.amount)}/年`
-                                : formatYen(f.amount)}
-                          </div>
-                          {f.cycle === 'yearly' && f.amount != null && (
-                            <div className="text-xs text-ink-muted">
-                              月換算 {formatYen(Math.round(f.amount / 12))}
-                            </div>
-                          )}
-                        </>
-                      )
-                    })()}
-                  </div>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
-                  >
-                    {STATUS_LABELS[f.status].label}
-                  </span>
-                </div>
-              )
-            })
-            return rows
-          })()
-        )}
-        </Card>
+        <Card>{renderRows(filtered)}</Card>
       ))}
 
       <div className="h-24" />

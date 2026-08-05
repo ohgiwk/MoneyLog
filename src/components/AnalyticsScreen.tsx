@@ -9,7 +9,7 @@ import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQuery } from '@tanstack/react-query'
 import { STORE_TYPES } from '../constants'
 import { categoryInfo, formatYen, todayStr } from '../utils'
-import { type BudgetSettings } from '../lib/services/budgetService'
+import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
 import { TabGroup } from './ui/TabGroup'
@@ -21,8 +21,6 @@ type StorePeriod = 'monthly' | 'yearly'
 interface Props {
   userId: string
 }
-
-const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
 
 export default function AnalyticsScreen({ userId }: Props) {
   const navigate = useNavigate()
@@ -45,7 +43,7 @@ export default function AnalyticsScreen({ userId }: Props) {
   })
   const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
   const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
-  const { data: budget = emptyBudget, isError: budgetError } = useBudgetQuery(userId, month)
+  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(userId, month)
 
   const fetchError = profileError || txError || yearTxError || fixedError || consumablesError || budgetError
     ? 'データの読み込みに失敗しました'
@@ -194,7 +192,7 @@ export default function AnalyticsScreen({ userId }: Props) {
               </button>
             </div>
           </div>
-          <StoreAmountBars entries={storeAmounts} />
+          <StoreBars entries={storeAmounts} valueType="amount" />
         </div>
 
         {/* 店舗種別の記録数 */}
@@ -202,7 +200,7 @@ export default function AnalyticsScreen({ userId }: Props) {
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-ink">店舗種別の記録数</div>
           </div>
-          <StoreCountBars entries={storeCounts} />
+          <StoreBars entries={storeCounts} valueType="count" />
         </div>
       </div>
     </div>
@@ -285,77 +283,39 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
   )
 }
 
-// ─── Store Amount Bars ──────────────────────────────────────────
+// ─── Store Bars ─────────────────────────────────────────────────
 
-function StoreAmountBars({ entries }: { entries: [string, number][] }) {
+function StoreBars({ entries, valueType }: { entries: [string, number][]; valueType: 'amount' | 'count' }) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
-  const max = Math.max(...entries.map(([, amt]) => amt))
-  const total = entries.reduce((s, [, amt]) => s + amt, 0)
+  const max = Math.max(...entries.map(([, v]) => v))
+  const total = entries.reduce((s, [, v]) => s + v, 0)
+  const barColor = valueType === 'amount' ? 'bg-danger-400' : 'bg-indigo-400'
+  const valueColor = valueType === 'amount' ? 'text-danger-500' : 'text-ink'
+  const fmt = (v: number) => valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`
   return (
     <div className="space-y-2">
-      {entries.map(([storeName, amt]) => {
+      {entries.map(([storeName, value]) => {
         const info = STORE_TYPES.find((s) => s.name === storeName)
-        const pct = max > 0 ? (amt / max) * 100 : 0
+        const pct = max > 0 ? (value / max) * 100 : 0
         return (
           <div key={storeName}>
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
                 <span>{info?.icon ?? '🏷️'}</span>{storeName}
               </span>
-              <span className="text-xs font-semibold text-danger-500">-{formatYen(Math.round(amt))}</span>
+              <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div
-                className="h-full bg-danger-400 rounded-full transition-all"
-                style={{ width: `${pct}%` }}
-              />
+              <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
             </div>
           </div>
         )
       })}
       <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
         <span className="text-xs text-ink-muted">合計</span>
-        <span className="text-sm font-semibold text-danger-500">-{formatYen(Math.round(total))}</span>
-      </div>
-    </div>
-  )
-}
-
-// ─── Store Count Bars ───────────────────────────────────────────
-
-function StoreCountBars({ entries }: { entries: [string, number][] }) {
-  if (entries.length === 0) {
-    return <div className="text-sm text-ink-muted py-1">データがありません</div>
-  }
-  const max = Math.max(...entries.map(([, count]) => count))
-  const total = entries.reduce((s, [, count]) => s + count, 0)
-  return (
-    <div className="space-y-2">
-      {entries.map(([storeName, count]) => {
-        const info = STORE_TYPES.find((s) => s.name === storeName)
-        const pct = max > 0 ? (count / max) * 100 : 0
-        return (
-          <div key={storeName}>
-            <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-ink flex items-center gap-1">
-                <span>{info?.icon ?? '🏷️'}</span>{storeName}
-              </span>
-              <span className="text-xs font-semibold text-ink">{count}件</span>
-            </div>
-            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div
-                className="h-full bg-indigo-400 rounded-full transition-all"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          </div>
-        )
-      })}
-      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
-        <span className="text-xs text-ink-muted">合計</span>
-        <span className="text-sm font-semibold text-ink">{total}件</span>
+        <span className={`text-sm font-semibold ${valueColor}`}>{fmt(total)}</span>
       </div>
     </div>
   )

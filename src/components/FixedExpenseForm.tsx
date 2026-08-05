@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   STATUS_LABELS,
   type CategoryInfo,
@@ -7,6 +7,8 @@ import {
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 import { useForm, useIsDirty } from '../hooks/useForm'
+import { useFormClose } from '../hooks/useFormClose'
+import type { HeaderState } from '../types/layout'
 import {
   getUsdJpyRate,
   getExpenseCurrencyMeta,
@@ -14,6 +16,7 @@ import {
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
 import { todayStr } from '../utils'
+import CategoryGrid from './ui/CategoryGrid'
 import ConfirmDialog from './ui/ConfirmDialog'
 import CelebrationDialog from './ui/CelebrationDialog'
 import Input from './ui/Input'
@@ -39,13 +42,7 @@ interface Props {
   presetToApply?: SubscriptionPreset | null
   onPresetApplied?: () => void
   focusSignal?: number
-  onHeaderChange?: (
-    state: {
-      title: string
-      onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-    } | null
-  ) => void
+  onHeaderChange?: (state: HeaderState | null) => void
 }
 
 export default function FixedExpenseForm({ userId, expense, fixedCategories, onClose, onOpenSubscriptionPicker, presetToApply, onPresetApplied, focusSignal, onHeaderChange }: Props) {
@@ -81,13 +78,7 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
   const { isDirty } = useIsDirty({ ...values, currency })
 
-  // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
-  // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
-  const closedRef = useRef(false)
-  function closeAndNotify() {
-    closedRef.current = true
-    onClose()
-  }
+  const { closedRef, closeAndNotify } = useFormClose(onClose)
 
   function requestBack() {
     if (isDirty) {
@@ -229,26 +220,11 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
 
         <div>
           <label className="text-xs text-ink-muted">カテゴリ</label>
-          <div className="grid grid-cols-5 gap-2 mt-1">
-            {fixedCategories.map((c) => (
-              <button
-                key={c.name}
-                type="button"
-                onClick={() => setValue('category', c.name)}
-                className={
-                  'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
-                  (values.category === c.name
-                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
-                    : 'border-line-subtle bg-surface-subtle')
-                }
-              >
-                <span className="text-lg">{c.icon}</span>
-                <span className="text-[10px] text-ink text-center leading-tight">
-                  {c.name}
-                </span>
-              </button>
-            ))}
-          </div>
+          <CategoryGrid
+            categories={fixedCategories}
+            selected={values.category}
+            onSelect={(name) => setValue('category', name)}
+          />
         </div>
 
         {values.category === 'サブスク' && (

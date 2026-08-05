@@ -1,9 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CONSUMABLE_CYCLE_PRESETS, type CategoryInfo, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
 import { formatYen, effectiveCycleDays, todayStr } from '../utils'
 import { useForm, useIsDirty } from '../hooks/useForm'
+import { useFormClose } from '../hooks/useFormClose'
+import type { HeaderState } from '../types/layout'
+import CategoryGrid from './ui/CategoryGrid'
 import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Input from './ui/Input'
@@ -28,13 +31,7 @@ interface Props {
   householdMembers: number
   expenseCategories: CategoryInfo[]
   onClose: () => void
-  onHeaderChange?: (
-    state: {
-      title: string
-      onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
-    } | null
-  ) => void
+  onHeaderChange?: (state: HeaderState | null) => void
 }
 
 export default function ConsumableForm({ userId, consumable, preset, householdMembers, expenseCategories, onClose, onHeaderChange }: Props) {
@@ -54,13 +51,7 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
   const { isDirty } = useIsDirty(values)
 
-  // 画面遷移アニメーション中もこのコンポーネントは一瞬マウントされたままになるため、
-  // 閉じることが決まった後にヘッダー登録エフェクトが再実行されてタイトルが復活しないよう防ぐ
-  const closedRef = useRef(false)
-  function closeAndNotify() {
-    closedRef.current = true
-    onClose()
-  }
+  const { closedRef, closeAndNotify } = useFormClose(onClose)
 
   function requestBack() {
     if (isDirty) {
@@ -164,26 +155,11 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
 
         <div>
           <label className="text-xs text-ink-muted">カテゴリ</label>
-          <div className="grid grid-cols-5 gap-2 mt-1">
-            {expenseCategories.map((c) => (
-              <button
-                key={c.name}
-                type="button"
-                onClick={() => setValue('category', c.name)}
-                className={
-                  'flex flex-col items-center justify-center py-2 rounded-xl text-xs gap-1 border ' +
-                  (values.category === c.name
-                    ? 'border-primary-400 bg-primary-50 dark:bg-primary-950/60'
-                    : 'border-line-subtle bg-surface-subtle')
-                }
-              >
-                <span className="text-lg">{c.icon}</span>
-                <span className="text-[10px] text-ink text-center leading-tight">
-                  {c.name}
-                </span>
-              </button>
-            ))}
-          </div>
+          <CategoryGrid
+            categories={expenseCategories}
+            selected={values.category}
+            onSelect={(name) => setValue('category', name)}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-3">

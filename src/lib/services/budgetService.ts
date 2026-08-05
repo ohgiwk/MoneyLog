@@ -12,6 +12,8 @@ export interface BudgetSettings {
 
 const empty = (): BudgetSettings => ({ income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} })
 
+export const EMPTY_BUDGET_SETTINGS: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
+
 export const budgetService = {
   fetchByMonth: async (userId: string, month: string): Promise<BudgetSettings> => {
     const { data, error } = await supabase

@@ -9,7 +9,7 @@ import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { useQuery } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
-import { oneTimeBudgetTotal, type BudgetSettings } from '../lib/services/budgetService'
+import { oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 import { Row } from './ui/Row'
@@ -19,7 +19,6 @@ interface Props {
 }
 
 const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
-const emptyBudget: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
 
 export default function HomeTab({ userId }: Props) {
   const navigate = useNavigate()
@@ -44,7 +43,7 @@ export default function HomeTab({ userId }: Props) {
   const { data: budgetMonthTx = [], isError: budgetTxError } = useTransactionsQuery(userId, calendarMonth)
   const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
   const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
-  const { data: budget = emptyBudget, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
+  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
   const { data: upcomingEvents = [], isError: upcomingError } = useQuery({
     queryKey: ['calendarEvents', 'upcoming', userId, today],
     queryFn: () => calendarEventService.fetchUpcomingExpenses(userId, today),
