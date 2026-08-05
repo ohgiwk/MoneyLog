@@ -74,6 +74,8 @@ export default function OneTimeTransactionForm({
   if (submitRef) submitRef.current = () => { void handleSubmit() }
 
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
+  const [storeTypeDropUp, setStoreTypeDropUp] = useState(false)
+  const storeTypeButtonRef = useRef<HTMLButtonElement>(null)
   const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
   const { methods: paymentMethods } = usePaymentMethods()
   const paymentMethodsForType = paymentMethods.filter((m) => m.type === values.paymentType)
@@ -260,8 +262,16 @@ export default function OneTimeTransactionForm({
           <div className="relative">
             <label className="text-xs text-ink-muted">店舗種別（任意）</label>
             <button
+              ref={storeTypeButtonRef}
               type="button"
-              onClick={() => setStoreTypeOpen((v) => !v)}
+              onClick={() => {
+                if (!storeTypeOpen && storeTypeButtonRef.current) {
+                  const rect = storeTypeButtonRef.current.getBoundingClientRect()
+                  const spaceBelow = window.innerHeight - rect.bottom
+                  setStoreTypeDropUp(spaceBelow < 280)
+                }
+                setStoreTypeOpen((v) => !v)
+              }}
               className="w-full mt-1 flex items-center justify-between border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface"
             >
               <span className="flex items-center gap-2">
@@ -279,7 +289,7 @@ export default function OneTimeTransactionForm({
                   className="fixed inset-0 z-10 cursor-default"
                   onClick={() => setStoreTypeOpen(false)}
                 />
-                <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto">
+                <div className={`absolute left-0 right-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto ${storeTypeDropUp ? 'bottom-full' : 'top-full mt-1'}`}>
                   <button
                     type="button"
                     onClick={() => { setValue('storeType', ''); setStoreTypeOpen(false) }}
