@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
 
@@ -21,7 +22,7 @@ interface Props {
 export default function BottomSheet({ isOpen, onClose, title, rightAction, footer, children, height = '92dvh' }: Props) {
   const dragControls = useDragControls()
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -36,7 +37,11 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
           <motion.div
             key="bs-sheet"
             className="fixed left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
-            style={{ maxHeight: height, bottom: 'var(--keyboard-height, 0px)', transition: 'bottom 0.25s ease-out' }}
+            style={{
+              maxHeight: `min(${height}, calc(100dvh - var(--keyboard-height, 0px) - 16px))`,
+              bottom: 'var(--keyboard-height, 0px)',
+              transition: 'bottom 0.25s ease-out, max-height 0.25s ease-out',
+            }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -110,9 +115,15 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
               className="flex-1 min-h-0 overflow-y-auto px-4 pb-4"
               onFocus={(e) => {
                 const el = e.target as HTMLElement
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
-                  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100)
-                }
+                if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT') return
+                const container = e.currentTarget as HTMLElement
+                setTimeout(() => {
+                  const elRect = el.getBoundingClientRect()
+                  const containerRect = container.getBoundingClientRect()
+                  if (elRect.bottom > containerRect.bottom) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+                  }
+                }, 300)
               }}
             >
               {children}
@@ -127,6 +138,7 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
