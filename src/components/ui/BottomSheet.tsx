@@ -38,7 +38,7 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
             key="bs-sheet"
             className="fixed left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
             style={{
-              maxHeight: `min(${height}, calc(100dvh - var(--keyboard-height, 0px) - 16px))`,
+              maxHeight: `min(${height}, calc(100dvh - var(--keyboard-height, 0px) - env(safe-area-inset-top, 0px) - 16px))`,
               bottom: 'var(--keyboard-height, 0px)',
               transition: 'bottom 0.25s ease-out, max-height 0.25s ease-out',
             }}
@@ -131,7 +131,10 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
 
             {/* フッター（保存ボタン等） */}
             {footer && (
-              <div className="flex-shrink-0 px-4 py-3 pb-[calc(2rem+env(safe-area-inset-bottom))] bg-surface-subtle">
+              <div
+                className="flex-shrink-0 px-4 pt-3 bg-surface-subtle"
+                style={{ paddingBottom: 'max(0.75rem, calc(2rem + env(safe-area-inset-bottom) - var(--keyboard-height, 0px)))' }}
+              >
                 {footer}
               </div>
             )}
