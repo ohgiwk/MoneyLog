@@ -131,6 +131,35 @@ export default function SettingsScreen({ userId }: Props) {
             <span className="text-ink-subtle text-lg">›</span>
           </button>
         </Card>
+
+        {/* 法的情報 */}
+        <Card>
+          <div className="px-4 py-3 border-b border-line-subtle">
+            <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+              法的情報
+            </span>
+          </div>
+          <button
+            onClick={() => navigate('/privacy-policy')}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
+          >
+            <span className="text-xl">🔒</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink">プライバシーポリシー</div>
+            </div>
+            <span className="text-ink-subtle text-lg">›</span>
+          </button>
+          <button
+            onClick={() => navigate('/terms-of-service')}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
+          >
+            <span className="text-xl">📄</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink">利用規約</div>
+            </div>
+            <span className="text-ink-subtle text-lg">›</span>
+          </button>
+        </Card>
       </div>
     </div>
   )
