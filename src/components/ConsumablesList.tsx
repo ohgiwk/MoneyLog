@@ -206,15 +206,14 @@ export default function ConsumablesList({
       </div>
 
       {/* おすすめ品目 */}
-      {purchasing && (
-        <ConsumablePurchaseDialog
-          consumable={purchasing}
-          householdMembers={householdMembers}
-          expenseCategories={expenseCategories}
-          onConfirm={handlePurchaseConfirm}
-          onCancel={() => setPurchasing(null)}
-        />
-      )}
+      <ConsumablePurchaseDialog
+        isOpen={purchasing !== null}
+        consumable={purchasing}
+        householdMembers={householdMembers}
+        expenseCategories={expenseCategories}
+        onConfirm={handlePurchaseConfirm}
+        onCancel={() => setPurchasing(null)}
+      />
 
       {unregisteredDefaults.length > 0 && (
         <div>
