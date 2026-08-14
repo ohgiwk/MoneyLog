@@ -37,10 +37,7 @@ export function useSummaryCalculations({
     [transactions, month]
   )
 
-  const income = useMemo(
-    () => monthTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-    [monthTx]
-  )
+  const income = budget.income
 
   const consumableExpense = useMemo(
     () => Math.round(consumables.reduce((s, c) => s + monthlyConsumableCost(c, householdMembers), 0)),
