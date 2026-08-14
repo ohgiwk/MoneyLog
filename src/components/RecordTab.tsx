@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { AnimatePresence, motion, useDragControls } from 'motion/react'
 import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
@@ -8,9 +7,11 @@ import { useTransactionsQuery, useTransactionDelete } from '../hooks/queries/use
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
 import type { Transaction } from '../lib/database.types'
+import type { HeaderState } from '../types/layout'
 import { periodKey, todayStr } from '../utils'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
+import BottomSheet from './ui/BottomSheet'
 
 interface Props {
   userId: string
@@ -26,7 +27,7 @@ export default function RecordTab({ userId }: Props) {
   const [modalOpen, setModalOpen] = useState(false)
   const [formType, setFormType] = useState<'expense' | 'income'>('expense')
   const submitRef = useRef<(() => void) | null>(null)
-  const dragControls = useDragControls()
+  const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
   const periodInitialized = useRef(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -113,6 +114,7 @@ export default function RecordTab({ userId }: Props) {
     setFormEditingTx(null)
     setFormDuplicateTx(null)
     setEditingTx(null)
+    setFormHeaderState(null)
     refreshTransactions()
   }
 
@@ -156,94 +158,47 @@ export default function RecordTab({ userId }: Props) {
         setCategoryFilter={setCategoryFilter}
       />
 
-      {/* 入力モーダル */}
-      <AnimatePresence>
-        {modalOpen && (
-          <>
-            <motion.div
-              key="modal-backdrop"
-              className="fixed inset-0 z-40 bg-black/40"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeModal}
-            />
-            <motion.div
-              key="modal-sheet"
-              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col"
-              style={{ height: '92dvh' }}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-              drag="y"
-              dragControls={dragControls}
-              dragListener={false}
-              dragConstraints={{ top: 0 }}
-              dragElastic={{ top: 0.1, bottom: 1 }}
-              onDragEnd={(_, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 500) {
-                  closeModal()
-                }
-              }}
-            >
-              <div
-                className="flex-shrink-0"
-                onPointerDown={(e) => dragControls.start(e)}
-                style={{ touchAction: 'none', cursor: 'grab' }}
-              >
-                <div className="flex justify-center pt-2 pb-1">
-                  <div className="w-10 h-1 rounded-full bg-ink-muted/40" />
-                </div>
-                <div className="flex items-center justify-between px-4 pt-1 pb-2">
-                  <h2 className="text-base font-semibold text-ink-strong">
-                    {formEditingTx
-                      ? (formType === 'income' ? '収入を編集' : '出費を編集')
-                      : formDuplicateTx
-                      ? (formType === 'income' ? '収入を複製' : '出費を複製')
-                      : (formType === 'income' ? '収入を入力' : '出費を入力')}
-                  </h2>
-                  <button
-                    onClick={closeModal}
-                    className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-subtle"
-                    aria-label="閉じる"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
-                <OneTimeTransactionForm
-                  userId={userId}
-                  expenseCategories={expenseCategories}
-                  incomeCategories={incomeCategories}
-                  editingTx={formEditingTx}
-                  duplicateTx={formDuplicateTx}
-                  onBack={closeModal}
-                  onTypeChange={setFormType}
-                  onHeaderChange={() => {}}
-                  submitRef={submitRef}
-                />
-              </div>
-              <div className="flex-shrink-0 px-4 py-3 pb-[calc(2rem+env(safe-area-inset-bottom))] bg-surface-subtle flex justify-center">
-                <button
-                  type="button"
-                  onClick={() => submitRef.current?.()}
-                  className={
-                    'flex-1 py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold ' +
-                    (formType === 'expense' ? 'bg-danger-500 active:bg-danger-600' : 'bg-income-500 active:bg-income-600')
-                  }
-                >
-                  {formEditingTx ? '更新する' : formDuplicateTx ? '複製して記録する' : '記録する'}
-                </button>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* 入力ボトムシート */}
+      <BottomSheet
+        isOpen={modalOpen}
+        onClose={closeModal}
+        title={
+          formEditingTx
+            ? (formType === 'income' ? '収入を編集' : '出費を編集')
+            : formDuplicateTx
+            ? (formType === 'income' ? '収入を複製' : '出費を複製')
+            : (formType === 'income' ? '収入を入力' : '出費を入力')
+        }
+        rightAction={formHeaderState?.action ? {
+          onClick: formHeaderState.action.onClick,
+          disabled: formHeaderState.action.disabled,
+          tone: 'danger',
+        } : undefined}
+        footer={
+          <button
+            type="button"
+            onClick={() => submitRef.current?.()}
+            className={
+              'w-full py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold ' +
+              (formType === 'expense' ? 'bg-danger-500 active:bg-danger-600' : 'bg-income-500 active:bg-income-600')
+            }
+          >
+            {formEditingTx ? '更新する' : formDuplicateTx ? '複製して記録する' : '記録する'}
+          </button>
+        }
+      >
+        <OneTimeTransactionForm
+          userId={userId}
+          expenseCategories={expenseCategories}
+          incomeCategories={incomeCategories}
+          editingTx={formEditingTx}
+          duplicateTx={formDuplicateTx}
+          onBack={closeModal}
+          onTypeChange={setFormType}
+          onHeaderChange={setFormHeaderState}
+          submitRef={submitRef}
+        />
+      </BottomSheet>
     </div>
   )
 }

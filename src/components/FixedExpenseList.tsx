@@ -1,5 +1,5 @@
 import Card from './ui/Card'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useAppContext } from '../contexts/AppContext'
 import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
@@ -14,10 +14,10 @@ import SubscriptionPickerScreen from './SubscriptionPickerScreen'
 import { type SubscriptionPreset } from '../constants'
 import { AnimatePresence, motion } from 'motion/react'
 import Spinner from './ui/Spinner'
-import PageTransition, { type NavDirection } from './PageTransition'
 import type { ReactNode } from 'react'
 import FabButton from './ui/FabButton'
 import PeriodToggle from './ui/PeriodToggle'
+import BottomSheet from './ui/BottomSheet'
 
 const STATUS_FILTER_TABS = [
   { key: 'active' as const, label: STATUS_LABELS.active.label },
@@ -54,9 +54,10 @@ export default function FixedExpenseList({
   const [showPicker, setShowPicker] = useState(false)
   const [pendingPreset, setPendingPreset] = useState<SubscriptionPreset | null>(null)
   const [formFocusSignal, setFormFocusSignal] = useState(0)
-  const [direction, setDirection] = useState<NavDirection>('forward')
   const [tutorialOpen, setTutorialOpen] = useState(() => !!fromOnboarding)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
+  const submitRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (fromOnboarding) onWizardOpen?.()
@@ -64,24 +65,19 @@ export default function FixedExpenseList({
   const currencyMeta = useMemo(() => getAllCurrencyMeta(), [editing, fixedExpenses])
 
   function openEditing(v: FixedExpense | 'new') {
-    scrollToTop()
-    setDirection('forward')
     setEditing(v)
   }
   function closeEditing() {
-    scrollToTop()
-    setDirection('back')
     setShowPicker(false)
     setEditing(null)
+    setFormHeaderState(null)
     onEditingChange(null)
     reload()
   }
   function openPicker() {
-    setDirection('forward')
     setShowPicker(true)
   }
   function closePicker() {
-    setDirection('back')
     setShowPicker(false)
     setFormFocusSignal((n) => n + 1)
   }
@@ -185,26 +181,7 @@ export default function FixedExpenseList({
     return rows
   }
 
-  let content: ReactNode
-
-  if (editing !== null) {
-    content = (
-      <div className="relative -m-4 p-4 pb-28 min-h-screen bg-surface-subtle">
-        <FixedExpenseForm
-          userId={userId}
-          expense={editing === 'new' ? undefined : editing}
-          fixedCategories={fixedCategories}
-          onClose={closeEditing}
-          onOpenSubscriptionPicker={openPicker}
-          presetToApply={pendingPreset}
-          onPresetApplied={() => setPendingPreset(null)}
-          focusSignal={formFocusSignal}
-          onHeaderChange={onEditingChange}
-        />
-      </div>
-    )
-  } else {
-    content = (
+  const content: ReactNode = (
     <>
       {tutorialOpen && (
         <FixedExpenseTutorial
@@ -296,14 +273,49 @@ export default function FixedExpenseList({
         <FabButton onClick={() => openEditing('new')} ariaLabel="固定費を追加" />
       </div>
     </>
-    )
-  }
+  )
 
   return (
     <>
-      <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
-        {content}
-      </PageTransition>
+      {content}
+
+      {/* 固定費入力ボトムシート */}
+      <BottomSheet
+        isOpen={editing !== null}
+        onClose={formHeaderState?.onBack ?? closeEditing}
+        title={formHeaderState?.title ?? (editing === 'new' ? '固定費を追加' : '固定費を編集')}
+        rightAction={formHeaderState?.action ? {
+          onClick: formHeaderState.action.onClick,
+          disabled: formHeaderState.action.disabled,
+          tone: 'danger',
+        } : undefined}
+        footer={
+          <button
+            type="button"
+            onClick={() => submitRef.current?.()}
+            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
+          >
+            保存
+          </button>
+        }
+      >
+        {editing !== null && (
+          <FixedExpenseForm
+            key={editing === 'new' ? 'new' : editing.id}
+            userId={userId}
+            expense={editing === 'new' ? undefined : editing}
+            fixedCategories={fixedCategories}
+            onClose={closeEditing}
+            onOpenSubscriptionPicker={openPicker}
+            presetToApply={pendingPreset}
+            onPresetApplied={() => setPendingPreset(null)}
+            focusSignal={formFocusSignal}
+            onHeaderChange={setFormHeaderState}
+            submitRef={submitRef}
+          />
+        )}
+      </BottomSheet>
+
       {createPortal(
         <AnimatePresence>
           {showPicker && (
