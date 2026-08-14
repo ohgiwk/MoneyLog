@@ -18,7 +18,7 @@ interface Props {
 
 export default function CalendarEventForm({ isOpen, userId, date, event, onClose, onSaved }: Props) {
   const [eventDate, setEventDate]           = useState(event?.date ?? date)
-  const [allDay, setAllDay]                 = useState(!event?.start_time)
+  const [allDay, setAllDay]                 = useState(event ? !event.start_time : false)
   const [title, setTitle]                   = useState(event?.title ?? '')
   const [startTime, setStartTime]           = useState(event?.start_time?.slice(0, 5) ?? '')
   const [endTime, setEndTime]               = useState(event?.end_time?.slice(0, 5) ?? '')
@@ -31,7 +31,7 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
   useEffect(() => {
     if (!isOpen) return
     setEventDate(event?.date ?? date)
-    setAllDay(!event?.start_time)
+    setAllDay(event ? !event.start_time : false)
     setTitle(event?.title ?? '')
     setStartTime(event?.start_time?.slice(0, 5) ?? '')
     setEndTime(event?.end_time?.slice(0, 5) ?? '')
@@ -125,14 +125,14 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
             <ErrorText>{titleError}</ErrorText>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-ink-muted">開始時間</label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={allDay} className="mt-1 disabled:bg-surface-subtle disabled:text-ink-muted" />
+          <div className={`space-y-2 transition-opacity duration-200 ${allDay ? 'opacity-35 pointer-events-none' : 'opacity-100'}`}>
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-ink-muted w-14 flex-shrink-0">開始時間</label>
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={allDay} className="flex-1 min-w-0 bg-white dark:bg-surface" />
             </div>
-            <div>
-              <label className="text-xs text-ink-muted">終了時間</label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={allDay} className="mt-1 disabled:bg-surface-subtle disabled:text-ink-muted" />
+            <div className="flex items-center gap-3">
+              <label className="text-xs text-ink-muted w-14 flex-shrink-0">終了時間</label>
+              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={allDay} className="flex-1 min-w-0 bg-white dark:bg-surface" />
             </div>
           </div>
 
