@@ -295,27 +295,25 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         </div>
       )}
 
-      {/* 購入記録ダイアログ */}
-      {showDialog && (
-        <PurchaseDialog
-          itemNames={selectedItems.map(it => it.name)}
-          expenseCategories={expenseCategories}
-          initialStoreType={inferredStoreType}
-          onConfirm={handlePurchase}
-          onCancel={() => setShowDialog(false)}
-        />
-      )}
+      {/* 購入記録ボトムシート */}
+      <PurchaseDialog
+        isOpen={showDialog}
+        itemNames={selectedItems.map(it => it.name)}
+        expenseCategories={expenseCategories}
+        initialStoreType={inferredStoreType}
+        onConfirm={handlePurchase}
+        onCancel={() => setShowDialog(false)}
+      />
 
-      {/* 追加・編集ダイアログ */}
-      {showItemDialog && (
-        <ShoppingItemDialog
-          item={editingItem ?? undefined}
-          defaultGroup={addingToGroup ?? undefined}
-          groups={existingGroups}
-          onConfirm={handleSaveItem}
-          onCancel={() => { setShowItemDialog(false); setEditingItem(null); setAddingToGroup(null) }}
-        />
-      )}
+      {/* 追加・編集ボトムシート */}
+      <ShoppingItemDialog
+        isOpen={showItemDialog}
+        item={editingItem ?? undefined}
+        defaultGroup={addingToGroup ?? undefined}
+        groups={existingGroups}
+        onConfirm={handleSaveItem}
+        onCancel={() => { setShowItemDialog(false); setEditingItem(null); setAddingToGroup(null) }}
+      />
       {confirmDeleteSelected && (
         <ConfirmDialog
           message={`選択中の${selected.size}件を削除しますか？`}

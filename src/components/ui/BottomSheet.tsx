@@ -35,8 +35,8 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
           />
           <motion.div
             key="bs-sheet"
-            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col"
-            style={{ height }}
+            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ maxHeight: height }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
