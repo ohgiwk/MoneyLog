@@ -7,6 +7,7 @@ import { useCumulativeSavings } from '../hooks/useCumulativeSavings'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
+import BottomSheet from './ui/BottomSheet'
 import Input from './ui/Input'
 import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
@@ -347,102 +348,89 @@ export default function WishlistPanel({ userId }: Props) {
         )}
       </div>
 
-      {editing === null && (
-        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
-          <FabButton onClick={openNew} ariaLabel="目標を追加" />
-        </div>
-      )}
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
+        <FabButton onClick={openNew} ariaLabel="目標を追加" />
+      </div>
 
-      {/* 編集・追加モーダル */}
-      {editing !== null && (
-        <>
-          <Modal isOpen onClose={closeForm} position="center" className="w-full max-w-sm mx-4 px-5 pt-5 pb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-ink-strong text-base">
-                {editing === 'new' ? '目標を追加' : '目標を編集'}
-              </h2>
-              <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
+      {/* 編集・追加ボトムシート */}
+      <BottomSheet
+        isOpen={editing !== null}
+        onClose={closeForm}
+        title={editing === 'new' ? '目標を追加' : '目標を編集'}
+        rightAction={editing !== null && editing !== 'new' ? {
+          onClick: () => setConfirmDelete(true),
+          disabled: saving,
+          tone: 'danger',
+        } : undefined}
+        footer={
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold disabled:opacity-50"
+          >
+            {saving ? '保存中...' : '保存する'}
+          </button>
+        }
+      >
+        <div className="space-y-4">
+          <ErrorText>{error}</ErrorText>
+          <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
+            <div>
+              <FormLabel className="font-medium">商品名</FormLabel>
+              <Input
+                type="text"
+                value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                placeholder="例：新しいスニーカー"
+              />
             </div>
-            <ErrorText className="mb-3">{error}</ErrorText>
-            <div className="space-y-3">
-              <div>
-                <FormLabel className="font-medium">商品名</FormLabel>
-                <Input
-                  variant="dialog"
-                  type="text"
-                  value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                  placeholder="例：新しいスニーカー"
-                />
-              </div>
-              <div>
-                <FormLabel className="font-medium">金額（円）</FormLabel>
-                <Input
-                  variant="dialog"
-                  type="number"
-                  value={form.price}
-                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                  placeholder="例：12000"
-                  inputMode="numeric"
-                />
-              </div>
-              <div>
-                <FormLabel className="font-medium">目標購入時期（任意）</FormLabel>
-                <div className="flex gap-2">
-                  <select
-                    value={form.targetYear}
-                    onChange={e => setForm(f => ({ ...f, targetYear: e.target.value }))}
-                    className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  >
-                    <option value="">年</option>
-                    {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map(y => (
-                      <option key={y} value={String(y)}>{y}年</option>
-                    ))}
-                  </select>
-                  <select
-                    value={form.targetMonth}
-                    onChange={e => setForm(f => ({ ...f, targetMonth: e.target.value }))}
-                    className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
-                  >
-                    <option value="">月</option>
-                    {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                      <option key={m} value={String(m)}>{m}月</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+            <div>
+              <FormLabel className="font-medium">金額（円）</FormLabel>
+              <Input
+                type="number"
+                value={form.price}
+                onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                placeholder="例：12000"
+                inputMode="numeric"
+              />
             </div>
-            <div className="mt-5 flex items-center gap-2">
-              {editing !== 'new' && (
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  disabled={saving}
-                  className="border border-danger-500 text-danger-500 w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 active:bg-danger-50 disabled:opacity-40"
-                  aria-label="削除"
+            <div>
+              <FormLabel className="font-medium">目標購入時期（任意）</FormLabel>
+              <div className="flex gap-2">
+                <select
+                  value={form.targetYear}
+                  onChange={e => setForm(f => ({ ...f, targetYear: e.target.value }))}
+                  className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6"/>
-                    <path d="M14 11v6"/>
-                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                  </svg>
-                </button>
-              )}
-              <Button fullWidth onClick={handleSave} disabled={saving}>
-                {saving ? '保存中...' : '保存する'}
-              </Button>
+                  <option value="">年</option>
+                  {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map(y => (
+                    <option key={y} value={String(y)}>{y}年</option>
+                  ))}
+                </select>
+                <select
+                  value={form.targetMonth}
+                  onChange={e => setForm(f => ({ ...f, targetMonth: e.target.value }))}
+                  className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
+                >
+                  <option value="">月</option>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                    <option key={m} value={String(m)}>{m}月</option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </Modal>
-          {confirmDelete && editing !== 'new' && (
-            <ConfirmDialog
-              message={`「${(editing as WishlistItem).name}」を削除しますか？`}
-              confirmLabel="削除"
-              onConfirm={handleDelete}
-              onCancel={() => setConfirmDelete(false)}
-            />
-          )}
-        </>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {confirmDelete && editing !== null && editing !== 'new' && (
+        <ConfirmDialog
+          message={`「${(editing as WishlistItem).name}」を削除しますか？`}
+          confirmLabel="削除"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
 
       {/* 達成お祝いダイアログ */}
