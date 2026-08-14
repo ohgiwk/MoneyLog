@@ -32,9 +32,10 @@ interface Props {
   expenseCategories: CategoryInfo[]
   onClose: () => void
   onHeaderChange?: (state: HeaderState | null) => void
+  submitRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export default function ConsumableForm({ userId, consumable, preset, householdMembers, expenseCategories, onClose, onHeaderChange }: Props) {
+export default function ConsumableForm({ userId, consumable, preset, householdMembers, expenseCategories, onClose, onHeaderChange, submitRef }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -132,8 +133,10 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     }
   }
 
+  if (submitRef) submitRef.current = save
+
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4">
       {error && (
         <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {error}
@@ -244,17 +247,6 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           />
         </div>
 
-      </div>
-
-      {/* 保存ボタン（タブメニュー上にフローティング表示） */}
-      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex justify-center">
-        <button
-          onClick={save}
-          disabled={isSubmitting}
-          className="w-[60%] py-3.5 rounded-[2rem] bg-primary-500 text-white font-semibold text-sm shadow-lg disabled:opacity-50 active:bg-primary-600"
-        >
-          {isSubmitting ? '保存中...' : '保存'}
-        </button>
       </div>
 
       {showDiscardConfirm && (

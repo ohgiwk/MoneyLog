@@ -1,5 +1,5 @@
 import Card from './ui/Card'
-import { useState, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { IconShoppingCartCopy } from '@tabler/icons-react'
 import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
 import type { Consumable } from '../lib/database.types'
@@ -11,7 +11,7 @@ import ConsumableRow from './ConsumableRow'
 import ConsumableForm from './ConsumableForm'
 import ConsumablePurchaseDialog from './ConsumablePurchaseDialog'
 import Spinner from './ui/Spinner'
-import PageTransition, { type NavDirection } from './PageTransition'
+import BottomSheet from './ui/BottomSheet'
 import FabButton from './ui/FabButton'
 import PeriodToggle from './ui/PeriodToggle'
 
@@ -39,18 +39,18 @@ export default function ConsumablesList({
   onTransactionAdded,
 }: Props) {
   const [editing, setEditing] = useState<EditingState>(null)
-  const [direction, setDirection] = useState<NavDirection>('forward')
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [purchasing, setPurchasing] = useState<Consumable | null>(null)
   const [summaryPeriod, setSummaryPeriod] = useState<'monthly' | 'yearly'>('monthly')
+  const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
+  const submitRef = useRef<(() => void) | null>(null)
 
   function openEditing(v: Consumable | 'new' | { preset: DefaultConsumable }) {
-    setDirection('forward')
     setEditing(v)
   }
   function closeEditing() {
-    setDirection('back')
     setEditing(null)
+    setFormHeaderState(null)
     onEditingChange(null)
     reload()
   }
@@ -135,25 +135,13 @@ export default function ConsumablesList({
     )
   }
 
-  let content: ReactNode
+  const isPreset = editing !== null && editing !== 'new' && typeof editing === 'object' && 'preset' in editing
+  const editingKey = editing === null ? null
+    : editing === 'new' ? 'new'
+    : isPreset ? `preset-${(editing as { preset: DefaultConsumable }).preset.name}`
+    : (editing as Consumable).id
 
-  if (editing !== null) {
-    const isPreset = typeof editing === 'object' && editing !== null && 'preset' in (editing as object)
-    content = (
-      <div className="-m-4 p-4 min-h-screen bg-surface-subtle">
-        <ConsumableForm
-          userId={userId}
-          consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
-          preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
-          householdMembers={householdMembers}
-          expenseCategories={expenseCategories}
-          onClose={closeEditing}
-          onHeaderChange={onEditingChange}
-        />
-      </div>
-    )
-  } else {
-    content = (
+  const content: ReactNode = (
     <>
       {/* 月額/年額コストサマリー */}
       <div className="bg-surface rounded-2xl p-4 shadow-sm">
@@ -265,12 +253,45 @@ export default function ConsumablesList({
         </div>
       )}
     </>
-    )
-  }
+  )
 
   return (
-    <PageTransition pageKey={editing !== null ? 'form' : 'list'} direction={direction}>
+    <>
       {content}
-    </PageTransition>
+
+      <BottomSheet
+        isOpen={editing !== null}
+        onClose={formHeaderState?.onBack ?? closeEditing}
+        title={formHeaderState?.title ?? (isPreset || editing === 'new' ? '定期購入を追加' : '定期購入を編集')}
+        rightAction={formHeaderState?.action ? {
+          onClick: formHeaderState.action.onClick,
+          disabled: formHeaderState.action.disabled,
+          tone: 'danger',
+        } : undefined}
+        footer={
+          <button
+            type="button"
+            onClick={() => submitRef.current?.()}
+            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
+          >
+            保存
+          </button>
+        }
+      >
+        {editing !== null && (
+          <ConsumableForm
+            key={editingKey}
+            userId={userId}
+            consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
+            preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
+            householdMembers={householdMembers}
+            expenseCategories={expenseCategories}
+            onClose={closeEditing}
+            onHeaderChange={setFormHeaderState}
+            submitRef={submitRef}
+          />
+        )}
+      </BottomSheet>
+    </>
   )
 }
