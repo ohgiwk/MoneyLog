@@ -311,16 +311,15 @@ export default function CalendarTab({ userId }: Props) {
         <FabButton onClick={openAdd} ariaLabel="予定を追加" />
       </div>
 
-      {/* 追加・編集フォーム */}
-      {showForm && (
-        <CalendarEventForm
-          userId={userId}
-          date={selectedDate}
-          event={editingEvent}
-          onClose={closeForm}
-          onSaved={() => { closeForm(); void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] }) }}
-        />
-      )}
+      {/* 追加・編集ボトムシート */}
+      <CalendarEventForm
+        isOpen={showForm}
+        userId={userId}
+        date={selectedDate}
+        event={editingEvent}
+        onClose={closeForm}
+        onSaved={() => { closeForm(); void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] }) }}
+      />
     </div>
   )
 }
