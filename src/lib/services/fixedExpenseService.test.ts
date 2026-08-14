@@ -149,3 +149,33 @@ describe('fixedExpenseService.delete', () => {
     expect(eqMock).toHaveBeenCalledWith('id', 'fe-1')
   })
 })
+
+describe('fixedExpenseService.fetchByUserWithIds', () => {
+  it('指定した ids に合致する固定費を返す', async () => {
+    const mockData = [{ id: 'fe-1', user_id: 'u1', name: '家賃', category: '住居費', amount: 80000 }]
+    const inMock = vi.fn().mockResolvedValue({ data: mockData, error: null })
+    const eqMock = vi.fn().mockReturnValue({ in: inMock })
+    const selectMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await fixedExpenseService.fetchByUserWithIds('u1', ['fe-1'])
+
+    expect(supabase.from).toHaveBeenCalledWith('fixed_expenses')
+    expect(inMock).toHaveBeenCalledWith('id', ['fe-1'])
+    expect(result).toEqual(mockData)
+  })
+
+  it('データが null のとき空配列を返す', async () => {
+    const inMock = vi.fn().mockResolvedValue({ data: null, error: null })
+    const eqMock = vi.fn().mockReturnValue({ in: inMock })
+    const selectMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await fixedExpenseService.fetchByUserWithIds('u1', ['fe-1'])
+    expect(result).toEqual([])
+  })
+})

@@ -95,3 +95,110 @@ describe('transactionService.delete', () => {
     expect(eqMock).toHaveBeenCalledWith('id', 'tx-123')
   })
 })
+
+describe('transactionService.fetchByDateRange', () => {
+  it('from〜to の日付範囲でトランザクションを取得する', async () => {
+    const mockData = [{ id: '1', date: '2026-07-10', amount: 1000 }]
+    const chain = mockChain(mockData)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchByDateRange('u1', '2026-07-01', '2026-07-31')
+
+    expect(chain.gte).toHaveBeenCalledWith('date', '2026-07-01')
+    expect(chain.lte).toHaveBeenCalledWith('date', '2026-07-31')
+    expect(result).toEqual(mockData)
+  })
+
+  it('データが null のとき空配列を返す', async () => {
+    const chain = mockChain(null)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchByDateRange('u1', '2026-07-01', '2026-07-31')
+    expect(result).toEqual([])
+  })
+})
+
+describe('transactionService.update', () => {
+  it('指定した id のレコードを update する', async () => {
+    const eqMock = vi.fn().mockResolvedValue({ error: null })
+    const updateMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      update: updateMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    await transactionService.update('tx-1', { amount: 2000 })
+
+    expect(supabase.from).toHaveBeenCalledWith('transactions')
+    expect(updateMock).toHaveBeenCalledWith({ amount: 2000 })
+    expect(eqMock).toHaveBeenCalledWith('id', 'tx-1')
+  })
+})
+
+describe('transactionService.fetchByYear', () => {
+  it('指定した年の全トランザクションを取得する', async () => {
+    const mockData = [{ id: '1', date: '2026-05-10', amount: 1000 }]
+    const chain = mockChain(mockData)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchByYear('u1', '2026')
+
+    expect(chain.gte).toHaveBeenCalledWith('date', '2026-01-01')
+    expect(chain.lte).toHaveBeenCalledWith('date', '2026-12-31')
+    expect(result).toEqual(mockData)
+  })
+
+  it('データが null のとき空配列を返す', async () => {
+    const chain = mockChain(null)
+    vi.mocked(supabase.from).mockReturnValue(chain as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchByYear('u1', '2026')
+    expect(result).toEqual([])
+  })
+})
+
+describe('transactionService.fetchAvailableMonths', () => {
+  it('取引日から集計月の重複除去・降順一覧を返す', async () => {
+    const mockDates = [{ date: '2026-03-15' }, { date: '2026-07-20' }, { date: '2026-07-05' }]
+    const eqMock = vi.fn().mockResolvedValue({ data: mockDates, error: null })
+    const selectMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchAvailableMonths('u1')
+
+    expect(selectMock).toHaveBeenCalledWith('date')
+    // 7月が2件あっても重複除去され、降順で返る
+    expect(result).toEqual(['2026-07', '2026-03'])
+  })
+
+  it('データが null のとき空配列を返す', async () => {
+    const eqMock = vi.fn().mockResolvedValue({ data: null, error: null })
+    const selectMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchAvailableMonths('u1')
+    expect(result).toEqual([])
+  })
+})
+
+describe('transactionService.fetchRecent', () => {
+  it('最新 N 件のトランザクションを取得する', async () => {
+    const mockData = [{ id: '1', date: '2026-07-10', amount: 500 }]
+    const limitMock = vi.fn().mockResolvedValue({ data: mockData, error: null })
+    const order2Mock = vi.fn().mockReturnValue({ limit: limitMock })
+    const order1Mock = vi.fn().mockReturnValue({ order: order2Mock })
+    const eqMock = vi.fn().mockReturnValue({ order: order1Mock })
+    const selectMock = vi.fn().mockReturnValue({ eq: eqMock })
+    vi.mocked(supabase.from).mockReturnValue({
+      select: selectMock,
+    } as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await transactionService.fetchRecent('u1', 3)
+
+    expect(limitMock).toHaveBeenCalledWith(3)
+    expect(result).toEqual(mockData)
+  })
+})

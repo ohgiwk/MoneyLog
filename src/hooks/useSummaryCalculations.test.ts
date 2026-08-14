@@ -136,15 +136,15 @@ describe('useSummaryCalculations — 固定費集計', () => {
 })
 
 describe('useSummaryCalculations — 収支', () => {
-  it('balance は 収入 - 固定費 - 定期購入 - 臨時出費 で計算する', () => {
+  it('balance は 収入 - 固定費 - 貯蓄目標 - 臨時出費 で計算する', () => {
     const transactions = [
       makeTx({ id: 't1', type: 'income', amount: 300000, date: '2026-07-01', category: '給与' }),
       makeTx({ id: 't2', type: 'expense', amount: 5000, date: '2026-07-05' }),
     ]
     const fixedExpenses = [makeFixed({ amount: 80000, cycle: 'monthly' })]
-    const consumables = [makeConsumable({ amount: 3000, quantity: 1, cycle_days: 30 })]
-    const { result } = setup({ transactions, fixedExpenses, consumables })
-    expect(result.current.balance).toBe(300000 - 80000 - 3000 - 5000)
+    const budget = emptyBudget({ savings: 10000 })
+    const { result } = setup({ transactions, fixedExpenses, budget })
+    expect(result.current.balance).toBe(300000 - 80000 - 10000 - 5000)
   })
 })
 
@@ -172,11 +172,8 @@ describe('useSummaryCalculations — 週/日/月別カテゴリ集計', () => {
     expect(row!.monthSpent).toBe(1800)
   })
 
-  it('budget未設定でも当該週に取引があれば hasBudget が true になる', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-07-08T09:00:00'))
-    const transactions = [makeTx({ date: '2026-07-08', category: '食費', amount: 100 })]
-    const { result } = setup({ transactions, budget: emptyBudget() })
+  it('oneTimeByCategory に予算が設定されていれば hasBudget が true になる', () => {
+    const { result } = setup({ budget: emptyBudget({ oneTimeByCategory: { 食費: 5000 } }) })
     expect(result.current.hasBudget).toBe(true)
   })
 
