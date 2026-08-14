@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppProvider, useAppContext } from './contexts/AppContext'
+import { Capacitor } from '@capacitor/core'
+import { Keyboard } from '@capacitor/keyboard'
 import { useNavDirection } from './hooks/useNavDirection'
 import PageTransition from './components/PageTransition'
 import AuthScreen from './components/AuthScreen'
@@ -24,6 +27,19 @@ const TAB_PATHS = ['/', '/record', '/shopping', '/fixed', '/calendar']
 
 function AppRoutes() {
   const { user, authLoading } = useAppContext()
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return
+    let showHandle: { remove: () => void } | null = null
+    let hideHandle: { remove: () => void } | null = null
+    void Keyboard.addListener('keyboardWillShow', (info) => {
+      document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`)
+    }).then(h => { showHandle = h })
+    void Keyboard.addListener('keyboardWillHide', () => {
+      document.documentElement.style.setProperty('--keyboard-height', '0px')
+    }).then(h => { hideHandle = h })
+    return () => { showHandle?.remove(); hideHandle?.remove() }
+  }, [])
   const location = useLocation()
   const direction = useNavDirection()
   const pageKey = TAB_PATHS.includes(location.pathname) ? 'main' : location.pathname

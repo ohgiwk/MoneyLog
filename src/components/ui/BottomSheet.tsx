@@ -35,8 +35,8 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
           />
           <motion.div
             key="bs-sheet"
-            className="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
-            style={{ maxHeight: height }}
+            className="fixed left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ maxHeight: height, bottom: 'var(--keyboard-height, 0px)', transition: 'bottom 0.25s ease-out' }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -106,7 +106,15 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
             </div>
 
             {/* スクロール可能なコンテンツエリア */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
+            <div
+              className="flex-1 min-h-0 overflow-y-auto px-4 pb-4"
+              onFocus={(e) => {
+                const el = e.target as HTMLElement
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100)
+                }
+              }}
+            >
               {children}
             </div>
 
