@@ -7,7 +7,7 @@ import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQuery } from '@tanstack/react-query'
-import { STORE_TYPES } from '../constants'
+import { STORE_TYPES, PAYMENT_TYPES } from '../constants'
 import { categoryInfo, formatYen, todayStr } from '../utils'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
@@ -16,7 +16,7 @@ import { TabGroup } from './ui/TabGroup'
 import ScreenHeader from './ui/ScreenHeader'
 
 type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
-type StorePeriod = 'monthly' | 'yearly'
+type Period = 'monthly' | 'yearly'
 
 interface Props {
   userId: string
@@ -28,7 +28,8 @@ export default function AnalyticsScreen({ userId }: Props) {
 
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
-  const [storePeriod, setStorePeriod] = useState<StorePeriod>('monthly')
+  const [storePeriod, setStorePeriod] = useState<Period>('monthly')
+  const [paymentPeriod, setPaymentPeriod] = useState<Period>('monthly')
 
   const year = month.slice(0, 4)
 
@@ -65,8 +66,8 @@ export default function AnalyticsScreen({ userId }: Props) {
     const source = storePeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
     for (const t of source) {
-      if (!t.store_type) continue
-      map.set(t.store_type, (map.get(t.store_type) ?? 0) + 1)
+      const key = t.store_type ?? '未記録'
+      map.set(key, (map.get(key) ?? 0) + 1)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
   }, [storePeriod, transactions, yearTransactions])
@@ -75,11 +76,33 @@ export default function AnalyticsScreen({ userId }: Props) {
     const source = storePeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
     for (const t of source) {
-      if (!t.store_type || t.type !== 'expense') continue
-      map.set(t.store_type, (map.get(t.store_type) ?? 0) + t.amount)
+      if (t.type !== 'expense') continue
+      const key = t.store_type ?? '未記録'
+      map.set(key, (map.get(key) ?? 0) + t.amount)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
   }, [storePeriod, transactions, yearTransactions])
+
+  const paymentCounts = useMemo(() => {
+    const source = paymentPeriod === 'monthly' ? transactions : yearTransactions
+    const map = new Map<string, number>()
+    for (const t of source) {
+      const key = t.payment_type ?? '未記録'
+      map.set(key, (map.get(key) ?? 0) + 1)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [paymentPeriod, transactions, yearTransactions])
+
+  const paymentAmounts = useMemo(() => {
+    const source = paymentPeriod === 'monthly' ? transactions : yearTransactions
+    const map = new Map<string, number>()
+    for (const t of source) {
+      if (t.type !== 'expense') continue
+      const key = t.payment_type ?? '未記録'
+      map.set(key, (map.get(key) ?? 0) + t.amount)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [paymentPeriod, transactions, yearTransactions])
 
   const {
     consumableExpense,
@@ -201,6 +224,35 @@ export default function AnalyticsScreen({ userId }: Props) {
             <StoreBars entries={storeAmounts} valueType="amount" />
           </div>
         </div>
+
+        {/* 支払い方法別 */}
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-semibold text-ink">支払い方法別</div>
+            <div className="flex rounded-lg overflow-hidden border border-line text-xs">
+              <button
+                onClick={() => setPaymentPeriod('monthly')}
+                className={`px-2.5 py-1 ${paymentPeriod === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
+              >
+                月間
+              </button>
+              <button
+                onClick={() => setPaymentPeriod('yearly')}
+                className={`px-2.5 py-1 ${paymentPeriod === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
+              >
+                年間
+              </button>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-ink-muted">記録数</div>
+            <PaymentBars entries={paymentCounts} valueType="count" />
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-ink-muted">合計額</div>
+            <PaymentBars entries={paymentAmounts} valueType="amount" />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -297,12 +349,53 @@ function StoreBars({ entries, valueType }: { entries: [string, number][]; valueT
     <div className="space-y-2">
       {entries.map(([storeName, value]) => {
         const info = STORE_TYPES.find((s) => s.name === storeName)
+        const icon = storeName === '未記録' ? '−' : (info?.icon ?? '🏷️')
         const pct = max > 0 ? (value / max) * 100 : 0
         return (
           <div key={storeName}>
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
-                <span>{info?.icon ?? '🏷️'}</span>{storeName}
+                <span>{icon}</span>{storeName}
+              </span>
+              <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
+            </div>
+            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
+              <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        )
+      })}
+      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
+        <span className="text-xs text-ink-muted">合計</span>
+        <span className={`text-sm font-semibold ${valueColor}`}>{fmt(total)}</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Payment Bars ───────────────────────────────────────────────
+
+function PaymentBars({ entries, valueType }: { entries: [string, number][]; valueType: 'amount' | 'count' }) {
+  if (entries.length === 0) {
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
+  }
+  const max = Math.max(...entries.map(([, v]) => v))
+  const total = entries.reduce((s, [, v]) => s + v, 0)
+  const barColor = valueType === 'amount' ? 'bg-danger-400' : 'bg-indigo-400'
+  const valueColor = valueType === 'amount' ? 'text-danger-500' : 'text-ink'
+  const fmt = (v: number) => valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`
+  return (
+    <div className="space-y-2">
+      {entries.map(([paymentType, value]) => {
+        const info = PAYMENT_TYPES.find((p) => p.type === paymentType)
+        const icon = paymentType === '未記録' ? '−' : (info?.icon ?? '💳')
+        const label = paymentType === '未記録' ? '未記録' : (info?.name ?? paymentType)
+        const pct = max > 0 ? (value / max) * 100 : 0
+        return (
+          <div key={paymentType}>
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-xs text-ink flex items-center gap-1">
+                <span>{icon}</span>{label}
               </span>
               <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
