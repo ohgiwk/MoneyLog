@@ -173,10 +173,10 @@ export default function AnalyticsScreen({ userId }: Props) {
           <DailyExpenseChart entries={dailyExpenses} />
         </div>
 
-        {/* 店舗種別の合計額 */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+        {/* 店舗種別 */}
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-ink">店舗種別の合計額</div>
+            <div className="text-sm font-semibold text-ink">店舗種別</div>
             <div className="flex rounded-lg overflow-hidden border border-line text-xs">
               <button
                 onClick={() => setStorePeriod('monthly')}
@@ -192,15 +192,14 @@ export default function AnalyticsScreen({ userId }: Props) {
               </button>
             </div>
           </div>
-          <StoreBars entries={storeAmounts} valueType="amount" />
-        </div>
-
-        {/* 店舗種別の記録数 */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-ink">店舗種別の記録数</div>
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-ink-muted">記録数</div>
+            <StoreBars entries={storeCounts} valueType="count" />
           </div>
-          <StoreBars entries={storeCounts} valueType="count" />
+          <div className="space-y-1">
+            <div className="text-xs font-semibold text-ink-muted">合計額</div>
+            <StoreBars entries={storeAmounts} valueType="amount" />
+          </div>
         </div>
       </div>
     </div>
