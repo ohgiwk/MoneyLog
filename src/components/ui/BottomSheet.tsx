@@ -67,7 +67,7 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
                 <div className="w-10 h-1 rounded-full bg-ink-muted/40" />
               </div>
               <div className="flex items-center justify-between px-4 pt-1 pb-2">
-                <h2 className="text-base font-semibold text-ink-strong">{title}</h2>
+                <h2 className="text-base font-semibold text-ink-strong">✏️ {title}</h2>
                 <div className="flex items-center gap-1">
                   {rightAction && (
                     <button
