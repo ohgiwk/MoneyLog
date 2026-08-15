@@ -50,27 +50,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [shoppingTapKey, setShoppingTapKey] = useState(0)
 
   return (
-    <AppContext.Provider value={{
-      user: auth.user,
-      authLoading: auth.loading,
-      signOut: auth.signOut,
-      month,
-      setMonth,
-      calendarSelectedDate,
-      setCalendarSelectedDate,
-      editingTx,
-      setEditingTx,
-      headerBack,
-      setHeaderBack,
-      recordTapKey,
-      shoppingTapKey,
-      bumpRecordTap: () => setRecordTapKey(k => k + 1),
-      bumpShoppingTap: () => setShoppingTapKey(k => k + 1),
-      categories,
-      theme,
-      scrollToTop: () => scrollToTopFn.current(),
-      registerScrollToTop: (fn) => { scrollToTopFn.current = fn },
-    }}>
+    <AppContext.Provider
+      value={{
+        user: auth.user,
+        authLoading: auth.loading,
+        signOut: auth.signOut,
+        month,
+        setMonth,
+        calendarSelectedDate,
+        setCalendarSelectedDate,
+        editingTx,
+        setEditingTx,
+        headerBack,
+        setHeaderBack,
+        recordTapKey,
+        shoppingTapKey,
+        bumpRecordTap: () => setRecordTapKey((k) => k + 1),
+        bumpShoppingTap: () => setShoppingTapKey((k) => k + 1),
+        categories,
+        theme,
+        scrollToTop: () => scrollToTopFn.current(),
+        registerScrollToTop: (fn) => {
+          scrollToTopFn.current = fn
+        },
+      }}
+    >
       {children}
     </AppContext.Provider>
   )

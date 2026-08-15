@@ -52,7 +52,13 @@ describe('budgetService.fetchByMonth', () => {
     mockChain({ data: null, error: null })
 
     const result = await budgetService.fetchByMonth('u1', '2026-07')
-    expect(result).toEqual({ income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} })
+    expect(result).toEqual({
+      income: 0,
+      fixed: 0,
+      consumable: 0,
+      savings: 0,
+      oneTimeByCategory: {},
+    })
   })
 
   it('エラーが発生した場合 Error をスローする', async () => {

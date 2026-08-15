@@ -69,7 +69,7 @@ input[type='number']::-webkit-inner-spin-button {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url("/seigaiha.png");
+  background-image: url('/seigaiha.png');
   background-repeat: repeat;
   background-size: 180px auto;
   background-position: center;

@@ -5,15 +5,54 @@ import Input from './ui/Input'
 import type { CategoryInfo } from '../constants'
 
 const EMOJI_SUGGESTIONS = [
-  '🍙', '🍜', '🍺', '🎮', '🚃', '🏠', '📱', '👗', '📚', '🏥',
-  '💰', '💻', '🎁', '📦', '⚡', '🛡️', '🎬', '🏦', '🧻', '🎵',
-  '✈️', '🚗', '🐾', '🛒', '💄', '🍕', '☕', '🎨', '🏋️', '🌿',
+  '🍙',
+  '🍜',
+  '🍺',
+  '🎮',
+  '🚃',
+  '🏠',
+  '📱',
+  '👗',
+  '📚',
+  '🏥',
+  '💰',
+  '💻',
+  '🎁',
+  '📦',
+  '⚡',
+  '🛡️',
+  '🎬',
+  '🏦',
+  '🧻',
+  '🎵',
+  '✈️',
+  '🚗',
+  '🐾',
+  '🛒',
+  '💄',
+  '🍕',
+  '☕',
+  '🎨',
+  '🏋️',
+  '🌿',
 ]
 
 const COLOR_SUGGESTIONS = [
-  '#f97316', '#0ea5e9', '#6366f1', '#8b5cf6', '#06b6d4',
-  '#ec4899', '#ef4444', '#d946ef', '#3b82f6', '#64748b',
-  '#16a34a', '#0d9488', '#ca8a04', '#10b981', '#f59e0b',
+  '#f97316',
+  '#0ea5e9',
+  '#6366f1',
+  '#8b5cf6',
+  '#06b6d4',
+  '#ec4899',
+  '#ef4444',
+  '#d946ef',
+  '#3b82f6',
+  '#64748b',
+  '#16a34a',
+  '#0d9488',
+  '#ca8a04',
+  '#10b981',
+  '#f59e0b',
 ]
 
 interface Props {
@@ -31,10 +70,17 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
   }
 
   return (
-    <Modal isOpen onClose={onClose} position="center" className="w-full max-w-sm mx-4 p-5 space-y-4">
+    <Modal
+      isOpen
+      onClose={onClose}
+      position="center"
+      className="w-full max-w-sm mx-4 p-5 space-y-4"
+    >
       <div className="flex items-center justify-between">
         <span className="font-semibold text-ink">カテゴリ編集</span>
-        <button onClick={onClose} className="text-ink-muted active:text-ink px-1 text-xl">✕</button>
+        <button onClick={onClose} className="text-ink-muted active:text-ink px-1 text-xl">
+          ✕
+        </button>
       </div>
 
       <div>
@@ -58,9 +104,7 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
               onClick={() => setDraft((d) => ({ ...d, icon: e }))}
               className={
                 'w-9 h-9 rounded-lg text-lg flex items-center justify-center border ' +
-                (draft.icon === e
-                  ? 'border-primary-400 bg-primary-50'
-                  : 'border-line bg-surface')
+                (draft.icon === e ? 'border-primary-400 bg-primary-50' : 'border-line bg-surface')
               }
             >
               {e}
@@ -87,7 +131,9 @@ export default function CategoryFormDialog({ initial, onSave, onClose }: Props) 
         </div>
       </div>
 
-      <Button fullWidth onClick={handleSave}>保存</Button>
+      <Button fullWidth onClick={handleSave}>
+        保存
+      </Button>
     </Modal>
   )
 }

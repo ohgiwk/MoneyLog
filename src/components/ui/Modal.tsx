@@ -9,16 +9,19 @@ interface Props {
   className?: string
 }
 
-export default function Modal({ isOpen, onClose, children, position = 'center', className = '' }: Props) {
+export default function Modal({
+  isOpen,
+  onClose,
+  children,
+  position = 'center',
+  className = '',
+}: Props) {
   if (!isOpen) return null
 
-  const alignClass = position === 'bottom'
-    ? 'items-end sm:items-center'
-    : 'items-center'
+  const alignClass = position === 'bottom' ? 'items-end sm:items-center' : 'items-center'
 
-  const containerClass = position === 'bottom'
-    ? 'w-full max-w-md rounded-t-2xl sm:rounded-2xl'
-    : 'w-72 mx-4 rounded-2xl'
+  const containerClass =
+    position === 'bottom' ? 'w-full max-w-md rounded-t-2xl sm:rounded-2xl' : 'w-72 mx-4 rounded-2xl'
 
   return createPortal(
     <div className={`fixed inset-0 z-50 flex justify-center ${alignClass}`}>

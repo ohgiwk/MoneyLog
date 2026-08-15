@@ -10,9 +10,21 @@ export interface BudgetSettings {
   oneTimeByCategory: Record<string, number>
 }
 
-const empty = (): BudgetSettings => ({ income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} })
+const empty = (): BudgetSettings => ({
+  income: 0,
+  fixed: 0,
+  consumable: 0,
+  savings: 0,
+  oneTimeByCategory: {},
+})
 
-export const EMPTY_BUDGET_SETTINGS: BudgetSettings = { income: 0, fixed: 0, consumable: 0, savings: 0, oneTimeByCategory: {} }
+export const EMPTY_BUDGET_SETTINGS: BudgetSettings = {
+  income: 0,
+  fixed: 0,
+  consumable: 0,
+  savings: 0,
+  oneTimeByCategory: {},
+}
 
 export const budgetService = {
   fetchByMonth: async (userId: string, month: string): Promise<BudgetSettings> => {

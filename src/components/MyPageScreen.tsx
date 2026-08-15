@@ -32,10 +32,7 @@ export default function MyPageScreen({ userId }: Props) {
 
   useEffect(() => {
     async function fetchStats() {
-      const { data } = await supabase
-        .from('transactions')
-        .select('date')
-        .eq('user_id', userId)
+      const { data } = await supabase.from('transactions').select('date').eq('user_id', userId)
       if (data) {
         setRecordCount(data.length)
         setRecordDays(new Set(data.map((t) => t.date)).size)
@@ -114,7 +111,18 @@ export default function MyPageScreen({ userId }: Props) {
               <span>📊</span>
               分析
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-ink-muted">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-ink-muted"
+            >
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </button>
@@ -123,14 +131,29 @@ export default function MyPageScreen({ userId }: Props) {
         {/* パスワード変更 */}
         <div className="bg-surface rounded-xl shadow-sm overflow-hidden">
           <button
-            onClick={() => { setShowPasswordForm(f => !f); setPasswordSuccess(false); setPasswordError('') }}
+            onClick={() => {
+              setShowPasswordForm((f) => !f)
+              setPasswordSuccess(false)
+              setPasswordError('')
+            }}
             className="w-full flex items-center justify-between px-4 py-3.5 text-sm text-ink active:bg-surface-subtle"
           >
             <span className="flex items-center gap-2">
               <span>🔑</span>
               パスワードを変更
             </span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`text-ink-muted transition-transform ${showPasswordForm ? 'rotate-180' : ''}`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`text-ink-muted transition-transform ${showPasswordForm ? 'rotate-180' : ''}`}
+            >
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </button>
@@ -160,9 +183,7 @@ export default function MyPageScreen({ userId }: Props) {
                   className="mt-1 w-full px-3 py-2 text-sm rounded-lg border border-line bg-surface-subtle text-ink placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 />
               </div>
-              {passwordError && (
-                <div className="text-xs text-danger-500">{passwordError}</div>
-              )}
+              {passwordError && <div className="text-xs text-danger-500">{passwordError}</div>}
               <button
                 onClick={handlePasswordChange}
                 disabled={passwordLoading || !newPassword}
@@ -187,13 +208,16 @@ export default function MyPageScreen({ userId }: Props) {
           ) : (
             <div className="p-4 space-y-3">
               <div className="text-sm font-semibold text-ink">本当に退会しますか？</div>
-              <div className="text-xs text-ink-muted">すべてのデータが削除され、元に戻すことはできません。</div>
-              {deleteError && (
-                <div className="text-xs text-danger-500">{deleteError}</div>
-              )}
+              <div className="text-xs text-ink-muted">
+                すべてのデータが削除され、元に戻すことはできません。
+              </div>
+              {deleteError && <div className="text-xs text-danger-500">{deleteError}</div>}
               <div className="flex gap-2">
                 <button
-                  onClick={() => { setShowDeleteConfirm(false); setDeleteError('') }}
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setDeleteError('')
+                  }}
                   className="flex-1 py-2.5 rounded-lg border border-line text-sm text-ink active:bg-surface-subtle"
                 >
                   キャンセル

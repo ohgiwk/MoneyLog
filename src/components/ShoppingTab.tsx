@@ -36,7 +36,11 @@ export default function ShoppingTab({ userId }: Props) {
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const householdMembers = profile?.household_members ?? 1
-  const { data: consumables = [], isError: consumablesError, isFetching } = useConsumablesQuery(userId)
+  const {
+    data: consumables = [],
+    isError: consumablesError,
+    isFetching,
+  } = useConsumablesQuery(userId)
   const loading = isFetching && consumables.length === 0
   const fetchError = profileError || consumablesError ? 'データの読み込みに失敗しました' : null
 
@@ -52,7 +56,12 @@ export default function ShoppingTab({ userId }: Props) {
     state: {
       title: string
       onBack: () => void
-      action?: { label: string; onClick: () => void; disabled?: boolean; tone?: 'default' | 'danger' }
+      action?: {
+        label: string
+        onClick: () => void
+        disabled?: boolean
+        tone?: 'default' | 'danger'
+      }
     } | null
   ) {
     setConsumableEditing(state !== null)
@@ -68,7 +77,9 @@ export default function ShoppingTab({ userId }: Props) {
           <TabGroup
             tabs={SUB_TABS}
             active={sub}
-            onChange={(key) => { setSub(key) }}
+            onChange={(key) => {
+              setSub(key)
+            }}
             size="sm"
           />
         </div>
@@ -103,9 +114,7 @@ export default function ShoppingTab({ userId }: Props) {
         />
       )}
 
-      {sub === 'wishlist' && (
-        <WishlistPanel userId={userId} />
-      )}
+      {sub === 'wishlist' && <WishlistPanel userId={userId} />}
     </div>
   )
 }

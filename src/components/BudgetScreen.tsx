@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EXPENSE_CATEGORIES } from '../constants'
-import { budgetService, oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS, type BudgetSettings } from '../lib/services/budgetService'
+import {
+  budgetService,
+  oneTimeBudgetTotal,
+  EMPTY_BUDGET_SETTINGS,
+  type BudgetSettings,
+} from '../lib/services/budgetService'
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { calcBudgetProgress, formatYen, shiftMonth, todayStr } from '../utils'
@@ -16,7 +21,9 @@ interface Props {
 
 export default function BudgetScreen({ userId }: Props) {
   const navigate = useNavigate()
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [budget, setBudget] = useState<BudgetSettings>(EMPTY_BUDGET_SETTINGS)
   const [saved, setSaved] = useState(false)
@@ -62,9 +69,7 @@ export default function BudgetScreen({ userId }: Props) {
   async function handleCopyLastMonth() {
     setMenuOpen(false)
     const [year, mon] = month.split('-').map(Number)
-    const prev = mon === 1
-      ? `${year - 1}-12`
-      : `${year}-${String(mon - 1).padStart(2, '0')}`
+    const prev = mon === 1 ? `${year - 1}-12` : `${year}-${String(mon - 1).padStart(2, '0')}`
     const lastBudget = await budgetService.fetchByMonth(userId, prev)
     if (!lastBudget || lastBudget.income === 0) {
       setCopyMsg('先月の予算データがありません')
@@ -87,7 +92,11 @@ export default function BudgetScreen({ userId }: Props) {
     }
   }, [fetchedBudget])
 
-  const fetchError = isError ? 'データの読み込みに失敗しました' : mutation.isError ? '保存に失敗しました' : null
+  const fetchError = isError
+    ? 'データの読み込みに失敗しました'
+    : mutation.isError
+      ? '保存に失敗しました'
+      : null
 
   function handleChange(field: 'income' | 'fixed' | 'consumable' | 'savings', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -126,7 +135,10 @@ export default function BudgetScreen({ userId }: Props) {
     const errs: string[] = []
     if (budget.income <= 0) errs.push('収入を入力してください')
     if (remaining !== 0) errs.push('収入と支出合計（貯蓄＋固定費＋出費）が一致していません')
-    if (errs.length > 0) { setErrors(errs); return }
+    if (errs.length > 0) {
+      setErrors(errs)
+      return
+    }
     setErrors([])
     let finalBudget = budget
     if (categoryMode === 'total') {
@@ -164,8 +176,16 @@ export default function BudgetScreen({ userId }: Props) {
                 className="text-ink-muted active:text-ink p-1"
                 aria-label="メニュー"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <circle cx="12" cy="5" r="1.5" />
+                  <circle cx="12" cy="12" r="1.5" />
+                  <circle cx="12" cy="19" r="1.5" />
                 </svg>
               </button>
               {menuOpen && (
@@ -275,7 +295,9 @@ export default function BudgetScreen({ userId }: Props) {
                     label={`${cat.icon} ${cat.name}`}
                     value={budget.oneTimeByCategory[cat.name] ?? 0}
                     onChange={(v) => handleCategoryChange(cat.name, v)}
-                    actual={lastMonthOneTimeTotal > 0 ? (lastMonthOneTimeByCat[cat.name] ?? 0) : undefined}
+                    actual={
+                      lastMonthOneTimeTotal > 0 ? (lastMonthOneTimeByCat[cat.name] ?? 0) : undefined
+                    }
                   />
                 ))}
                 {detailOneTimeTotal > 0 && (
@@ -287,7 +309,6 @@ export default function BudgetScreen({ userId }: Props) {
             )}
           </div>
         </div>
-
       </div>
 
       {/* フローティング: 予算使用率 */}
@@ -295,10 +316,16 @@ export default function BudgetScreen({ userId }: Props) {
         <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
           <div className="bg-income-50 dark:bg-income-950/80 rounded-2xl px-4 py-2.5 shadow-lg space-y-1.5">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-semibold text-income-700 dark:text-income-400">予算使用率</div>
+              <div className="text-xs font-semibold text-income-700 dark:text-income-400">
+                予算使用率
+              </div>
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-ink-muted">{formatYen(budgetTotal)} / {formatYen(budget.income)}</span>
-                <span className={`font-bold ${overIncome ? 'text-danger-500' : 'text-income-700 dark:text-income-400'}`}>
+                <span className="text-ink-muted">
+                  {formatYen(budgetTotal)} / {formatYen(budget.income)}
+                </span>
+                <span
+                  className={`font-bold ${overIncome ? 'text-danger-500' : 'text-income-700 dark:text-income-400'}`}
+                >
                   {Math.round((budgetTotal / budget.income) * 100)}%
                 </span>
               </div>
@@ -311,7 +338,9 @@ export default function BudgetScreen({ userId }: Props) {
             </div>
             <div className="text-right text-xs">
               <span className={overIncome ? 'text-danger-500 font-semibold' : 'text-ink-muted'}>
-                {overIncome ? `${formatYen(Math.abs(remaining))} オーバー` : `残り ${formatYen(remaining)}`}
+                {overIncome
+                  ? `${formatYen(Math.abs(remaining))} オーバー`
+                  : `残り ${formatYen(remaining)}`}
               </span>
             </div>
           </div>
@@ -323,7 +352,9 @@ export default function BudgetScreen({ userId }: Props) {
         {errors.length > 0 && (
           <div className="w-full bg-danger-50 border border-danger-200 rounded-xl px-3 py-2 space-y-0.5">
             {errors.map((e) => (
-              <p key={e} className="text-xs text-danger-600">{e}</p>
+              <p key={e} className="text-xs text-danger-600">
+                {e}
+              </p>
             ))}
           </div>
         )}

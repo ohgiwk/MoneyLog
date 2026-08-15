@@ -127,9 +127,7 @@ describe('useSummaryCalculations — 固定費集計', () => {
   })
 
   it('baseline_amount と現在の amount の差分を見直し削減額として合計する', () => {
-    const fixedExpenses = [
-      makeFixed({ amount: 4000, baseline_amount: 5000, cycle: 'monthly' }),
-    ]
+    const fixedExpenses = [makeFixed({ amount: 4000, baseline_amount: 5000, cycle: 'monthly' })]
     const { result } = setup({ fixedExpenses })
     expect(result.current.totalSaved).toBe(1000)
   })
@@ -160,7 +158,10 @@ describe('useSummaryCalculations — 週/日/月別カテゴリ集計', () => {
       makeTx({ id: 't-last-week', date: '2026-06-29', category: '食費', amount: 2000 }),
       makeTx({ id: 't-this-month', date: '2026-07-20', category: '食費', amount: 300 }),
     ]
-    const { result } = setup({ transactions, budget: emptyBudget({ oneTimeByCategory: { 食費: 3100 } }) })
+    const { result } = setup({
+      transactions,
+      budget: emptyBudget({ oneTimeByCategory: { 食費: 3100 } }),
+    })
 
     const row = result.current.oneTimeCategoryRows.find((r) => r.cat === '食費')
     expect(row).toBeDefined()

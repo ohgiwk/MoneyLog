@@ -19,7 +19,11 @@ export const workScheduleService = {
     return data ?? []
   },
 
-  setDayType: async (userId: string, date: string, dayType: WorkSchedule['day_type']): Promise<void> => {
+  setDayType: async (
+    userId: string,
+    date: string,
+    dayType: WorkSchedule['day_type']
+  ): Promise<void> => {
     const { error } = await supabase
       .from(TABLE)
       .upsert({ user_id: userId, date, day_type: dayType }, { onConflict: 'user_id,date' })

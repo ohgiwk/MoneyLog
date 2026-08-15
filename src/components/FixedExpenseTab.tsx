@@ -16,7 +16,8 @@ export default function FixedExpenseTab({ userId }: Props) {
   const location = useLocation()
   const { setHeaderBack: onHeaderChange, categories } = useAppContext()
   const fixedCategories = categories.fixedCategories
-  const fromOnboarding = (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding ?? false
+  const fromOnboarding =
+    (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding ?? false
 
   useEffect(() => {
     if (fromOnboarding) {
@@ -26,7 +27,11 @@ export default function FixedExpenseTab({ userId }: Props) {
   const queryClient = useQueryClient()
   const calendarMonth = todayStr().slice(0, 7)
 
-  const { data: fixedExpenses = [], isError: fixedError, isFetching } = useFixedExpensesQuery(userId)
+  const {
+    data: fixedExpenses = [],
+    isError: fixedError,
+    isFetching,
+  } = useFixedExpensesQuery(userId)
   const { data: budget, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
   const fixedBudget = budget?.fixed ?? 0
   const loading = isFetching && fixedExpenses.length === 0
@@ -49,7 +54,9 @@ export default function FixedExpenseTab({ userId }: Props) {
         fixedBudget={fixedBudget}
         fixedCategories={fixedCategories}
         reload={reload}
-        onEditingChange={(state) => { onHeaderChange(state) }}
+        onEditingChange={(state) => {
+          onHeaderChange(state)
+        }}
         loading={loading}
         fromOnboarding={fromOnboarding}
         onWizardOpen={undefined}

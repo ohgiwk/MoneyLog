@@ -1,7 +1,12 @@
 import Card from './ui/Card'
 import { useRef, useState, type ReactNode } from 'react'
 import { IconShoppingCartCopy } from '@tabler/icons-react'
-import { CONSUMABLE_URGENT_THRESHOLD_DAYS, DEFAULT_CONSUMABLES, type CategoryInfo, type DefaultConsumable } from '../constants'
+import {
+  CONSUMABLE_URGENT_THRESHOLD_DAYS,
+  DEFAULT_CONSUMABLES,
+  type CategoryInfo,
+  type DefaultConsumable,
+} from '../constants'
 import type { Consumable } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
 import { formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
@@ -55,7 +60,12 @@ export default function ConsumablesList({
     reload()
   }
 
-  async function handlePurchaseConfirm(date: string, category: string, amount: number, memo: string) {
+  async function handlePurchaseConfirm(
+    date: string,
+    category: string,
+    amount: number,
+    memo: string
+  ) {
     if (!purchasing) return
     await transactionService.insert({
       user_id: userId,
@@ -90,10 +100,12 @@ export default function ConsumablesList({
   )
 
   // カテゴリ別グループ化
-  const byCategory = expenseCategories.map((cat) => ({
-    cat,
-    items: rest.filter((c) => c.category === cat.name),
-  })).filter((g) => g.items.length > 0)
+  const byCategory = expenseCategories
+    .map((cat) => ({
+      cat,
+      items: rest.filter((c) => c.category === cat.name),
+    }))
+    .filter((g) => g.items.length > 0)
 
   // その他（未知カテゴリ）
   const knownCategoryNames = new Set(expenseCategories.map((c) => c.name))
@@ -107,10 +119,12 @@ export default function ConsumablesList({
   // 未登録のデフォルト品目
   const registeredNames = new Set(consumables.map((c) => c.name))
   const unregisteredDefaults = DEFAULT_CONSUMABLES.filter((d) => !registeredNames.has(d.name))
-  const suggestionsByCategory = expenseCategories.map((cat) => ({
-    cat,
-    items: unregisteredDefaults.filter((d) => d.category === cat.name),
-  })).filter((g) => g.items.length > 0)
+  const suggestionsByCategory = expenseCategories
+    .map((cat) => ({
+      cat,
+      items: unregisteredDefaults.filter((d) => d.category === cat.name),
+    }))
+    .filter((g) => g.items.length > 0)
 
   function renderConsumableItem(c: Consumable, urgent?: boolean) {
     return (
@@ -135,11 +149,16 @@ export default function ConsumablesList({
     )
   }
 
-  const isPreset = editing !== null && editing !== 'new' && typeof editing === 'object' && 'preset' in editing
-  const editingKey = editing === null ? null
-    : editing === 'new' ? 'new'
-    : isPreset ? `preset-${(editing as { preset: DefaultConsumable }).preset.name}`
-    : (editing as Consumable).id
+  const isPreset =
+    editing !== null && editing !== 'new' && typeof editing === 'object' && 'preset' in editing
+  const editingKey =
+    editing === null
+      ? null
+      : editing === 'new'
+        ? 'new'
+        : isPreset
+          ? `preset-${(editing as { preset: DefaultConsumable }).preset.name}`
+          : (editing as Consumable).id
 
   const content: ReactNode = (
     <>
@@ -167,37 +186,34 @@ export default function ConsumablesList({
           <div className="text-xs font-semibold text-warning-600 mt-2 mb-2 flex items-center gap-1">
             <span>⚠️</span> そろそろ買い時（7日以内）
           </div>
-          <div className="space-y-1.5">
-            {urgent.map((c) => renderConsumableItem(c, true))}
-          </div>
+          <div className="space-y-1.5">{urgent.map((c) => renderConsumableItem(c, true))}</div>
         </div>
       )}
 
       {/* カテゴリ別一覧 */}
-      {!loading && byCategory.map(({ cat, items }) => (
-        <div key={cat.name}>
-          <div className="text-xs font-semibold text-ink-muted mt-2 mb-2 flex items-center gap-1.5">
-            <span>{cat.icon}</span>
-            <span>{cat.name}</span>
+      {!loading &&
+        byCategory.map(({ cat, items }) => (
+          <div key={cat.name}>
+            <div className="text-xs font-semibold text-ink-muted mt-2 mb-2 flex items-center gap-1.5">
+              <span>{cat.icon}</span>
+              <span>{cat.name}</span>
+            </div>
+            <div className="space-y-1.5">{items.map((c) => renderConsumableItem(c))}</div>
           </div>
-          <div className="space-y-1.5">
-            {items.map((c) => renderConsumableItem(c))}
-          </div>
-        </div>
-      ))}
+        ))}
 
       {/* 未知カテゴリ */}
       {!loading && uncategorized.length > 0 && (
         <div>
           <div className="text-xs font-semibold text-ink-muted mt-2 mb-2">その他</div>
-          <div className="space-y-1.5">
-            {uncategorized.map((c) => renderConsumableItem(c))}
-          </div>
+          <div className="space-y-1.5">{uncategorized.map((c) => renderConsumableItem(c))}</div>
         </div>
       )}
 
       {!loading && consumables.length === 0 && (
-        <div className="text-sm text-ink-muted text-center py-4">登録された定期購入がありません</div>
+        <div className="text-sm text-ink-muted text-center py-4">
+          登録された定期購入がありません
+        </div>
       )}
 
       {/* FAB */}
@@ -261,12 +277,19 @@ export default function ConsumablesList({
       <BottomSheet
         isOpen={editing !== null}
         onClose={formHeaderState?.onBack ?? closeEditing}
-        title={formHeaderState?.title ?? (isPreset || editing === 'new' ? '定期購入を追加' : '定期購入を編集')}
-        rightAction={formHeaderState?.action ? {
-          onClick: formHeaderState.action.onClick,
-          disabled: formHeaderState.action.disabled,
-          tone: 'danger',
-        } : undefined}
+        title={
+          formHeaderState?.title ??
+          (isPreset || editing === 'new' ? '定期購入を追加' : '定期購入を編集')
+        }
+        rightAction={
+          formHeaderState?.action
+            ? {
+                onClick: formHeaderState.action.onClick,
+                disabled: formHeaderState.action.disabled,
+                tone: 'danger',
+              }
+            : undefined
+        }
         footer={
           <button
             type="button"
@@ -281,7 +304,7 @@ export default function ConsumablesList({
           <ConsumableForm
             key={editingKey}
             userId={userId}
-            consumable={isPreset || editing === 'new' ? undefined : editing as Consumable}
+            consumable={isPreset || editing === 'new' ? undefined : (editing as Consumable)}
             preset={isPreset ? (editing as { preset: DefaultConsumable }).preset : undefined}
             householdMembers={householdMembers}
             expenseCategories={expenseCategories}

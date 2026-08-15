@@ -150,9 +150,7 @@ export default function TransactionDetailView({
       <div className="bg-surface rounded-2xl p-4 shadow-sm">
         <div className="text-sm font-semibold text-ink mb-1">出費合計</div>
         <div className="flex items-baseline gap-1.5">
-          <div className="text-2xl font-bold text-danger-500">
-            {formatYen(totalExpense)}
-          </div>
+          <div className="text-2xl font-bold text-danger-500">{formatYen(totalExpense)}</div>
           {totalIncome > 0 && (
             <div className="text-sm font-semibold text-income-600">
               <span className="text-ink-muted">/</span> 収入 {formatYen(totalIncome)}
@@ -165,7 +163,9 @@ export default function TransactionDetailView({
             {' / 残額 '}
             <span
               className={
-                budget - totalExpense < 0 ? 'text-danger-500 font-semibold' : 'text-income-600 font-semibold'
+                budget - totalExpense < 0
+                  ? 'text-danger-500 font-semibold'
+                  : 'text-income-600 font-semibold'
               }
             >
               {formatYen(budget - totalExpense)}
@@ -181,7 +181,10 @@ export default function TransactionDetailView({
           {setMonth && availableMonths && availableMonths.length > 0 && (
             <div ref={yearRef} className="relative">
               <button
-                onClick={() => { setYearOpen((v) => !v); setMonthOpen(false) }}
+                onClick={() => {
+                  setYearOpen((v) => !v)
+                  setMonthOpen(false)
+                }}
                 className={
                   'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition ' +
                   (yearOpen
@@ -217,7 +220,10 @@ export default function TransactionDetailView({
           {setMonth && availableMonths && availableMonths.length > 0 && (
             <div ref={monthRef} className="relative">
               <button
-                onClick={() => { setMonthOpen((v) => !v); setYearOpen(false) }}
+                onClick={() => {
+                  setMonthOpen((v) => !v)
+                  setYearOpen(false)
+                }}
                 className={
                   'flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition ' +
                   (monthOpen
@@ -263,7 +269,9 @@ export default function TransactionDetailView({
             }
           >
             <span>絞り込み</span>
-            {isFiltered && <span className="w-1.5 h-1.5 rounded-full bg-primary-400 inline-block" />}
+            {isFiltered && (
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-400 inline-block" />
+            )}
             <span className="text-[10px]">{filterOpen ? '▲' : '▼'}</span>
           </button>
 
@@ -375,73 +383,87 @@ export default function TransactionDetailView({
         </div>
       ) : null}
 
-      {!loading && grouped.map(([date, txs]) => {
-        const dayExpense = txs.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
-        const dayIncome = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-        return (
-          <Card key={date}>
-            <div className="flex justify-between items-center px-4 py-2.5 bg-surface-hover border-b border-line">
-              <span className="text-xs font-semibold text-ink">{formatDateWithWeekday(date)}</span>
-              <div className="flex gap-2 text-xs">
-                {dayIncome > 0 && <span className="text-income-600">+{formatYen(dayIncome)}</span>}
-                {dayExpense > 0 && <span className="text-danger-400">-{formatYen(dayExpense)}</span>}
+      {!loading &&
+        grouped.map(([date, txs]) => {
+          const dayExpense = txs
+            .filter((t) => t.type === 'expense')
+            .reduce((s, t) => s + t.amount, 0)
+          const dayIncome = txs.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+          return (
+            <Card key={date}>
+              <div className="flex justify-between items-center px-4 py-2.5 bg-surface-hover border-b border-line">
+                <span className="text-xs font-semibold text-ink">
+                  {formatDateWithWeekday(date)}
+                </span>
+                <div className="flex gap-2 text-xs">
+                  {dayIncome > 0 && (
+                    <span className="text-income-600">+{formatYen(dayIncome)}</span>
+                  )}
+                  {dayExpense > 0 && (
+                    <span className="text-danger-400">-{formatYen(dayExpense)}</span>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="divide-y divide-line-subtle">
-              {txs.map((t) => {
-                const info = categoryInfo(t.category)
-                const store = t.store_type ? STORE_TYPES.find((s) => s.name === t.store_type) : undefined
-                const meal = t.category === '食費' && t.meal_type ? MEAL_TYPES.find((m) => m.name === t.meal_type) : undefined
-                return (
-                  <SwipeableRow
-                    key={t.id}
-                    onEdit={() => onEditTx?.(t)}
-                    onDelete={() => onDeleteTx?.(t.id)}
-                    onDuplicate={() => onDuplicateTx?.(t)}
-                  >
-                    <div className="px-4 flex justify-between items-center py-3 active:bg-surface-subtle">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-lg">{info.icon}</span>
-                        <div>
-                          <div className="text-sm text-ink">{t.category}</div>
-                          {(meal || store || t.memo) && (
-                            <div className="text-xs text-ink-muted flex items-center gap-1">
-                              {meal && (
-                                <span className="flex items-center gap-0.5">
-                                  <span>{meal.icon}</span>
-                                  <span>{meal.name}</span>
-                                </span>
-                              )}
-                              {meal && (store || t.memo) && <span>/</span>}
-                              {store && (
-                                <span className="flex items-center gap-0.5">
-                                  <span>{store.icon}</span>
-                                  <span>{store.name}</span>
-                                </span>
-                              )}
-                              {store && t.memo && <span>/</span>}
-                              {t.memo && <span>{t.memo}</span>}
-                            </div>
-                          )}
+              <div className="divide-y divide-line-subtle">
+                {txs.map((t) => {
+                  const info = categoryInfo(t.category)
+                  const store = t.store_type
+                    ? STORE_TYPES.find((s) => s.name === t.store_type)
+                    : undefined
+                  const meal =
+                    t.category === '食費' && t.meal_type
+                      ? MEAL_TYPES.find((m) => m.name === t.meal_type)
+                      : undefined
+                  return (
+                    <SwipeableRow
+                      key={t.id}
+                      onEdit={() => onEditTx?.(t)}
+                      onDelete={() => onDeleteTx?.(t.id)}
+                      onDuplicate={() => onDuplicateTx?.(t)}
+                    >
+                      <div className="px-4 flex justify-between items-center py-3 active:bg-surface-subtle">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-lg">{info.icon}</span>
+                          <div>
+                            <div className="text-sm text-ink">{t.category}</div>
+                            {(meal || store || t.memo) && (
+                              <div className="text-xs text-ink-muted flex items-center gap-1">
+                                {meal && (
+                                  <span className="flex items-center gap-0.5">
+                                    <span>{meal.icon}</span>
+                                    <span>{meal.name}</span>
+                                  </span>
+                                )}
+                                {meal && (store || t.memo) && <span>/</span>}
+                                {store && (
+                                  <span className="flex items-center gap-0.5">
+                                    <span>{store.icon}</span>
+                                    <span>{store.name}</span>
+                                  </span>
+                                )}
+                                {store && t.memo && <span>/</span>}
+                                {t.memo && <span>{t.memo}</span>}
+                              </div>
+                            )}
+                          </div>
                         </div>
+                        <span
+                          className={
+                            'text-sm font-semibold ' +
+                            (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
+                          }
+                        >
+                          {t.type === 'income' ? '+' : '-'}
+                          {formatYen(t.amount)}
+                        </span>
                       </div>
-                      <span
-                        className={
-                          'text-sm font-semibold ' +
-                          (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
-                        }
-                      >
-                        {t.type === 'income' ? '+' : '-'}
-                        {formatYen(t.amount)}
-                      </span>
-                    </div>
-                  </SwipeableRow>
-                )
-              })}
-            </div>
-          </Card>
-        )
-      })}
+                    </SwipeableRow>
+                  )
+                })}
+              </div>
+            </Card>
+          )
+        })}
     </div>
   )
 }

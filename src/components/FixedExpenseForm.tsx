@@ -1,9 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  STATUS_LABELS,
-  type CategoryInfo,
-  type SubscriptionPreset,
-} from '../constants'
+import { STATUS_LABELS, type CategoryInfo, type SubscriptionPreset } from '../constants'
 import { fixedExpenseService } from '../lib/services/fixedExpenseService'
 import type { FixedExpense } from '../lib/database.types'
 import { useForm, useIsDirty } from '../hooks/useForm'
@@ -46,7 +42,18 @@ interface Props {
   submitRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export default function FixedExpenseForm({ userId, expense, fixedCategories, onClose, onOpenSubscriptionPicker, presetToApply, onPresetApplied, focusSignal, onHeaderChange, submitRef }: Props) {
+export default function FixedExpenseForm({
+  userId,
+  expense,
+  fixedCategories,
+  onClose,
+  onOpenSubscriptionPicker,
+  presetToApply,
+  onPresetApplied,
+  focusSignal,
+  onHeaderChange,
+  submitRef,
+}: Props) {
   const [nameError, setNameError] = useState<string | null>(null)
   const [amountError, setAmountError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -96,7 +103,12 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
       title: expense ? '固定費を編集' : '固定費を追加',
       onBack: requestBack,
       action: expense
-        ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
+        ? {
+            label: '削除',
+            onClick: () => setConfirmDelete(true),
+            disabled: isSubmitting,
+            tone: 'danger',
+          }
         : undefined,
     })
   }, [expense, isDirty, isSubmitting, focusSignal]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -213,7 +225,10 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
           <label className="text-xs text-ink-muted">名前</label>
           <Input
             value={values.name}
-            onChange={(e) => { setValue('name', e.target.value); if (nameError) setNameError(null) }}
+            onChange={(e) => {
+              setValue('name', e.target.value)
+              if (nameError) setNameError(null)
+            }}
             placeholder="例: Netflix"
             error={!!nameError}
             className="mt-1"
@@ -269,7 +284,10 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
                 type="number"
                 inputMode="decimal"
                 value={values.amount}
-                onChange={(e) => { setValue('amount', e.target.value); if (amountError) setAmountError(null) }}
+                onChange={(e) => {
+                  setValue('amount', e.target.value)
+                  if (amountError) setAmountError(null)
+                }}
                 placeholder="0"
                 error={!!amountError}
                 className="pl-7 pr-3"
@@ -277,8 +295,8 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             </div>
             {currency === 'USD' && values.amount && !isNaN(parseFloat(values.amount)) && (
               <p className="text-xs text-ink-muted mt-1">
-                ≈ {Math.round(parseFloat(values.amount) * usdRate).toLocaleString()}円
-                （1USD={usdRate}円）
+                ≈ {Math.round(parseFloat(values.amount) * usdRate).toLocaleString()}円 （1USD=
+                {usdRate}円）
               </p>
             )}
             <ErrorText>{amountError}</ErrorText>
@@ -326,14 +344,16 @@ export default function FixedExpenseForm({ userId, expense, fixedCategories, onC
             className="mt-1"
           />
         </div>
-
       </div>
 
       {showDiscardConfirm && (
         <ConfirmDialog
           message="入力内容を破棄しますか？"
           confirmLabel="破棄する"
-          onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
+          onConfirm={() => {
+            setShowDiscardConfirm(false)
+            closeAndNotify()
+          }}
           onCancel={() => setShowDiscardConfirm(false)}
         />
       )}

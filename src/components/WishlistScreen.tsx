@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import FabButton from './ui/FabButton'
-import { useWishlistQuery, useWishlistInsert, useWishlistUpdate, useWishlistDelete } from '../hooks/queries/useWishlistQuery'
+import {
+  useWishlistQuery,
+  useWishlistInsert,
+  useWishlistUpdate,
+  useWishlistDelete,
+} from '../hooks/queries/useWishlistQuery'
 import type { WishlistItem } from '../lib/services/wishlistService'
 import ConfirmDialog from './ui/ConfirmDialog'
 import ScreenHeader from './ui/ScreenHeader'
@@ -19,11 +24,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 
 interface Props {
   userId: string
@@ -52,7 +53,9 @@ export default function WishlistScreen({ userId, onBack }: Props) {
 
   const renormalize = async (ordered: WishlistItem[]) => {
     await Promise.all(
-      ordered.map((item, i) => updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } }))
+      ordered.map((item, i) =>
+        updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } })
+      )
     )
   }
 
@@ -75,8 +78,14 @@ export default function WishlistScreen({ userId, onBack }: Props) {
   }
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setError('商品名を入力してください'); return }
-    if (!form.price) { setError('金額を入力してください'); return }
+    if (!form.name.trim()) {
+      setError('商品名を入力してください')
+      return
+    }
+    if (!form.price) {
+      setError('金額を入力してください')
+      return
+    }
     setError(null)
     try {
       if (editing === 'new') {
@@ -107,7 +116,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
     setConfirmDelete(false)
     try {
       await deleteMutation.mutateAsync(editing.id)
-      const remaining = items.filter(i => i.id !== (editing as WishlistItem).id)
+      const remaining = items.filter((i) => i.id !== (editing as WishlistItem).id)
       await renormalize(remaining)
       closeForm()
     } catch {
@@ -117,14 +126,14 @@ export default function WishlistScreen({ userId, onBack }: Props) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   )
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    const oldIndex = items.findIndex(i => i.id === active.id)
-    const newIndex = items.findIndex(i => i.id === over.id)
+    const oldIndex = items.findIndex((i) => i.id === active.id)
+    const newIndex = items.findIndex((i) => i.id === over.id)
     try {
       await renormalize(arrayMove(items, oldIndex, newIndex))
     } catch {
@@ -148,8 +157,12 @@ export default function WishlistScreen({ userId, onBack }: Props) {
             <p className="text-sm mt-1">下の＋ボタンから追加できます</p>
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
               <ul className="space-y-3">
                 {items.map((item) => (
                   <SortableWishlistItem
@@ -174,12 +187,19 @@ export default function WishlistScreen({ userId, onBack }: Props) {
 
       {editing !== null && (
         <>
-          <Modal isOpen onClose={closeForm} position="center" className="w-full max-w-sm mx-4 px-5 pt-5 pb-6">
+          <Modal
+            isOpen
+            onClose={closeForm}
+            position="center"
+            className="w-full max-w-sm mx-4 px-5 pt-5 pb-6"
+          >
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-ink-strong text-base">
                 {editing === 'new' ? '目標を追加' : '目標を編集'}
               </h2>
-              <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">✕</button>
+              <button onClick={closeForm} className="text-ink-muted active:text-ink text-xl px-1">
+                ✕
+              </button>
             </div>
             <ErrorText className="mb-3">{error}</ErrorText>
             <div className="space-y-3">
@@ -189,7 +209,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                   variant="dialog"
                   type="text"
                   value={form.name}
-                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="例：新しいスニーカー"
                 />
               </div>
@@ -199,7 +219,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
                   variant="dialog"
                   type="number"
                   value={form.price}
-                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                   placeholder="例：12000"
                   inputMode="numeric"
                 />

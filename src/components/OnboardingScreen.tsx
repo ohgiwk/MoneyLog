@@ -99,16 +99,31 @@ export default function OnboardingScreen({ userId }: Props) {
       <div className="relative z-10 flex-1 overflow-hidden min-h-0">
         <div
           className="flex h-full transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${page * (100 / TOTAL_PAGES)}%)`, width: `${TOTAL_PAGES * 100}%` }}
+          style={{
+            transform: `translateX(-${page * (100 / TOTAL_PAGES)}%)`,
+            width: `${TOTAL_PAGES * 100}%`,
+          }}
         >
           {/* Page 1: Welcome */}
-          <div className="flex flex-col items-center justify-center px-8 text-center h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 0 ? { inert: '' } : {})}>
-            <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-24 h-24 object-contain mb-6" />
-            <h1 className="text-2xl font-bold text-ink-strong mb-4" style={{ fontFamily: "'Kiwi Maru', serif" }}>
+          <div
+            className="flex flex-col items-center justify-center px-8 text-center h-full"
+            style={{ width: `${100 / TOTAL_PAGES}%` }}
+            {...(page !== 0 ? { inert: '' } : {})}
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}logo.png`}
+              alt=""
+              className="w-24 h-24 object-contain mb-6"
+            />
+            <h1
+              className="text-2xl font-bold text-ink-strong mb-4"
+              style={{ fontFamily: "'Kiwi Maru', serif" }}
+            >
               キンカク手帖へようこそ！
             </h1>
             <p className="text-ink leading-relaxed mb-4">
-              このアプリは、<span className="text-primary-600 font-semibold">節約</span>に特化した家計管理アプリです。
+              このアプリは、<span className="text-primary-600 font-semibold">節約</span>
+              に特化した家計管理アプリです。
             </p>
             <p className="text-ink-muted text-sm leading-relaxed mb-4">
               むずかしい操作は一切なし。毎月の支出を記録するだけで、どこを削れるか一目でわかるようになります。
@@ -119,14 +134,17 @@ export default function OnboardingScreen({ userId }: Props) {
           </div>
 
           {/* Page 2: 今一番欲しいもの */}
-          <div className="flex flex-col justify-center px-8 h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 1 ? { inert: '' } : {})}>
+          <div
+            className="flex flex-col justify-center px-8 h-full"
+            style={{ width: `${100 / TOTAL_PAGES}%` }}
+            {...(page !== 1 ? { inert: '' } : {})}
+          >
             <div className="text-5xl mb-4 text-center">🎁</div>
             <h2 className="text-xl font-bold text-ink-strong mb-2 text-center">
               今いちばん欲しいものは？
             </h2>
             <p className="text-ink-muted text-sm leading-relaxed mb-6 text-center">
-              目標があると節約のモチベーションが上がります！
-              気軽に入力してみてください ✨
+              目標があると節約のモチベーションが上がります！ 気軽に入力してみてください ✨
             </p>
             <div className="space-y-4">
               <div>
@@ -154,17 +172,22 @@ export default function OnboardingScreen({ userId }: Props) {
           </div>
 
           {/* Page 3: 先月の収入 */}
-          <div className="flex flex-col justify-center px-8 h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 2 ? { inert: '' } : {})}>
+          <div
+            className="flex flex-col justify-center px-8 h-full"
+            style={{ width: `${100 / TOTAL_PAGES}%` }}
+            {...(page !== 2 ? { inert: '' } : {})}
+          >
             <div className="text-5xl mb-4 text-center">💼</div>
             <h2 className="text-xl font-bold text-ink-strong mb-2 text-center">
               先月の収入を教えてください
             </h2>
             <p className="text-ink-muted text-sm leading-relaxed mb-6 text-center">
-              収入をもとに、無理のない節約プランを考えていきます。
-              だいたいの金額で大丈夫ですよ 🙂
+              収入をもとに、無理のない節約プランを考えていきます。 だいたいの金額で大丈夫ですよ 🙂
             </p>
             <div>
-              <label className="block text-sm font-medium text-ink mb-1">先月の手取り収入（円）</label>
+              <label className="block text-sm font-medium text-ink mb-1">
+                先月の手取り収入（円）
+              </label>
               <input
                 type="number"
                 value={income}
@@ -177,11 +200,13 @@ export default function OnboardingScreen({ userId }: Props) {
           </div>
 
           {/* Page 4: 固定費の重要性 */}
-          <div className="flex flex-col justify-center px-8 text-center h-full" style={{ width: `${100 / TOTAL_PAGES}%` }} {...(page !== 3 ? { inert: '' } : {})}>
+          <div
+            className="flex flex-col justify-center px-8 text-center h-full"
+            style={{ width: `${100 / TOTAL_PAGES}%` }}
+            {...(page !== 3 ? { inert: '' } : {})}
+          >
             <div className="text-5xl mb-4">🔍</div>
-            <h2 className="text-xl font-bold text-ink-strong mb-4">
-              節約は「固定費」から始めよう
-            </h2>
+            <h2 className="text-xl font-bold text-ink-strong mb-4">節約は「固定費」から始めよう</h2>
             <p className="text-ink-muted text-sm leading-relaxed mb-4">
               毎月かならず出ていく固定費（家賃・通信費・サブスクなど）を見直すと、
               一度の手間で毎月ずっと節約できます。

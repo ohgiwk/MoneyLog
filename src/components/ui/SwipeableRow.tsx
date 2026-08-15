@@ -61,7 +61,8 @@ export default function SwipeableRow({
     if (!moved.current) {
       if (isTap) {
         if (openRef.current) {
-          setOffset(0); openRef.current = false
+          setOffset(0)
+          openRef.current = false
         } else {
           onEdit()
         }
@@ -72,32 +73,48 @@ export default function SwipeableRow({
     const swipeDx = e.clientX - startX.current
     if (openRef.current) {
       if (swipeDx > ACTIONS_TOTAL / 2) {
-        setOffset(0); openRef.current = false
+        setOffset(0)
+        openRef.current = false
       } else {
-        setOffset(-ACTIONS_TOTAL); openRef.current = true
+        setOffset(-ACTIONS_TOTAL)
+        openRef.current = true
       }
     } else {
       if (swipeDx < -ACTIONS_TOTAL / 2) {
-        setOffset(-ACTIONS_TOTAL); openRef.current = true
+        setOffset(-ACTIONS_TOTAL)
+        openRef.current = true
       } else {
-        setOffset(0); openRef.current = false
+        setOffset(0)
+        openRef.current = false
       }
     }
   }
 
   return (
     <div className="relative overflow-hidden">
-      <div
-        className="absolute right-0 top-0 bottom-0 flex"
-        style={{ width: ACTIONS_TOTAL }}
-      >
+      <div className="absolute right-0 top-0 bottom-0 flex" style={{ width: ACTIONS_TOTAL }}>
         <button
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onDuplicate(); setOffset(0); openRef.current = false }}
+          onClick={(e) => {
+            e.stopPropagation()
+            onDuplicate()
+            setOffset(0)
+            openRef.current = false
+          }}
           className="flex flex-col items-center justify-center gap-0.5 text-white bg-ink-muted active:bg-ink"
           style={{ width: ACTION_WIDTH }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
           </svg>
@@ -105,11 +122,24 @@ export default function SwipeableRow({
         </button>
         <button
           onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); setConfirmOpen(true) }}
+          onClick={(e) => {
+            e.stopPropagation()
+            setConfirmOpen(true)
+          }}
           className="flex flex-col items-center justify-center gap-0.5 text-white bg-danger-500 active:bg-danger-600"
           style={{ width: ACTION_WIDTH }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="3 6 5 6 21 6" />
             <path d="M19 6l-1 14H6L5 6" />
             <path d="M10 11v6M14 11v6" />
@@ -134,8 +164,15 @@ export default function SwipeableRow({
       {confirmOpen && (
         <ConfirmDialog
           message={deleteConfirmMessage}
-          onConfirm={() => { setConfirmOpen(false); onDelete() }}
-          onCancel={() => { setConfirmOpen(false); setOffset(0); openRef.current = false }}
+          onConfirm={() => {
+            setConfirmOpen(false)
+            onDelete()
+          }}
+          onCancel={() => {
+            setConfirmOpen(false)
+            setOffset(0)
+            openRef.current = false
+          }}
         />
       )}
     </div>

@@ -35,7 +35,16 @@ interface Props {
   submitRef?: React.MutableRefObject<(() => void) | null>
 }
 
-export default function ConsumableForm({ userId, consumable, preset, householdMembers, expenseCategories, onClose, onHeaderChange, submitRef }: Props) {
+export default function ConsumableForm({
+  userId,
+  consumable,
+  preset,
+  householdMembers,
+  expenseCategories,
+  onClose,
+  onHeaderChange,
+  submitRef,
+}: Props) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -69,7 +78,12 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
       title: consumable ? '定期購入を編集' : '定期購入を追加',
       onBack: requestBack,
       action: consumable
-        ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
+        ? {
+            label: '削除',
+            onClick: () => setConfirmDelete(true),
+            disabled: isSubmitting,
+            tone: 'danger',
+          }
         : undefined,
     })
   }, [consumable, isDirty, isSubmitting]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -89,8 +103,10 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
     const days = parseInt(values.cycleDays)
     const errors: Partial<Record<keyof FormValues, string>> = {}
     if (!values.name) errors.name = '名前を入力してください'
-    if (!values.amount || isNaN(amt) || amt <= 0) errors.amount = '0より大きい金額を入力してください'
-    if (!values.cycleDays || isNaN(days) || days <= 0) errors.cycleDays = '1以上のサイクル日数を入力してください'
+    if (!values.amount || isNaN(amt) || amt <= 0)
+      errors.amount = '0より大きい金額を入力してください'
+    if (!values.cycleDays || isNaN(days) || days <= 0)
+      errors.cycleDays = '1以上のサイクル日数を入力してください'
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
       return
@@ -148,7 +164,10 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
           <label className="text-xs text-ink-muted">名前</label>
           <Input
             value={values.name}
-            onChange={(e) => { setValue('name', e.target.value); setFieldErrors((p) => ({ ...p, name: undefined })) }}
+            onChange={(e) => {
+              setValue('name', e.target.value)
+              setFieldErrors((p) => ({ ...p, name: undefined }))
+            }}
             placeholder="例: トイレットペーパー"
             error={!!fieldErrors.name}
             className="mt-1"
@@ -172,7 +191,10 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               type="number"
               inputMode="numeric"
               value={values.amount}
-              onChange={(e) => { setValue('amount', e.target.value); setFieldErrors((p) => ({ ...p, amount: undefined })) }}
+              onChange={(e) => {
+                setValue('amount', e.target.value)
+                setFieldErrors((p) => ({ ...p, amount: undefined }))
+              }}
               placeholder="0"
               className={`w-full mt-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.amount ? 'border-danger-400' : 'border-line'}`}
             />
@@ -215,7 +237,10 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
               type="number"
               inputMode="numeric"
               value={values.cycleDays}
-              onChange={(e) => { setValue('cycleDays', e.target.value); setFieldErrors((p) => ({ ...p, cycleDays: undefined })) }}
+              onChange={(e) => {
+                setValue('cycleDays', e.target.value)
+                setFieldErrors((p) => ({ ...p, cycleDays: undefined }))
+              }}
               min="1"
               className={`w-24 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 ${fieldErrors.cycleDays ? 'border-danger-400' : 'border-line'}`}
             />
@@ -225,15 +250,17 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
         </div>
 
         <div>
-          <DatePicker label="最終購入日" value={values.lastPurchased} onChange={(v) => setValue('lastPurchased', v)} />
+          <DatePicker
+            label="最終購入日"
+            value={values.lastPurchased}
+            onChange={(v) => setValue('lastPurchased', v)}
+          />
         </div>
 
         {previewMonthly > 0 && (
           <div className="bg-surface-subtle rounded-xl p-3 text-xs text-ink-muted space-y-0.5">
             <div>実効サイクル: {previewEffectiveCycle}日おき</div>
-            <div className="font-semibold text-ink">
-              月額換算: {formatYen(previewMonthly)}
-            </div>
+            <div className="font-semibold text-ink">月額換算: {formatYen(previewMonthly)}</div>
           </div>
         )}
 
@@ -246,14 +273,16 @@ export default function ConsumableForm({ userId, consumable, preset, householdMe
             className="mt-1"
           />
         </div>
-
       </div>
 
       {showDiscardConfirm && (
         <ConfirmDialog
           message="入力内容を破棄しますか？"
           confirmLabel="破棄する"
-          onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
+          onConfirm={() => {
+            setShowDiscardConfirm(false)
+            closeAndNotify()
+          }}
           onCancel={() => setShowDiscardConfirm(false)}
         />
       )}

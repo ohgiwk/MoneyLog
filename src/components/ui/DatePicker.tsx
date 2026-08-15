@@ -45,13 +45,17 @@ export default function DatePicker({ value, onChange, label }: Props) {
   }, [viewYear, viewMonth])
 
   function prevMonth() {
-    if (viewMonth === 1) { setViewYear(y => y - 1); setViewMonth(12) }
-    else setViewMonth(m => m - 1)
+    if (viewMonth === 1) {
+      setViewYear((y) => y - 1)
+      setViewMonth(12)
+    } else setViewMonth((m) => m - 1)
   }
 
   function nextMonth() {
-    if (viewMonth === 12) { setViewYear(y => y + 1); setViewMonth(1) }
-    else setViewMonth(m => m + 1)
+    if (viewMonth === 12) {
+      setViewYear((y) => y + 1)
+      setViewMonth(1)
+    } else setViewMonth((m) => m + 1)
   }
 
   function selectDay(day: number) {
@@ -78,98 +82,99 @@ export default function DatePicker({ value, onChange, label }: Props) {
         onClick={openPicker}
         className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm text-left bg-surface focus:outline-none focus:ring-2 focus:ring-primary-300 flex items-center justify-between"
       >
-        <span className={value ? 'text-ink' : 'text-ink-muted'}>
-          {formatDisplay(value)}
-        </span>
+        <span className={value ? 'text-ink' : 'text-ink-muted'}>{formatDisplay(value)}</span>
         <span className="text-ink-muted text-base">📅</span>
       </button>
 
-      {open && createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="relative bg-surface rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
-
-            {/* 月ナビゲーション */}
-            <div className="flex items-center justify-between mb-4">
-              <button
-                type="button"
-                onClick={prevMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
-              >
-                ‹
-              </button>
-              <span className="font-bold text-ink-strong">
-                {viewYear}年{viewMonth}月
-              </span>
-              <button
-                type="button"
-                onClick={nextMonth}
-                className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
-              >
-                ›
-              </button>
-            </div>
-
-            {/* 曜日ヘッダー */}
-            <div className="grid grid-cols-7 mb-1">
-              {WEEKDAYS.map((w, i) => (
-                <div
-                  key={w}
-                  className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-ink-muted'}`}
+      {open &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+            <div className="relative bg-surface rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
+              {/* 月ナビゲーション */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={prevMonth}
+                  className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
                 >
-                  {w}
-                </div>
-              ))}
-            </div>
+                  ‹
+                </button>
+                <span className="font-bold text-ink-strong">
+                  {viewYear}年{viewMonth}月
+                </span>
+                <button
+                  type="button"
+                  onClick={nextMonth}
+                  className="w-9 h-9 flex items-center justify-center rounded-full active:bg-surface-hover text-ink-muted"
+                >
+                  ›
+                </button>
+              </div>
 
-            {/* カレンダーグリッド */}
-            <div className="grid grid-cols-7">
-              {days.map((day, i) => {
-                if (day === null) return <div key={i} />
-                const mm = String(viewMonth).padStart(2, '0')
-                const dd = String(day).padStart(2, '0')
-                const dateStr = `${viewYear}-${mm}-${dd}`
-                const isSelected = dateStr === value
-                const isToday = dateStr === todayStr
-                const col = i % 7
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => selectDay(day)}
-                    className={
-                      'flex items-center justify-center h-10 text-sm rounded-full mx-0.5 my-0.5 transition-colors ' +
-                      (isSelected
-                        ? 'bg-primary-500 text-white font-bold'
-                        : isToday
-                        ? 'border border-primary-400 text-primary-600 font-semibold'
-                        : col === 0
-                        ? 'text-red-400 active:bg-red-50'
-                        : col === 6
-                        ? 'text-blue-400 active:bg-blue-50'
-                        : 'text-ink active:bg-surface-hover')
-                    }
+              {/* 曜日ヘッダー */}
+              <div className="grid grid-cols-7 mb-1">
+                {WEEKDAYS.map((w, i) => (
+                  <div
+                    key={w}
+                    className={`text-center text-xs font-medium py-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-ink-muted'}`}
                   >
-                    {day}
-                  </button>
-                )
-              })}
-            </div>
+                    {w}
+                  </div>
+                ))}
+              </div>
 
-            {/* 今日ボタン */}
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => { onChange(todayStr); setOpen(false) }}
-                className="w-full py-3 text-sm text-primary-600 font-medium border border-primary-200 active:bg-primary-50 rounded-xl"
-              >
-                今日
-              </button>
+              {/* カレンダーグリッド */}
+              <div className="grid grid-cols-7">
+                {days.map((day, i) => {
+                  if (day === null) return <div key={i} />
+                  const mm = String(viewMonth).padStart(2, '0')
+                  const dd = String(day).padStart(2, '0')
+                  const dateStr = `${viewYear}-${mm}-${dd}`
+                  const isSelected = dateStr === value
+                  const isToday = dateStr === todayStr
+                  const col = i % 7
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => selectDay(day)}
+                      className={
+                        'flex items-center justify-center h-10 text-sm rounded-full mx-0.5 my-0.5 transition-colors ' +
+                        (isSelected
+                          ? 'bg-primary-500 text-white font-bold'
+                          : isToday
+                            ? 'border border-primary-400 text-primary-600 font-semibold'
+                            : col === 0
+                              ? 'text-red-400 active:bg-red-50'
+                              : col === 6
+                                ? 'text-blue-400 active:bg-blue-50'
+                                : 'text-ink active:bg-surface-hover')
+                      }
+                    >
+                      {day}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* 今日ボタン */}
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(todayStr)
+                    setOpen(false)
+                  }}
+                  className="w-full py-3 text-sm text-primary-600 font-medium border border-primary-200 active:bg-primary-50 rounded-xl"
+                >
+                  今日
+                </button>
+              </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </>
   )
 }

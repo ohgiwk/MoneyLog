@@ -13,8 +13,17 @@ export function useShoppingMemoQuery(userId: string) {
 export function useShoppingMemoAdd(userId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ name, memo, budgetAmount, group }: { name: string; memo: string | null; budgetAmount: number; group: string }) =>
-      shoppingMemoService.addItem(userId, name, memo, budgetAmount, group),
+    mutationFn: ({
+      name,
+      memo,
+      budgetAmount,
+      group,
+    }: {
+      name: string
+      memo: string | null
+      budgetAmount: number
+      group: string
+    }) => shoppingMemoService.addItem(userId, name, memo, budgetAmount, group),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.shoppingMemo(userId) })
     },
@@ -24,8 +33,19 @@ export function useShoppingMemoAdd(userId: string) {
 export function useShoppingMemoUpdate(userId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, name, memo, budgetAmount, group }: { id: string; name: string; memo: string | null; budgetAmount: number; group: string }) =>
-      shoppingMemoService.updateItem(id, name, memo, budgetAmount, group),
+    mutationFn: ({
+      id,
+      name,
+      memo,
+      budgetAmount,
+      group,
+    }: {
+      id: string
+      name: string
+      memo: string | null
+      budgetAmount: number
+      group: string
+    }) => shoppingMemoService.updateItem(id, name, memo, budgetAmount, group),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.shoppingMemo(userId) })
     },

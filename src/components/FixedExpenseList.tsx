@@ -86,7 +86,8 @@ export default function FixedExpenseList({
   )
   const sortByCategory = (list: FixedExpense[]) =>
     [...list].sort(
-      (a, b) => (categoryOrderMap.get(a.category) ?? 999) - (categoryOrderMap.get(b.category) ?? 999)
+      (a, b) =>
+        (categoryOrderMap.get(a.category) ?? 999) - (categoryOrderMap.get(b.category) ?? 999)
     )
 
   const filtered = useMemo(
@@ -104,7 +105,8 @@ export default function FixedExpenseList({
     [fixedExpenses]
   )
   const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
-  const toMonthlyBaseline = (f: FixedExpense) => (f.baseline_amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+  const toMonthlyBaseline = (f: FixedExpense) =>
+    (f.baseline_amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
   const cancelledExpenses = useMemo(
     () => fixedExpenses.filter((f) => f.status === 'cancelled' && f.baseline_amount > 0),
@@ -151,7 +153,8 @@ export default function FixedExpenseList({
             {meta?.currency === 'USD' ? (
               <>
                 <div className="text-sm font-semibold text-ink">
-                  ${meta.usdAmount.toLocaleString()}{f.cycle === 'yearly' ? '/年' : ''}
+                  ${meta.usdAmount.toLocaleString()}
+                  {f.cycle === 'yearly' ? '/年' : ''}
                 </div>
                 <div className="text-xs text-ink-muted">
                   {f.cycle === 'yearly'
@@ -161,16 +164,26 @@ export default function FixedExpenseList({
               </>
             ) : (
               <>
-                <div className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}>
-                  {f.amount == null ? '未入力' : f.cycle === 'yearly' ? `${formatYen(f.amount)}/年` : formatYen(f.amount)}
+                <div
+                  className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}
+                >
+                  {f.amount == null
+                    ? '未入力'
+                    : f.cycle === 'yearly'
+                      ? `${formatYen(f.amount)}/年`
+                      : formatYen(f.amount)}
                 </div>
                 {f.cycle === 'yearly' && f.amount != null && (
-                  <div className="text-xs text-ink-muted">月換算 {formatYen(Math.round(f.amount / 12))}</div>
+                  <div className="text-xs text-ink-muted">
+                    月換算 {formatYen(Math.round(f.amount / 12))}
+                  </div>
                 )}
               </>
             )}
           </div>
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
+          >
             {STATUS_LABELS[f.status].label}
           </span>
         </div>
@@ -218,12 +231,18 @@ export default function FixedExpenseList({
             {' / 差額 '}
             <span
               className={
-                (summaryPeriod === 'monthly' ? fixedBudget - totalAmount : (fixedBudget - totalAmount) * 12) < 0
+                (summaryPeriod === 'monthly'
+                  ? fixedBudget - totalAmount
+                  : (fixedBudget - totalAmount) * 12) < 0
                   ? 'text-danger-500 font-semibold'
                   : 'text-primary-600 font-semibold'
               }
             >
-              {formatYen(summaryPeriod === 'monthly' ? fixedBudget - totalAmount : (fixedBudget - totalAmount) * 12)}
+              {formatYen(
+                summaryPeriod === 'monthly'
+                  ? fixedBudget - totalAmount
+                  : (fixedBudget - totalAmount) * 12
+              )}
             </span>
           </div>
         )}
@@ -235,7 +254,9 @@ export default function FixedExpenseList({
       </div>
 
       {/* 固定費一覧 */}
-      {loading ? <Spinner /> : (filtered.length === 0 ? (
+      {loading ? (
+        <Spinner />
+      ) : filtered.length === 0 ? (
         <Card>
           <div className="text-sm text-ink-muted text-center py-6">該当する固定費がありません</div>
         </Card>
@@ -262,7 +283,7 @@ export default function FixedExpenseList({
         })()
       ) : (
         <Card>{renderRows(filtered)}</Card>
-      ))}
+      )}
 
       <div className="h-24" />
 
@@ -282,11 +303,15 @@ export default function FixedExpenseList({
         isOpen={editing !== null}
         onClose={formHeaderState?.onBack ?? closeEditing}
         title={formHeaderState?.title ?? (editing === 'new' ? '固定費を追加' : '固定費を編集')}
-        rightAction={formHeaderState?.action ? {
-          onClick: formHeaderState.action.onClick,
-          disabled: formHeaderState.action.disabled,
-          tone: 'danger',
-        } : undefined}
+        rightAction={
+          formHeaderState?.action
+            ? {
+                onClick: formHeaderState.action.onClick,
+                disabled: formHeaderState.action.disabled,
+                tone: 'danger',
+              }
+            : undefined
+        }
         footer={
           <button
             type="button"

@@ -26,7 +26,9 @@ export const WithHeader: Story = {
   render: () => (
     <Card className="w-72">
       <div className="px-4 py-3 border-b border-line-subtle bg-surface-hover">
-        <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">セクション</span>
+        <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+          セクション
+        </span>
       </div>
       <div className="divide-y divide-line-subtle">
         <div className="px-4 py-3.5 text-sm text-ink flex items-center justify-between">

@@ -45,11 +45,21 @@ export const AllVariants: Story = {
       <Button variant="primary">プライマリ</Button>
       <Button variant="secondary">セカンダリ</Button>
       <Button variant="danger">危険操作</Button>
-      <Button variant="ghost" className="text-danger-500">ゴースト（削除）</Button>
-      <Button variant="primary" size="sm">小サイズ</Button>
-      <Button variant="primary" size="lg">大サイズ</Button>
-      <Button variant="primary" size="fab" className="w-full rounded-[2rem]">FAB</Button>
-      <Button variant="primary" disabled>無効化</Button>
+      <Button variant="ghost" className="text-danger-500">
+        ゴースト（削除）
+      </Button>
+      <Button variant="primary" size="sm">
+        小サイズ
+      </Button>
+      <Button variant="primary" size="lg">
+        大サイズ
+      </Button>
+      <Button variant="primary" size="fab" className="w-full rounded-[2rem]">
+        FAB
+      </Button>
+      <Button variant="primary" disabled>
+        無効化
+      </Button>
     </div>
   ),
 }

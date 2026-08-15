@@ -28,7 +28,8 @@ export function useTransactionFilters(
   const typeFilter = controlledTypeCategoryFilter?.typeFilter ?? internalTypeFilter
   const setTypeFilter = controlledTypeCategoryFilter?.setTypeFilter ?? setInternalTypeFilter
   const categoryFilter = controlledTypeCategoryFilter?.categoryFilter ?? internalCategoryFilter
-  const setCategoryFilter = controlledTypeCategoryFilter?.setCategoryFilter ?? setInternalCategoryFilter
+  const setCategoryFilter =
+    controlledTypeCategoryFilter?.setCategoryFilter ?? setInternalCategoryFilter
   const [internalDateFrom, setInternalDateFrom] = useState<string>('')
   const [internalDateTo, setInternalDateTo] = useState<string>('')
   const dateFrom = controlledDateRange?.dateFrom ?? internalDateFrom
@@ -37,7 +38,8 @@ export function useTransactionFilters(
   const setDateTo = controlledDateRange?.setDateTo ?? setInternalDateTo
   const [filterOpen, setFilterOpen] = useState(false)
 
-  const isFiltered = typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom !== '' || dateTo !== ''
+  const isFiltered =
+    typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom !== '' || dateTo !== ''
   const hasDateRange = dateFrom !== '' && dateTo !== ''
 
   const monthTx = useMemo(

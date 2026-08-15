@@ -23,7 +23,10 @@ export default function NewMonthBudgetDialog({ userId }: Props) {
 
   const [copying, setCopying] = useState(false)
 
-  const { data: currentBudget, isLoading: currentBudgetLoading } = useBudgetQuery(userId, currentMonth)
+  const { data: currentBudget, isLoading: currentBudgetLoading } = useBudgetQuery(
+    userId,
+    currentMonth
+  )
   const { data: lastBudget, isLoading: lastBudgetLoading } = useBudgetQuery(userId, lastMonth)
   const { data: lastMonthTx = [], isLoading: txLoading } = useTransactionsQuery(userId, lastMonth)
   const { data: fixedExpenses = [] } = useFixedExpensesQuery(userId)
@@ -94,7 +97,9 @@ export default function NewMonthBudgetDialog({ userId }: Props) {
             ) : (
               <div className="bg-surface-subtle rounded-xl py-6 flex flex-col items-center gap-1">
                 <div className="text-xs text-ink-muted">先月の収支</div>
-                <div className={`text-4xl font-bold tracking-tight ${lastMonthBalance >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
+                <div
+                  className={`text-4xl font-bold tracking-tight ${lastMonthBalance >= 0 ? 'text-income-600' : 'text-danger-500'}`}
+                >
                   {(lastMonthBalance >= 0 ? '+' : '') + formatYen(lastMonthBalance)}
                 </div>
               </div>

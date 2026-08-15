@@ -11,7 +11,18 @@ export const CATEGORY_META: Record<string, { icon: string; description: string }
 }
 
 // 住居費と光熱費は同一ステップでまとめて表示する
-export type StepKey = 'intro' | '住居費+光熱費' | '通信費' | '保険' | '自動車' | '子ども・育児' | 'subscription' | 'その他' | 'review' | 'thanks' | 'guide'
+export type StepKey =
+  | 'intro'
+  | '住居費+光熱費'
+  | '通信費'
+  | '保険'
+  | '自動車'
+  | '子ども・育児'
+  | 'subscription'
+  | 'その他'
+  | 'review'
+  | 'thanks'
+  | 'guide'
 
 export interface MultiItem {
   name: string
@@ -98,10 +109,26 @@ export const STEPS: Step[] = [
 
 // 「固定費画面の使い方」ガイドで案内する項目
 export const GUIDE_ITEMS: { icon: string; title: string; description: string }[] = [
-  { icon: '📊', title: '固定費合計をひと目で確認', description: '画面上部のカードで、毎月の固定費合計がすぐにわかります。' },
-  { icon: '🗂️', title: 'タブで絞り込み', description: '「契約中」「解約済み」「見直し中」でタブを切り替えて確認できます。' },
-  { icon: '👆', title: 'タップして編集', description: '項目をタップすると、金額の変更や解約の記録ができます。' },
-  { icon: '➕', title: '新しい固定費を追加', description: '右下の＋ボタンから、いつでも新しい固定費を追加できます。' },
+  {
+    icon: '📊',
+    title: '固定費合計をひと目で確認',
+    description: '画面上部のカードで、毎月の固定費合計がすぐにわかります。',
+  },
+  {
+    icon: '🗂️',
+    title: 'タブで絞り込み',
+    description: '「契約中」「解約済み」「見直し中」でタブを切り替えて確認できます。',
+  },
+  {
+    icon: '👆',
+    title: 'タップして編集',
+    description: '項目をタップすると、金額の変更や解約の記録ができます。',
+  },
+  {
+    icon: '➕',
+    title: '新しい固定費を追加',
+    description: '右下の＋ボタンから、いつでも新しい固定費を追加できます。',
+  },
 ]
 
 // StepKey に対応するカテゴリ一覧（住居費+光熱費 は2カテゴリ）
@@ -114,8 +141,17 @@ const STEP_CATEGORIES: Record<string, string[]> = {
 }
 
 // データ入力ステップのキー一覧（データ入力以外の案内ステップを除く）
-const NON_DATA_STEP_KEYS: StepKey[] = ['intro', 'subscription', 'その他', 'review', 'thanks', 'guide']
-export const DATA_STEP_KEYS = STEPS.filter((s) => !NON_DATA_STEP_KEYS.includes(s.key)).map((s) => s.key)
+const NON_DATA_STEP_KEYS: StepKey[] = [
+  'intro',
+  'subscription',
+  'その他',
+  'review',
+  'thanks',
+  'guide',
+]
+export const DATA_STEP_KEYS = STEPS.filter((s) => !NON_DATA_STEP_KEYS.includes(s.key)).map(
+  (s) => s.key
+)
 
 // ステップに対応するカテゴリ群から既存データを事前入力した MultiItem[] を作る
 export function buildItemsForStep(stepKey: StepKey, fixedExpenses: FixedExpense[]): MultiItem[] {

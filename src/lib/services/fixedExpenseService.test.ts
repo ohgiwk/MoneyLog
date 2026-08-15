@@ -45,7 +45,13 @@ describe('fixedExpenseService.fetchByUser', () => {
 
 describe('fixedExpenseService.insert', () => {
   it('fixed_expenses テーブルに insert し、作成された行を返す', async () => {
-    const createdRow = { id: 'fe-1', user_id: 'u1', name: '家賃', category: '住居費', amount: 80000 }
+    const createdRow = {
+      id: 'fe-1',
+      user_id: 'u1',
+      name: '家賃',
+      category: '住居費',
+      amount: 80000,
+    }
     const singleMock = vi.fn().mockResolvedValue({ data: createdRow, error: null })
     const selectMock = vi.fn().mockReturnValue({ single: singleMock })
     const insertMock = vi.fn().mockReturnValue({ select: selectMock })
@@ -152,7 +158,9 @@ describe('fixedExpenseService.delete', () => {
 
 describe('fixedExpenseService.fetchByUserWithIds', () => {
   it('指定した ids に合致する固定費を返す', async () => {
-    const mockData = [{ id: 'fe-1', user_id: 'u1', name: '家賃', category: '住居費', amount: 80000 }]
+    const mockData = [
+      { id: 'fe-1', user_id: 'u1', name: '家賃', category: '住居費', amount: 80000 },
+    ]
     const inMock = vi.fn().mockResolvedValue({ data: mockData, error: null })
     const eqMock = vi.fn().mockReturnValue({ in: inMock })
     const selectMock = vi.fn().mockReturnValue({ eq: eqMock })

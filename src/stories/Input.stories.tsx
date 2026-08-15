@@ -31,7 +31,13 @@ export const Disabled: Story = {
 }
 
 export const Number: Story = {
-  args: { variant: 'dialog', type: 'number', inputMode: 'numeric', placeholder: '0', className: 'w-64' },
+  args: {
+    variant: 'dialog',
+    type: 'number',
+    inputMode: 'numeric',
+    placeholder: '0',
+    className: 'w-64',
+  },
 }
 
 export const AllVariants: Story = {

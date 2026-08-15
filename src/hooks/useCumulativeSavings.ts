@@ -60,7 +60,9 @@ export function useCumulativeSavings(userId: string) {
     }
 
     calculate()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [userId])
 
   return { total, monthlyAverage, loading }

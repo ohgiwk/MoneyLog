@@ -26,7 +26,9 @@ export default function ConsumablePurchaseDialog({
   onCancel,
 }: Props) {
   const getDefaultCategory = (c: Consumable | null) =>
-    c && expenseCategories.some((cat) => cat.name === c.category) ? c.category : expenseCategories[0]?.name ?? ''
+    c && expenseCategories.some((cat) => cat.name === c.category)
+      ? c.category
+      : (expenseCategories[0]?.name ?? '')
   const getDefaultAmount = (c: Consumable | null) =>
     c ? c.amount * c.quantity * (c.members_scale ? householdMembers : 1) : 0
 
@@ -58,8 +60,14 @@ export default function ConsumablePurchaseDialog({
   async function handleSubmit() {
     if (!consumable) return
     const parsed = parseInt(amount, 10)
-    if (!category) { setError('カテゴリを選択してください'); return }
-    if (isNaN(parsed) || parsed <= 0) { setError('金額を入力してください'); return }
+    if (!category) {
+      setError('カテゴリを選択してください')
+      return
+    }
+    if (isNaN(parsed) || parsed <= 0) {
+      setError('金額を入力してください')
+      return
+    }
     setError(null)
     setSubmitting(true)
     try {
@@ -92,7 +100,8 @@ export default function ConsumablePurchaseDialog({
             <p className="text-xs text-ink-muted mb-0.5">定期購入品目</p>
             <p className="text-sm font-semibold text-ink-strong">{c.name}</p>
             <p className="text-xs text-ink-muted mt-0.5">
-              {c.amount}円 × {c.quantity}個{c.members_scale ? ` × ${householdMembers}人` : ''} = ¥{getDefaultAmount(c).toLocaleString()}
+              {c.amount}円 × {c.quantity}個{c.members_scale ? ` × ${householdMembers}人` : ''} = ¥
+              {getDefaultAmount(c).toLocaleString()}
             </p>
           </div>
 

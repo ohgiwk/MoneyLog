@@ -18,7 +18,7 @@ export function useTransactionInsert(userId: string) {
   return useMutation({
     mutationFn: (data: TransactionInsert) => transactionService.insert(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(userId, '') .slice(0, 2) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(userId, '').slice(0, 2) })
     },
   })
 }

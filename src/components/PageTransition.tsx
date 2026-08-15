@@ -38,7 +38,13 @@ interface Props {
 // transform を持つ motion.div が containing block になった際に高さがコンテンツ量で伸縮せず、
 // fixed 要素が本来のビューポート位置からズレない。アニメーションと一緒に fixed 要素も動かしたい
 // 画面（アプリ全体のシェル）で使う。
-export default function PageTransition({ pageKey, direction, children, className, fillHeight }: Props) {
+export default function PageTransition({
+  pageKey,
+  direction,
+  children,
+  className,
+  fillHeight,
+}: Props) {
   return (
     <div
       className={'relative overflow-hidden grid' + (className ? ' ' + className : '')}

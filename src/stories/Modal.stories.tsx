@@ -22,8 +22,12 @@ function CenterModalDemo() {
             本当に削除しますか？この操作は元に戻せません。
           </p>
           <div className="flex gap-3">
-            <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>キャンセル</Button>
-            <Button variant="danger" size="sm" onClick={() => setOpen(false)}>削除する</Button>
+            <Button variant="secondary" size="sm" onClick={() => setOpen(false)}>
+              キャンセル
+            </Button>
+            <Button variant="danger" size="sm" onClick={() => setOpen(false)}>
+              削除する
+            </Button>
           </div>
         </div>
       </Modal>
@@ -36,11 +40,18 @@ function BottomModalDemo() {
   return (
     <div className="p-8">
       <Button onClick={() => setOpen(true)}>下からモーダルを開く</Button>
-      <Modal isOpen={open} onClose={() => setOpen(false)} position="bottom" className="w-full max-w-md p-5 pb-8">
+      <Modal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        position="bottom"
+        className="w-full max-w-md p-5 pb-8"
+      >
         <h2 className="text-base font-bold text-ink-strong mb-4">タイトル</h2>
         <p className="text-sm text-ink mb-4">ここにフォームが入ります</p>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setOpen(false)}>キャンセル</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            キャンセル
+          </Button>
           <Button onClick={() => setOpen(false)}>確定</Button>
         </div>
       </Modal>

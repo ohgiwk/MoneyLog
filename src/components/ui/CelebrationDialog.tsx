@@ -13,7 +13,12 @@ function randomBetween(a: number, b: number) {
   return a + Math.random() * (b - a)
 }
 
-export default function CelebrationDialog({ savingsMonthly, savingsYearly, itemName, onClose }: Props) {
+export default function CelebrationDialog({
+  savingsMonthly,
+  savingsYearly,
+  itemName,
+  onClose,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -74,10 +79,7 @@ export default function CelebrationDialog({ savingsMonthly, savingsYearly, itemN
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* バックドロップ */}
-      <div
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       {/* 紙吹雪キャンバス */}
       <canvas
         ref={canvasRef}
@@ -97,12 +99,8 @@ export default function CelebrationDialog({ savingsMonthly, savingsYearly, itemN
 
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 space-y-1">
           <p className="text-xs text-green-600 font-medium">削減できる金額</p>
-          <p className="text-2xl font-bold text-green-700">
-            月 ¥{savingsMonthly.toLocaleString()}
-          </p>
-          <p className="text-sm text-green-600">
-            年間 ¥{savingsYearly.toLocaleString()} の節約！
-          </p>
+          <p className="text-2xl font-bold text-green-700">月 ¥{savingsMonthly.toLocaleString()}</p>
+          <p className="text-sm text-green-600">年間 ¥{savingsYearly.toLocaleString()} の節約！</p>
         </div>
 
         <button

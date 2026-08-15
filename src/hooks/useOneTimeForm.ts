@@ -74,9 +74,11 @@ export function useOneTimeForm({
 
   const { values, setValue, setValues, isSubmitting, setIsSubmitting, error, setError, reset } =
     useForm<OneTimeFormValues>(
-      editingTx ? buildValuesFromTx(editingTx)
-      : duplicateTx ? buildDuplicateValues(duplicateTx)
-      : buildDefaultValues()
+      editingTx
+        ? buildValuesFromTx(editingTx)
+        : duplicateTx
+          ? buildDuplicateValues(duplicateTx)
+          : buildDefaultValues()
     )
 
   const { isDirty, resetSnapshot } = useIsDirty(values)
@@ -172,7 +174,10 @@ export function useOneTimeForm({
           amount: amt,
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
-          meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
+          meal_type:
+            values.type === 'expense' && values.category === '食費'
+              ? values.mealType || null
+              : null,
           payment_type: values.type === 'expense' ? values.paymentType || null : null,
           payment_method:
             values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
@@ -190,7 +195,10 @@ export function useOneTimeForm({
           amount: amt,
           memo: values.memo.trim() || null,
           store_type: values.type === 'expense' ? values.storeType || null : null,
-          meal_type: values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
+          meal_type:
+            values.type === 'expense' && values.category === '食費'
+              ? values.mealType || null
+              : null,
           payment_type: values.type === 'expense' ? values.paymentType || null : null,
           payment_method:
             values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'

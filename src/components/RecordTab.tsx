@@ -18,7 +18,14 @@ interface Props {
 }
 
 export default function RecordTab({ userId }: Props) {
-  const { month, setMonth, editingTx, setEditingTx, recordTapKey: resetSignal, categories } = useAppContext()
+  const {
+    month,
+    setMonth,
+    editingTx,
+    setEditingTx,
+    recordTapKey: resetSignal,
+    categories,
+  } = useAppContext()
   const expenseCategories = categories.expenseCategories
   const incomeCategories = categories.incomeCategories
   const queryClient = useQueryClient()
@@ -38,7 +45,11 @@ export default function RecordTab({ userId }: Props) {
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const monthStartDay = profile?.month_start_day ?? 1
 
-  const { data: transactions = [], isError: txError, isFetching: txLoading } = useTransactionsQuery(userId, month, monthStartDay)
+  const {
+    data: transactions = [],
+    isError: txError,
+    isFetching: txLoading,
+  } = useTransactionsQuery(userId, month, monthStartDay)
   const deleteMutation = useTransactionDelete(userId)
   const { data: budget, isError: budgetError } = useBudgetQuery(userId, month)
   const oneTimeBudget = budget ? oneTimeBudgetTotal(budget) : 0
@@ -49,9 +60,10 @@ export default function RecordTab({ userId }: Props) {
     enabled: !!userId,
   })
 
-  const fetchError = profileError || txError || budgetError || availableMonthsError
-    ? 'データの読み込みに失敗しました'
-    : null
+  const fetchError =
+    profileError || txError || budgetError || availableMonthsError
+      ? 'データの読み込みに失敗しました'
+      : null
 
   const loading = txLoading && transactions.length === 0
 
@@ -74,7 +86,9 @@ export default function RecordTab({ userId }: Props) {
     }
   }
   useEffect(() => {
-    if (editingTx) { /* scroll reset handled by route transition */ }
+    if (editingTx) {
+      /* scroll reset handled by route transition */
+    }
   }, [editingTx]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 月開始日が確定したら、現在いるべき集計期間に補正する（初回のみ）
@@ -93,7 +107,8 @@ export default function RecordTab({ userId }: Props) {
       setRangeTransactions(null)
       return
     }
-    transactionService.fetchByDateRange(userId, dateFrom, dateTo)
+    transactionService
+      .fetchByDateRange(userId, dateFrom, dateTo)
       .then(setRangeTransactions)
       .catch(() => {})
   }, [userId, dateFrom, dateTo])
@@ -164,23 +179,35 @@ export default function RecordTab({ userId }: Props) {
         onClose={closeModal}
         title={
           formEditingTx
-            ? (formType === 'income' ? '収入を編集' : '出費を編集')
+            ? formType === 'income'
+              ? '収入を編集'
+              : '出費を編集'
             : formDuplicateTx
-            ? (formType === 'income' ? '収入を複製' : '出費を複製')
-            : (formType === 'income' ? '収入を入力' : '出費を入力')
+              ? formType === 'income'
+                ? '収入を複製'
+                : '出費を複製'
+              : formType === 'income'
+                ? '収入を入力'
+                : '出費を入力'
         }
-        rightAction={formHeaderState?.action ? {
-          onClick: formHeaderState.action.onClick,
-          disabled: formHeaderState.action.disabled,
-          tone: 'danger',
-        } : undefined}
+        rightAction={
+          formHeaderState?.action
+            ? {
+                onClick: formHeaderState.action.onClick,
+                disabled: formHeaderState.action.disabled,
+                tone: 'danger',
+              }
+            : undefined
+        }
         footer={
           <button
             type="button"
             onClick={() => submitRef.current?.()}
             className={
               'w-full py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold ' +
-              (formType === 'expense' ? 'bg-danger-500 active:bg-danger-600' : 'bg-income-500 active:bg-income-600')
+              (formType === 'expense'
+                ? 'bg-danger-500 active:bg-danger-600'
+                : 'bg-income-500 active:bg-income-600')
             }
           >
             {formEditingTx ? '更新する' : formDuplicateTx ? '複製して記録する' : '記録する'}

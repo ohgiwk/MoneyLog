@@ -5,7 +5,12 @@ interface Props {
   yearLabel?: string
 }
 
-export default function PeriodToggle({ value, onChange, monthLabel = '月', yearLabel = '年' }: Props) {
+export default function PeriodToggle({
+  value,
+  onChange,
+  monthLabel = '月',
+  yearLabel = '年',
+}: Props) {
   return (
     <div className="shrink-0 flex rounded-lg border border-line overflow-hidden text-xs font-medium">
       <button

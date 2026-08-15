@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import FabButton from './ui/FabButton'
 import { useQueryClient } from '@tanstack/react-query'
-import { useWishlistQuery, useWishlistInsert, useWishlistUpdate, useWishlistDelete } from '../hooks/queries/useWishlistQuery'
+import {
+  useWishlistQuery,
+  useWishlistInsert,
+  useWishlistUpdate,
+  useWishlistDelete,
+} from '../hooks/queries/useWishlistQuery'
 import type { WishlistItem } from '../lib/services/wishlistService'
 import { useCumulativeSavings } from '../hooks/useCumulativeSavings'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -22,11 +27,7 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 
 interface Props {
   userId: string
@@ -41,10 +42,7 @@ interface FormState {
 
 const emptyForm = (): FormState => ({ name: '', price: '', targetYear: '', targetMonth: '' })
 
-type TopItemStatus =
-  | { kind: 'achieved' }
-  | { kind: 'months'; count: number }
-  | { kind: 'no-data' }
+type TopItemStatus = { kind: 'achieved' } | { kind: 'months'; count: number } | { kind: 'no-data' }
 
 export default function WishlistPanel({ userId }: Props) {
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
@@ -62,8 +60,8 @@ export default function WishlistPanel({ userId }: Props) {
 
   const { total, monthlyAverage, loading: savingsLoading } = useCumulativeSavings(userId)
 
-  const activeItems = items.filter(i => !i.purchased_at)
-  const achievedItems = items.filter(i => !!i.purchased_at)
+  const activeItems = items.filter((i) => !i.purchased_at)
+  const achievedItems = items.filter((i) => !!i.purchased_at)
   const topItem = activeItems.length > 0 ? activeItems[0] : null
 
   let topItemStatus: TopItemStatus | null = null
@@ -71,7 +69,10 @@ export default function WishlistPanel({ userId }: Props) {
     if (total >= topItem.target_amount) {
       topItemStatus = { kind: 'achieved' }
     } else if (monthlyAverage > 0) {
-      topItemStatus = { kind: 'months', count: Math.ceil((topItem.target_amount - total) / monthlyAverage) }
+      topItemStatus = {
+        kind: 'months',
+        count: Math.ceil((topItem.target_amount - total) / monthlyAverage),
+      }
     } else {
       topItemStatus = { kind: 'no-data' }
     }
@@ -81,20 +82,22 @@ export default function WishlistPanel({ userId }: Props) {
 
   const renormalize = async (ordered: WishlistItem[]) => {
     await Promise.all(
-      ordered.map((item, i) => updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } }))
+      ordered.map((item, i) =>
+        updateMutation.mutateAsync({ id: item.id, data: { priority: i + 1 } })
+      )
     )
   }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   )
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    const oldIndex = activeItems.findIndex(i => i.id === active.id)
-    const newIndex = activeItems.findIndex(i => i.id === over.id)
+    const oldIndex = activeItems.findIndex((i) => i.id === active.id)
+    const newIndex = activeItems.findIndex((i) => i.id === over.id)
     const reordered = arrayMove(activeItems, oldIndex, newIndex)
     queryClient.setQueryData(['wishlist', userId], [...reordered, ...achievedItems])
     try {
@@ -131,15 +134,23 @@ export default function WishlistPanel({ userId }: Props) {
   }
 
   const handleSave = async () => {
-    if (!form.name.trim()) { setError('商品名を入力してください'); return }
-    if (!form.price) { setError('金額を入力してください'); return }
+    if (!form.name.trim()) {
+      setError('商品名を入力してください')
+      return
+    }
+    if (!form.price) {
+      setError('金額を入力してください')
+      return
+    }
     setError(null)
     try {
       if (editing === 'new') {
-        const targetDate = form.targetYear && form.targetMonth
-        ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
-        : null
-        const nextPriority = activeItems.length > 0 ? activeItems[activeItems.length - 1].priority + 1 : 1
+        const targetDate =
+          form.targetYear && form.targetMonth
+            ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
+            : null
+        const nextPriority =
+          activeItems.length > 0 ? activeItems[activeItems.length - 1].priority + 1 : 1
         await insertMutation.mutateAsync({
           user_id: userId,
           name: form.name.trim(),
@@ -150,12 +161,17 @@ export default function WishlistPanel({ userId }: Props) {
           notes: null,
         })
       } else if (editing) {
-        const targetDate = form.targetYear && form.targetMonth
-          ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
-          : null
+        const targetDate =
+          form.targetYear && form.targetMonth
+            ? `${form.targetYear}-${String(form.targetMonth).padStart(2, '0')}-01`
+            : null
         await updateMutation.mutateAsync({
           id: editing.id,
-          data: { name: form.name.trim(), target_amount: Number(form.price), target_date: targetDate },
+          data: {
+            name: form.name.trim(),
+            target_amount: Number(form.price),
+            target_date: targetDate,
+          },
         })
       }
       closeForm()
@@ -169,7 +185,7 @@ export default function WishlistPanel({ userId }: Props) {
     setConfirmDelete(false)
     try {
       await deleteMutation.mutateAsync(editing.id)
-      const remaining = activeItems.filter(i => i.id !== (editing as WishlistItem).id)
+      const remaining = activeItems.filter((i) => i.id !== (editing as WishlistItem).id)
       await renormalize(remaining)
       closeForm()
     } catch {
@@ -196,7 +212,7 @@ export default function WishlistPanel({ userId }: Props) {
         id: celebrationItem.id,
         data: { purchased_at: todayStr() },
       })
-      const remaining = activeItems.filter(i => i.id !== celebrationItem.id)
+      const remaining = activeItems.filter((i) => i.id !== celebrationItem.id)
       await renormalize(remaining)
       setCelebrationItem(null)
     } catch {
@@ -229,8 +245,11 @@ export default function WishlistPanel({ userId }: Props) {
                     {savingsLoading ? (
                       <div className="text-base font-bold text-ink-muted">計算中...</div>
                     ) : (
-                      <div className={`text-lg font-bold ${(total ?? 0) >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
-                        {(total ?? 0) >= 0 ? '+' : ''}{formatYen(total ?? 0)}
+                      <div
+                        className={`text-lg font-bold ${(total ?? 0) >= 0 ? 'text-income-600' : 'text-danger-500'}`}
+                      >
+                        {(total ?? 0) >= 0 ? '+' : ''}
+                        {formatYen(total ?? 0)}
                       </div>
                     )}
                   </div>
@@ -239,8 +258,11 @@ export default function WishlistPanel({ userId }: Props) {
                     {savingsLoading ? (
                       <div className="text-sm text-ink-muted">...</div>
                     ) : (
-                      <div className={`text-sm font-semibold ${(monthlyAverage ?? 0) >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
-                        {(monthlyAverage ?? 0) >= 0 ? '+' : ''}{formatYen(monthlyAverage ?? 0)} / 月
+                      <div
+                        className={`text-sm font-semibold ${(monthlyAverage ?? 0) >= 0 ? 'text-income-600' : 'text-danger-500'}`}
+                      >
+                        {(monthlyAverage ?? 0) >= 0 ? '+' : ''}
+                        {formatYen(monthlyAverage ?? 0)} / 月
                       </div>
                     )}
                   </div>
@@ -251,10 +273,16 @@ export default function WishlistPanel({ userId }: Props) {
                   <div className="border-t border-line-subtle pt-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-xs bg-warning-400 text-white rounded-full w-5 h-5 flex-shrink-0 flex items-center justify-center font-bold">1</span>
-                        <span className="text-sm font-medium text-ink-strong truncate">{topItem.name}</span>
+                        <span className="text-xs bg-warning-400 text-white rounded-full w-5 h-5 flex-shrink-0 flex items-center justify-center font-bold">
+                          1
+                        </span>
+                        <span className="text-sm font-medium text-ink-strong truncate">
+                          {topItem.name}
+                        </span>
                       </div>
-                      <span className="text-xs text-ink-muted flex-shrink-0">¥{topItem.target_amount.toLocaleString()}</span>
+                      <span className="text-xs text-ink-muted flex-shrink-0">
+                        ¥{topItem.target_amount.toLocaleString()}
+                      </span>
                     </div>
 
                     {/* プログレスバー */}
@@ -263,12 +291,17 @@ export default function WishlistPanel({ userId }: Props) {
                         <div className="h-2 bg-surface-muted rounded-full overflow-hidden">
                           <div
                             className="h-full bg-income-500 rounded-full transition-all duration-500"
-                            style={{ width: `${Math.max(0, Math.min((total / topItem.target_amount) * 100, 100))}%` }}
+                            style={{
+                              width: `${Math.max(0, Math.min((total / topItem.target_amount) * 100, 100))}%`,
+                            }}
                           />
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-ink-muted">
-                            {Math.round(Math.max(0, Math.min((total / topItem.target_amount) * 100, 100)))}%
+                            {Math.round(
+                              Math.max(0, Math.min((total / topItem.target_amount) * 100, 100))
+                            )}
+                            %
                           </span>
                           {topItemStatus?.kind === 'achieved' ? (
                             <button
@@ -278,7 +311,9 @@ export default function WishlistPanel({ userId }: Props) {
                               達成済み ✓
                             </button>
                           ) : topItemStatus?.kind === 'months' ? (
-                            <span className="text-xs font-semibold text-primary-600">あと{topItemStatus.count}ヶ月で達成見込み</span>
+                            <span className="text-xs font-semibold text-primary-600">
+                              あと{topItemStatus.count}ヶ月で達成見込み
+                            </span>
                           ) : topItemStatus?.kind === 'no-data' ? (
                             <span className="text-xs text-ink-muted">データ不足</span>
                           ) : null}
@@ -292,17 +327,25 @@ export default function WishlistPanel({ userId }: Props) {
 
             {/* アクティブリスト */}
             {activeItems.length > 0 && (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={activeItems.map((i) => i.id)}
+                  strategy={verticalListSortingStrategy}
+                >
                   <ul className="space-y-3">
                     {activeItems.map((item) => (
                       <SortableWishlistItem
                         key={item.id}
                         item={item}
                         onEdit={openEdit}
-                        detail={item.target_date
-                          ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
-                          : item.notes ?? undefined
+                        detail={
+                          item.target_date
+                            ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
+                            : (item.notes ?? undefined)
                         }
                       />
                     ))}
@@ -316,8 +359,11 @@ export default function WishlistPanel({ userId }: Props) {
               <div className="mt-6">
                 <div className="text-xs text-ink-muted mb-2 px-1">達成済み</div>
                 <ul className="space-y-2">
-                  {achievedItems.map(item => (
-                    <li key={item.id} className="bg-surface rounded-xl px-4 py-3 flex items-center gap-3 opacity-60">
+                  {achievedItems.map((item) => (
+                    <li
+                      key={item.id}
+                      className="bg-surface rounded-xl px-4 py-3 flex items-center gap-3 opacity-60"
+                    >
                       <span className="text-income-600 text-base flex-shrink-0">✓</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-ink text-sm truncate line-through">{item.name}</p>
@@ -327,16 +373,27 @@ export default function WishlistPanel({ userId }: Props) {
                           </p>
                         )}
                       </div>
-                      <span className="text-ink-muted text-sm flex-shrink-0 mr-1">¥{item.target_amount.toLocaleString()}</span>
+                      <span className="text-ink-muted text-sm flex-shrink-0 mr-1">
+                        ¥{item.target_amount.toLocaleString()}
+                      </span>
                       <button
                         onClick={() => handleRevertAchieved(item)}
                         disabled={saving}
                         className="text-ink-muted active:text-ink flex-shrink-0 p-1 disabled:opacity-40"
                         aria-label="達成を取り消す"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                          <path d="M3 3v5h5"/>
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
                         </svg>
                       </button>
                     </li>
@@ -357,11 +414,15 @@ export default function WishlistPanel({ userId }: Props) {
         isOpen={editing !== null}
         onClose={closeForm}
         title={editing === 'new' ? '目標を追加' : '目標を編集'}
-        rightAction={editing !== null && editing !== 'new' ? {
-          onClick: () => setConfirmDelete(true),
-          disabled: saving,
-          tone: 'danger',
-        } : undefined}
+        rightAction={
+          editing !== null && editing !== 'new'
+            ? {
+                onClick: () => setConfirmDelete(true),
+                disabled: saving,
+                tone: 'danger',
+              }
+            : undefined
+        }
         footer={
           <button
             type="button"
@@ -381,7 +442,7 @@ export default function WishlistPanel({ userId }: Props) {
               <Input
                 type="text"
                 value={form.name}
-                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="例：新しいスニーカー"
               />
             </div>
@@ -390,7 +451,7 @@ export default function WishlistPanel({ userId }: Props) {
               <Input
                 type="number"
                 value={form.price}
-                onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                 placeholder="例：12000"
                 inputMode="numeric"
               />
@@ -400,22 +461,26 @@ export default function WishlistPanel({ userId }: Props) {
               <div className="flex gap-2">
                 <select
                   value={form.targetYear}
-                  onChange={e => setForm(f => ({ ...f, targetYear: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, targetYear: e.target.value }))}
                   className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 >
                   <option value="">年</option>
-                  {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map(y => (
-                    <option key={y} value={String(y)}>{y}年</option>
+                  {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map((y) => (
+                    <option key={y} value={String(y)}>
+                      {y}年
+                    </option>
                   ))}
                 </select>
                 <select
                   value={form.targetMonth}
-                  onChange={e => setForm(f => ({ ...f, targetMonth: e.target.value }))}
+                  onChange={(e) => setForm((f) => ({ ...f, targetMonth: e.target.value }))}
                   className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 >
                   <option value="">月</option>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                    <option key={m} value={String(m)}>{m}月</option>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <option key={m} value={String(m)}>
+                      {m}月
+                    </option>
                   ))}
                 </select>
               </div>
@@ -435,12 +500,19 @@ export default function WishlistPanel({ userId }: Props) {
 
       {/* 達成お祝いダイアログ */}
       {celebrationItem && (
-        <Modal isOpen onClose={() => setCelebrationItem(null)} position="center" className="w-full max-w-sm mx-4 px-5 pt-6 pb-6">
+        <Modal
+          isOpen
+          onClose={() => setCelebrationItem(null)}
+          position="center"
+          className="w-full max-w-sm mx-4 px-5 pt-6 pb-6"
+        >
           <div className="text-center space-y-2">
             <div className="text-5xl">🎉</div>
             <div className="text-lg font-bold text-ink-strong">おめでとうございます！</div>
             <div className="text-sm text-ink-muted leading-relaxed">
-              「{celebrationItem.name}」の<br />目標を達成しました！
+              「{celebrationItem.name}」の
+              <br />
+              目標を達成しました！
             </div>
             <div className="text-2xl font-bold text-income-600 pt-1">
               {formatYen(celebrationItem.target_amount)}

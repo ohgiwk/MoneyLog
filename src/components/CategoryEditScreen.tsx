@@ -16,8 +16,17 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function CategoryEditScreen() {
   const navigate = useNavigate()
   const { categories } = useAppContext()
-  const { expenseCategories, incomeCategories, fixedCategories, updateExpenseCategories, updateIncomeCategories, updateFixedCategories } = categories
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  const {
+    expenseCategories,
+    incomeCategories,
+    fixedCategories,
+    updateExpenseCategories,
+    updateIncomeCategories,
+    updateFixedCategories,
+  } = categories
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
   const expenseRef = useRef<CategoryListHandle>(null)
   const incomeRef = useRef<CategoryListHandle>(null)
@@ -53,13 +62,25 @@ export default function CategoryEditScreen() {
 
       <div className="flex-1 p-4 overflow-y-auto pb-24">
         {activeTab === 'expense' && (
-          <CategoryList ref={expenseRef} categories={expenseCategories} onChange={updateExpenseCategories} />
+          <CategoryList
+            ref={expenseRef}
+            categories={expenseCategories}
+            onChange={updateExpenseCategories}
+          />
         )}
         {activeTab === 'income' && (
-          <CategoryList ref={incomeRef} categories={incomeCategories} onChange={updateIncomeCategories} />
+          <CategoryList
+            ref={incomeRef}
+            categories={incomeCategories}
+            onChange={updateIncomeCategories}
+          />
         )}
         {activeTab === 'fixed' && (
-          <CategoryList ref={fixedRef} categories={fixedCategories} onChange={updateFixedCategories} />
+          <CategoryList
+            ref={fixedRef}
+            categories={fixedCategories}
+            onChange={updateFixedCategories}
+          />
         )}
       </div>
 

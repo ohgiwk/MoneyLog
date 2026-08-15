@@ -19,7 +19,15 @@ interface Props {
   height?: string
 }
 
-export default function BottomSheet({ isOpen, onClose, title, rightAction, footer, children, height = '92dvh' }: Props) {
+export default function BottomSheet({
+  isOpen,
+  onClose,
+  title,
+  rightAction,
+  footer,
+  children,
+  height = '92dvh',
+}: Props) {
   const dragControls = useDragControls()
 
   return createPortal(
@@ -85,7 +93,17 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
                       }
                     >
                       {rightAction.label ?? (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
                           <polyline points="3 6 5 6 21 6" />
                           <path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6" />
                           <path d="M10 11v6" />
@@ -101,7 +119,17 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
                     className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover"
                     aria-label="閉じる"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
@@ -115,7 +143,8 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
               className="flex-1 min-h-0 overflow-y-auto px-4 pb-4"
               onFocus={(e) => {
                 const el = e.target as HTMLElement
-                if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT') return
+                if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.tagName !== 'SELECT')
+                  return
                 const container = e.currentTarget as HTMLElement
                 setTimeout(() => {
                   const elRect = el.getBoundingClientRect()
@@ -133,7 +162,10 @@ export default function BottomSheet({ isOpen, onClose, title, rightAction, foote
             {footer && (
               <div
                 className="flex-shrink-0 px-4 pt-3 bg-surface-subtle"
-                style={{ paddingBottom: 'max(0.75rem, calc(2rem + env(safe-area-inset-bottom) - var(--keyboard-height, 0px)))' }}
+                style={{
+                  paddingBottom:
+                    'max(0.75rem, calc(2rem + env(safe-area-inset-bottom) - var(--keyboard-height, 0px)))',
+                }}
               >
                 {footer}
               </div>

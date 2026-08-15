@@ -67,7 +67,6 @@ export default function OneTimeTransactionList({
           setCategoryFilter={setCategoryFilter}
         />
       </div>
-
     </>
   )
 }

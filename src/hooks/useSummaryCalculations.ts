@@ -40,7 +40,8 @@ export function useSummaryCalculations({
   const income = budget.income
 
   const consumableExpense = useMemo(
-    () => Math.round(consumables.reduce((s, c) => s + monthlyConsumableCost(c, householdMembers), 0)),
+    () =>
+      Math.round(consumables.reduce((s, c) => s + monthlyConsumableCost(c, householdMembers), 0)),
     [consumables, householdMembers]
   )
 
@@ -59,10 +60,7 @@ export function useSummaryCalculations({
 
   const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
 
-  const totalFixed = useMemo(
-    () => activeFixed.reduce((s, f) => s + toMonthly(f), 0),
-    [activeFixed]
-  )
+  const totalFixed = useMemo(() => activeFixed.reduce((s, f) => s + toMonthly(f), 0), [activeFixed])
 
   const totalSaved = useMemo(() => {
     const totalBaseline = activeFixed.reduce(
@@ -121,7 +119,9 @@ export function useSummaryCalculations({
 
   const oneTimeCategoryRows = useMemo(() => {
     const cats = new Set([
-      ...Object.keys(budget.oneTimeByCategory).filter((c) => (budget.oneTimeByCategory[c] ?? 0) > 0),
+      ...Object.keys(budget.oneTimeByCategory).filter(
+        (c) => (budget.oneTimeByCategory[c] ?? 0) > 0
+      ),
       ...[...weekOneTimeByCat.keys()],
     ])
     return [...cats].map((cat) => ({
@@ -159,7 +159,8 @@ export function useSummaryCalculations({
     return [...map.entries()].sort(([, a], [, b]) => b - a)
   }, [consumables, householdMembers])
 
-  const hasBreakdown = fixedByCat.length > 0 || consumableByCat.length > 0 || oneTimeByCat.length > 0
+  const hasBreakdown =
+    fixedByCat.length > 0 || consumableByCat.length > 0 || oneTimeByCat.length > 0
 
   return {
     income,

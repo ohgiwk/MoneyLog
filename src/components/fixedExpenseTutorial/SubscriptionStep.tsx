@@ -88,7 +88,9 @@ export function SubscriptionStep({
                     onClick={() => onCycleChange(p.name, 'monthly')}
                     className={
                       'px-2 py-1 transition ' +
-                      (cycle === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
+                      (cycle === 'monthly'
+                        ? 'bg-surface-strong text-white'
+                        : 'bg-surface text-ink-muted')
                     }
                   >
                     月
@@ -98,7 +100,9 @@ export function SubscriptionStep({
                     onClick={() => onCycleChange(p.name, 'yearly')}
                     className={
                       'px-2 py-1 transition border-l border-line ' +
-                      (cycle === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
+                      (cycle === 'yearly'
+                        ? 'bg-surface-strong text-white'
+                        : 'bg-surface text-ink-muted')
                     }
                   >
                     年

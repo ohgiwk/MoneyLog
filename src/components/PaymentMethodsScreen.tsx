@@ -10,9 +10,12 @@ const MANAGED_TYPES = PAYMENT_TYPES.filter((t) => t.type !== 'cash')
 
 export default function PaymentMethodsScreen() {
   const navigate = useNavigate()
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
-  const { methods, defaultPayment, addMethod, removeMethod, setDefaultPayment } = usePaymentMethods()
+  const { methods, defaultPayment, addMethod, removeMethod, setDefaultPayment } =
+    usePaymentMethods()
   const [newNames, setNewNames] = useState<Record<PaymentType, string>>({
     cash: '',
     credit_card: '',
@@ -57,7 +60,9 @@ export default function PaymentMethodsScreen() {
             >
               <span className="text-lg">💵</span>
               <span className="flex-1">現金</span>
-              {isDefault('cash', null) && <span className="text-primary-500 text-xs font-semibold">✓</span>}
+              {isDefault('cash', null) && (
+                <span className="text-primary-500 text-xs font-semibold">✓</span>
+              )}
             </button>
             {methods.length === 0 ? (
               <p className="text-xs text-ink-muted px-3 py-2">
@@ -122,7 +127,9 @@ export default function PaymentMethodsScreen() {
                     type="text"
                     value={newNames[t.type]}
                     onChange={(e) => setNewNames((prev) => ({ ...prev, [t.type]: e.target.value }))}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(t.type) }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAdd(t.type)
+                    }}
                     placeholder={`例: ${t.type === 'credit_card' ? '楽天カード' : t.type === 'emoney' ? 'Suica' : 'PayPay'}`}
                     className="flex-1"
                   />

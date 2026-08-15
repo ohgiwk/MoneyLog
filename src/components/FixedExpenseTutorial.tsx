@@ -88,28 +88,36 @@ export default function FixedExpenseTutorial({
   // review ページ用: 入力・選択済み項目を集計
   const reviewItems = useMemo(() => {
     const usdRate = getUsdJpyRate()
-    const items: { name: string; category: string; displayAmount: string; yearlyAmount: number }[] = []
+    const items: { name: string; category: string; displayAmount: string; yearlyAmount: number }[] =
+      []
     ;[...multiItems, customItems].forEach((stepItems) => {
       stepItems.forEach((item) => {
         const amt = parseFloat(item.amount)
         if (!isNaN(amt) && amt > 0) {
           const yearly = item.cycle === 'yearly' ? amt : amt * 12
-          items.push({ name: item.name, category: item.category, displayAmount: `¥${amt.toLocaleString()}`, yearlyAmount: yearly })
+          items.push({
+            name: item.name,
+            category: item.category,
+            displayAmount: `¥${amt.toLocaleString()}`,
+            yearlyAmount: yearly,
+          })
         }
       })
     })
     SUBSCRIPTION_PRESETS.filter((p) => selectedSubs.has(p.name)).forEach((p) => {
       const cycle = cycleOverrides.get(p.name) ?? p.cycle
-      const displayAmount = p.currency === 'USD'
-        ? cycle === 'yearly'
-          ? `$${(p.usdYearlyAmount ?? p.usdAmount ?? 0).toLocaleString()}/年`
-          : `$${(p.usdAmount ?? 0).toLocaleString()}/月`
-        : cycle === 'yearly'
-          ? `¥${(p.yearlyAmount ?? p.amount).toLocaleString()}/年`
-          : `¥${p.amount.toLocaleString()}/月`
+      const displayAmount =
+        p.currency === 'USD'
+          ? cycle === 'yearly'
+            ? `$${(p.usdYearlyAmount ?? p.usdAmount ?? 0).toLocaleString()}/年`
+            : `$${(p.usdAmount ?? 0).toLocaleString()}/月`
+          : cycle === 'yearly'
+            ? `¥${(p.yearlyAmount ?? p.amount).toLocaleString()}/年`
+            : `¥${p.amount.toLocaleString()}/月`
       let yearly: number
       if (p.currency === 'USD') {
-        const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0) * 12
+        const usdAmt =
+          cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0) * 12
         yearly = Math.round(usdAmt * usdRate)
       } else {
         yearly = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount * 12
@@ -120,7 +128,8 @@ export default function FixedExpenseTutorial({
   }, [multiItems, customItems, selectedSubs, cycleOverrides])
 
   const reviewingTotal = useMemo(
-    () => reviewItems.filter((i) => reviewingNames.has(i.name)).reduce((s, i) => s + i.yearlyAmount, 0),
+    () =>
+      reviewItems.filter((i) => reviewingNames.has(i.name)).reduce((s, i) => s + i.yearlyAmount, 0),
     [reviewItems, reviewingNames]
   )
 
@@ -155,7 +164,8 @@ export default function FixedExpenseTutorial({
         const existing = fixedExpenses.find(
           (f) => f.name === item.name && f.category === item.category
         )
-        const status: FixedExpense['status'] = amt === 0 ? 'unsubscribed' : reviewingNames.has(item.name) ? 'reviewing' : 'active'
+        const status: FixedExpense['status'] =
+          amt === 0 ? 'unsubscribed' : reviewingNames.has(item.name) ? 'reviewing' : 'active'
         if (existing) {
           updates.push({ id: existing.id, amount: amt, status })
         } else {
@@ -191,7 +201,8 @@ export default function FixedExpenseTutorial({
       const cycle = cycleOverrides.get(p.name) ?? p.cycle
       if (p.currency === 'USD') {
         usdSubsToInsert.push(p)
-        const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
+        const usdAmt =
+          cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
         const jpyAmount = Math.round(usdAmt * usdRate)
         inserts.push({
           user_id: userId,
@@ -240,7 +251,8 @@ export default function FixedExpenseTutorial({
         const cycle = cycleOverrides.get(p.name) ?? p.cycle
         const saved = savedSubs.find((f) => f.name === p.name && f.category === 'サブスク')
         if (saved) {
-          const usdAmt = cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
+          const usdAmt =
+            cycle === 'yearly' ? (p.usdYearlyAmount ?? p.usdAmount ?? 0) : (p.usdAmount ?? 0)
           setExpenseCurrencyMeta(saved.id, { currency: 'USD', usdAmount: usdAmt })
         }
       })
@@ -260,7 +272,17 @@ export default function FixedExpenseTutorial({
         className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover z-10"
         style={{ top: 'calc(1rem + env(safe-area-inset-top))' }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
@@ -271,7 +293,10 @@ export default function FixedExpenseTutorial({
           message="固定費の入力を終了してよろしいですか？"
           confirmLabel="終了する"
           cancelLabel="キャンセル"
-          onConfirm={() => { setCloseConfirmOpen(false); onClose() }}
+          onConfirm={() => {
+            setCloseConfirmOpen(false)
+            onClose()
+          }}
           onCancel={() => setCloseConfirmOpen(false)}
         />
       )}
@@ -292,7 +317,10 @@ export default function FixedExpenseTutorial({
       <div className="flex-1 overflow-hidden min-h-0">
         <div
           className="flex h-full transition-transform duration-300 ease-in-out"
-          style={{ transform: `translateX(-${stepIndex * (100 / totalSteps)}%)`, width: `${totalSteps * 100}%` }}
+          style={{
+            transform: `translateX(-${stepIndex * (100 / totalSteps)}%)`,
+            width: `${totalSteps * 100}%`,
+          }}
         >
           {STEPS.map((s, si) => {
             const dsi = DATA_STEP_KEYS.indexOf(s.key)
@@ -315,42 +343,59 @@ export default function FixedExpenseTutorial({
                     </div>
 
                     {/* 欲しいもの×削減効果パネル */}
-                    {wishItem && wishItem.target_amount != null && wishItem.target_amount > 0 && (() => {
-                      const pct = Math.min(100, Math.round((reviewingTotal / wishItem.target_amount) * 100))
-                      const monthsNeeded = reviewingTotal > 0
-                        ? Math.ceil(wishItem.target_amount / (reviewingTotal / 12))
-                        : null
-                      return (
-                        <div className="shrink-0 mb-3 bg-gradient-to-br from-primary-500 to-teal-600 rounded-2xl p-4 text-white">
-                          <div className="text-xs font-medium text-primary-100 mb-0.5">🎯 目標</div>
-                          <div className="flex items-baseline justify-between mb-3">
-                            <span className="text-base font-bold">{wishItem.name}</span>
-                            <span className="text-xl font-bold">¥{wishItem.target_amount.toLocaleString()}</span>
+                    {wishItem &&
+                      wishItem.target_amount != null &&
+                      wishItem.target_amount > 0 &&
+                      (() => {
+                        const pct = Math.min(
+                          100,
+                          Math.round((reviewingTotal / wishItem.target_amount) * 100)
+                        )
+                        const monthsNeeded =
+                          reviewingTotal > 0
+                            ? Math.ceil(wishItem.target_amount / (reviewingTotal / 12))
+                            : null
+                        return (
+                          <div className="shrink-0 mb-3 bg-gradient-to-br from-primary-500 to-teal-600 rounded-2xl p-4 text-white">
+                            <div className="text-xs font-medium text-primary-100 mb-0.5">
+                              🎯 目標
+                            </div>
+                            <div className="flex items-baseline justify-between mb-3">
+                              <span className="text-base font-bold">{wishItem.name}</span>
+                              <span className="text-xl font-bold">
+                                ¥{wishItem.target_amount.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-xs text-primary-100">
+                                見直し削減効果（年間）
+                              </span>
+                              <span className="text-base font-bold text-yellow-300">
+                                ¥{reviewingTotal.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="w-full bg-surface/30 rounded-full h-2.5 overflow-hidden mb-1">
+                              <div
+                                className="h-2.5 rounded-full bg-yellow-300 transition-all duration-300"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-primary-100">
+                              <span>
+                                {monthsNeeded != null
+                                  ? `削減分で${monthsNeeded}ヶ月後に購入可能`
+                                  : '項目を選択すると購入時期を計算します'}
+                              </span>
+                              <span>{pct}%</span>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-xs text-primary-100">見直し削減効果（年間）</span>
-                            <span className="text-base font-bold text-yellow-300">¥{reviewingTotal.toLocaleString()}</span>
-                          </div>
-                          <div className="w-full bg-surface/30 rounded-full h-2.5 overflow-hidden mb-1">
-                            <div
-                              className="h-2.5 rounded-full bg-yellow-300 transition-all duration-300"
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between text-xs text-primary-100">
-                            <span>
-                              {monthsNeeded != null
-                                ? `削減分で${monthsNeeded}ヶ月後に購入可能`
-                                : '項目を選択すると購入時期を計算します'}
-                            </span>
-                            <span>{pct}%</span>
-                          </div>
-                        </div>
-                      )
-                    })()}
+                        )
+                      })()}
 
                     {reviewItems.length === 0 ? (
-                      <p className="text-sm text-ink-muted mt-4">入力・選択された項目がありません</p>
+                      <p className="text-sm text-ink-muted mt-4">
+                        入力・選択された項目がありません
+                      </p>
                     ) : (
                       <div className="flex-1 overflow-y-auto mt-3 space-y-2 pr-1">
                         {reviewItems.map((item) => {
@@ -368,17 +413,27 @@ export default function FixedExpenseTutorial({
                                 })
                               }
                               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition ${
-                                checked ? 'border-warning-400 bg-warning-50' : 'border-line bg-surface'
+                                checked
+                                  ? 'border-warning-400 bg-warning-50'
+                                  : 'border-line bg-surface'
                               }`}
                             >
-                              <span className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
-                                checked ? 'border-warning-500 bg-warning-500' : 'border-line-strong'
-                              }`}>
+                              <span
+                                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${
+                                  checked
+                                    ? 'border-warning-500 bg-warning-500'
+                                    : 'border-line-strong'
+                                }`}
+                              >
                                 {checked && <span className="text-white text-xs font-bold">✓</span>}
                               </span>
                               <span className="flex-1 text-sm text-ink">{item.name}</span>
-                              <span className="text-xs text-ink-muted shrink-0">{item.category}</span>
-                              <span className="text-xs text-ink-muted shrink-0">{item.displayAmount}</span>
+                              <span className="text-xs text-ink-muted shrink-0">
+                                {item.category}
+                              </span>
+                              <span className="text-xs text-ink-muted shrink-0">
+                                {item.displayAmount}
+                              </span>
                             </button>
                           )
                         })}
@@ -390,7 +445,9 @@ export default function FixedExpenseTutorial({
                     <div className="text-5xl mb-6">📋</div>
                     <h2 className="text-xl font-bold text-ink-strong mb-4">{s.title}</h2>
                     <div className="space-y-3 text-sm text-ink leading-relaxed">
-                      <p>家賃・通信費・サブスクなど、毎月かならず出ていく費用を登録することで、節約できるポイントが一目でわかるようになります。</p>
+                      <p>
+                        家賃・通信費・サブスクなど、毎月かならず出ていく費用を登録することで、節約できるポイントが一目でわかるようになります。
+                      </p>
                       <p>次のステップで、基本的な固定費を一緒に入力していきましょう 💪</p>
                     </div>
                   </div>
@@ -406,7 +463,9 @@ export default function FixedExpenseTutorial({
                     </p>
                     {registeredMonthlyTotal > 0 && (
                       <div className="bg-primary-50 rounded-2xl px-5 py-4 w-full">
-                        <div className="text-xs text-primary-600 font-medium mb-1">登録した固定費（月額換算）</div>
+                        <div className="text-xs text-primary-600 font-medium mb-1">
+                          登録した固定費（月額換算）
+                        </div>
                         <div className="text-2xl font-bold text-primary-700">
                           ¥{Math.round(registeredMonthlyTotal).toLocaleString()}
                         </div>
@@ -422,7 +481,11 @@ export default function FixedExpenseTutorial({
                         <div className="text-xs text-ink-muted">{s.description}</div>
                       </div>
                     </div>
-                    <CustomItemStep items={customItems} onAdd={addCustomItem} onRemove={removeCustomItem} />
+                    <CustomItemStep
+                      items={customItems}
+                      onAdd={addCustomItem}
+                      onRemove={removeCustomItem}
+                    />
                   </div>
                 ) : s.key === 'guide' ? (
                   <div className="flex flex-col px-8 pt-6 h-full min-h-0">
@@ -435,11 +498,16 @@ export default function FixedExpenseTutorial({
                     </div>
                     <div className="space-y-3 overflow-y-auto pr-1">
                       {GUIDE_ITEMS.map((item) => (
-                        <div key={item.title} className="flex items-start gap-3 bg-surface-subtle rounded-xl p-3">
+                        <div
+                          key={item.title}
+                          className="flex items-start gap-3 bg-surface-subtle rounded-xl p-3"
+                        >
                           <span className="text-xl shrink-0">{item.icon}</span>
                           <div>
                             <div className="text-sm font-semibold text-ink">{item.title}</div>
-                            <div className="text-xs text-ink-muted leading-relaxed">{item.description}</div>
+                            <div className="text-xs text-ink-muted leading-relaxed">
+                              {item.description}
+                            </div>
                           </div>
                         </div>
                       ))}

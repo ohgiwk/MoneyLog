@@ -53,34 +53,144 @@ function longestStreak(dates: string[]): number {
 
 const ACHIEVEMENT_DEFS: Omit<Achievement, 'achieved' | 'achievedAt'>[] = [
   // 固定費 - 登録
-  { id: 'fixed_1', category: '固定費', title: '固定費デビュー', description: '固定費を初めて登録する' },
-  { id: 'fixed_3', category: '固定費', title: '固定費マスター見習い', description: '固定費を3件登録する' },
-  { id: 'fixed_10', category: '固定費', title: '固定費マスター', description: '固定費を10件登録する' },
+  {
+    id: 'fixed_1',
+    category: '固定費',
+    title: '固定費デビュー',
+    description: '固定費を初めて登録する',
+  },
+  {
+    id: 'fixed_3',
+    category: '固定費',
+    title: '固定費マスター見習い',
+    description: '固定費を3件登録する',
+  },
+  {
+    id: 'fixed_10',
+    category: '固定費',
+    title: '固定費マスター',
+    description: '固定費を10件登録する',
+  },
   // 固定費 - 解約
-  { id: 'unsub_1', category: '固定費', title: '節約の第一歩', description: '固定費を初めて解約する' },
+  {
+    id: 'unsub_1',
+    category: '固定費',
+    title: '節約の第一歩',
+    description: '固定費を初めて解約する',
+  },
   { id: 'unsub_3', category: '固定費', title: '解約の達人', description: '固定費を3件解約する' },
-  { id: 'unsub_10', category: '固定費', title: '固定費スリム化', description: '固定費を10件解約する' },
+  {
+    id: 'unsub_10',
+    category: '固定費',
+    title: '固定費スリム化',
+    description: '固定費を10件解約する',
+  },
   // 出費記録 - 件数
-  { id: 'expense_1', category: '出費記録', title: '記録スタート', description: '出費を初めて記録する' },
-  { id: 'expense_10', category: '出費記録', title: '記録の習慣', description: '出費を10回記録する' },
-  { id: 'expense_50', category: '出費記録', title: '記録の達人', description: '出費を50回記録する' },
-  { id: 'expense_100', category: '出費記録', title: '記録マスター', description: '出費を100回記録する' },
-  { id: 'expense_200', category: '出費記録', title: '記録の鬼', description: '出費を200回記録する' },
+  {
+    id: 'expense_1',
+    category: '出費記録',
+    title: '記録スタート',
+    description: '出費を初めて記録する',
+  },
+  {
+    id: 'expense_10',
+    category: '出費記録',
+    title: '記録の習慣',
+    description: '出費を10回記録する',
+  },
+  {
+    id: 'expense_50',
+    category: '出費記録',
+    title: '記録の達人',
+    description: '出費を50回記録する',
+  },
+  {
+    id: 'expense_100',
+    category: '出費記録',
+    title: '記録マスター',
+    description: '出費を100回記録する',
+  },
+  {
+    id: 'expense_200',
+    category: '出費記録',
+    title: '記録の鬼',
+    description: '出費を200回記録する',
+  },
   // 出費記録 - 継続
-  { id: 'streak_7', category: '出費記録', title: '1週間継続', description: '7日連続で出費を記録する' },
-  { id: 'streak_30', category: '出費記録', title: '1ヶ月継続', description: '30日連続で出費を記録する' },
-  { id: 'streak_90', category: '出費記録', title: '3ヶ月継続', description: '90日連続で出費を記録する' },
-  { id: 'streak_180', category: '出費記録', title: '6ヶ月継続', description: '180日連続で出費を記録する' },
-  { id: 'streak_365', category: '出費記録', title: '1年継続', description: '365日連続で出費を記録する' },
+  {
+    id: 'streak_7',
+    category: '出費記録',
+    title: '1週間継続',
+    description: '7日連続で出費を記録する',
+  },
+  {
+    id: 'streak_30',
+    category: '出費記録',
+    title: '1ヶ月継続',
+    description: '30日連続で出費を記録する',
+  },
+  {
+    id: 'streak_90',
+    category: '出費記録',
+    title: '3ヶ月継続',
+    description: '90日連続で出費を記録する',
+  },
+  {
+    id: 'streak_180',
+    category: '出費記録',
+    title: '6ヶ月継続',
+    description: '180日連続で出費を記録する',
+  },
+  {
+    id: 'streak_365',
+    category: '出費記録',
+    title: '1年継続',
+    description: '365日連続で出費を記録する',
+  },
   // 買い物メモ - 作成
-  { id: 'shopping_add_1', category: '買い物メモ', title: '買い物メモスタート', description: '初めてアイテムを買い物メモに追加する' },
-  { id: 'shopping_add_10', category: '買い物メモ', title: 'メモ活用中', description: '買い物メモに10品追加する' },
-  { id: 'shopping_add_50', category: '買い物メモ', title: 'メモ達人', description: '買い物メモに50品追加する' },
+  {
+    id: 'shopping_add_1',
+    category: '買い物メモ',
+    title: '買い物メモスタート',
+    description: '初めてアイテムを買い物メモに追加する',
+  },
+  {
+    id: 'shopping_add_10',
+    category: '買い物メモ',
+    title: 'メモ活用中',
+    description: '買い物メモに10品追加する',
+  },
+  {
+    id: 'shopping_add_50',
+    category: '買い物メモ',
+    title: 'メモ達人',
+    description: '買い物メモに50品追加する',
+  },
   // 買い物メモ - 購入
-  { id: 'shopping_buy_1', category: '買い物メモ', title: '初めての購入記録', description: '買い物メモから初めて購入済みにする' },
-  { id: 'shopping_buy_10', category: '買い物メモ', title: '買い物上手', description: '買い物メモから10品を購入済みにする' },
-  { id: 'shopping_buy_50', category: '買い物メモ', title: '買い物達人', description: '買い物メモから50品を購入済みにする' },
-  { id: 'shopping_plan', category: '買い物メモ', title: '計画的な買い物', description: '予算を設定したアイテムを購入する' },
+  {
+    id: 'shopping_buy_1',
+    category: '買い物メモ',
+    title: '初めての購入記録',
+    description: '買い物メモから初めて購入済みにする',
+  },
+  {
+    id: 'shopping_buy_10',
+    category: '買い物メモ',
+    title: '買い物上手',
+    description: '買い物メモから10品を購入済みにする',
+  },
+  {
+    id: 'shopping_buy_50',
+    category: '買い物メモ',
+    title: '買い物達人',
+    description: '買い物メモから50品を購入済みにする',
+  },
+  {
+    id: 'shopping_plan',
+    category: '買い物メモ',
+    title: '計画的な買い物',
+    description: '予算を設定したアイテムを購入する',
+  },
 ]
 
 export function useAchievements(userId: string) {
@@ -92,37 +202,28 @@ export function useAchievements(userId: string) {
     let cancelled = false
 
     async function evaluate() {
-      const [fixedRes, unsubRes, txRes, shoppingAllRes, shoppingBoughtRes, shoppingPlanRes] = await Promise.all([
-        supabase
-          .from('fixed_expenses')
-          .select('id', { count: 'exact' })
-          .eq('user_id', userId),
-        supabase
-          .from('fixed_expenses')
-          .select('id', { count: 'exact' })
-          .eq('user_id', userId)
-          .in('status', ['unsubscribed', 'cancelled']),
-        supabase
-          .from('transactions')
-          .select('date')
-          .eq('user_id', userId)
-          .eq('type', 'expense'),
-        supabase
-          .from('shopping_items')
-          .select('id', { count: 'exact' })
-          .eq('user_id', userId),
-        supabase
-          .from('shopping_items')
-          .select('id', { count: 'exact' })
-          .eq('user_id', userId)
-          .eq('status', 'bought'),
-        supabase
-          .from('shopping_items')
-          .select('id', { count: 'exact' })
-          .eq('user_id', userId)
-          .eq('status', 'bought')
-          .gt('budget_amount', 0),
-      ])
+      const [fixedRes, unsubRes, txRes, shoppingAllRes, shoppingBoughtRes, shoppingPlanRes] =
+        await Promise.all([
+          supabase.from('fixed_expenses').select('id', { count: 'exact' }).eq('user_id', userId),
+          supabase
+            .from('fixed_expenses')
+            .select('id', { count: 'exact' })
+            .eq('user_id', userId)
+            .in('status', ['unsubscribed', 'cancelled']),
+          supabase.from('transactions').select('date').eq('user_id', userId).eq('type', 'expense'),
+          supabase.from('shopping_items').select('id', { count: 'exact' }).eq('user_id', userId),
+          supabase
+            .from('shopping_items')
+            .select('id', { count: 'exact' })
+            .eq('user_id', userId)
+            .eq('status', 'bought'),
+          supabase
+            .from('shopping_items')
+            .select('id', { count: 'exact' })
+            .eq('user_id', userId)
+            .eq('status', 'bought')
+            .gt('budget_amount', 0),
+        ])
 
       if (cancelled) return
 
@@ -182,7 +283,9 @@ export function useAchievements(userId: string) {
     }
 
     evaluate()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [userId])
 
   return { achievements, loading }

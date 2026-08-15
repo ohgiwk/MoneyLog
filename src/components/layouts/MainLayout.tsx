@@ -18,7 +18,18 @@ const TABS = [
 export default function MainLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, signOut, headerBack, setHeaderBack, month, setMonth, setCalendarSelectedDate, bumpRecordTap, bumpShoppingTap, registerScrollToTop } = useAppContext()
+  const {
+    user,
+    signOut,
+    headerBack,
+    setHeaderBack,
+    month,
+    setMonth,
+    setCalendarSelectedDate,
+    bumpRecordTap,
+    bumpShoppingTap,
+    registerScrollToTop,
+  } = useAppContext()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const isCalendar = !!useMatch('/calendar')
@@ -37,7 +48,10 @@ export default function MainLayout() {
   }, [location.pathname, setHeaderBack])
 
   return (
-    <div id="app-root" className="relative max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden">
+    <div
+      id="app-root"
+      className="relative max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden"
+    >
       <UpdateNotification />
       {user && <NewMonthBudgetDialog userId={user.id} />}
 
@@ -50,7 +64,17 @@ export default function MainLayout() {
               className="text-ink-muted active:text-ink justify-self-start p-1"
               aria-label="戻る"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
@@ -79,8 +103,17 @@ export default function MainLayout() {
               </div>
             ) : (
               <>
-                <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-7 h-7 object-contain" />
-                <span className="text-lg text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>キンカク手帖</span>
+                <img
+                  src={`${import.meta.env.BASE_URL}logo.png`}
+                  alt=""
+                  className="w-7 h-7 object-contain"
+                />
+                <span
+                  className="text-lg text-ink-strong"
+                  style={{ fontFamily: "'Kiwi Maru', serif" }}
+                >
+                  キンカク手帖
+                </span>
               </>
             )}
           </div>
@@ -97,11 +130,20 @@ export default function MainLayout() {
                 aria-label={headerBack.action.label}
               >
                 {headerBack.action.tone === 'danger' ? (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    <path d="M10 11v6M14 11v6"/>
-                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  <svg
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
                   </svg>
                 ) : (
                   <span className="text-sm font-semibold">{headerBack.action.label}</span>
@@ -127,16 +169,15 @@ export default function MainLayout() {
       {/* ドロワーメニュー */}
       <AnimatePresence>
         {drawerOpen && (
-          <DrawerMenu
-            key="drawer"
-            onSignOut={signOut}
-            onClose={() => setDrawerOpen(false)}
-          />
+          <DrawerMenu key="drawer" onSignOut={signOut} onClose={() => setDrawerOpen(false)} />
         )}
       </AnimatePresence>
 
       {/* コンテンツ */}
-      <div ref={scrollRef} className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto">
+      <div
+        ref={scrollRef}
+        className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto"
+      >
         <Outlet />
       </div>
 
@@ -190,7 +231,9 @@ export default function MainLayout() {
             >
               <span className="text-xl">{t.icon}</span>
               <span className="text-[11px] font-medium whitespace-nowrap">{t.label}</span>
-              <span className={`block h-0.5 w-5 rounded-full mt-0.5 transition-all ${isActive ? 'bg-primary-500' : 'bg-transparent'}`} />
+              <span
+                className={`block h-0.5 w-5 rounded-full mt-0.5 transition-all ${isActive ? 'bg-primary-500' : 'bg-transparent'}`}
+              />
             </motion.button>
           )
         })}

@@ -16,17 +16,26 @@ interface Props {
   onSaved: () => void
 }
 
-export default function CalendarEventForm({ isOpen, userId, date, event, onClose, onSaved }: Props) {
-  const [eventDate, setEventDate]           = useState(event?.date ?? date)
-  const [allDay, setAllDay]                 = useState(event ? !event.start_time : false)
-  const [title, setTitle]                   = useState(event?.title ?? '')
-  const [startTime, setStartTime]           = useState(event?.start_time?.slice(0, 5) ?? '')
-  const [endTime, setEndTime]               = useState(event?.end_time?.slice(0, 5) ?? '')
-  const [plannedExpense, setPlannedExpense] = useState(event?.planned_expense ? String(event.planned_expense) : '')
-  const [memo, setMemo]                     = useState(event?.memo ?? '')
-  const [titleError, setTitleError]         = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting]     = useState(false)
-  const [error, setError]                   = useState<string | null>(null)
+export default function CalendarEventForm({
+  isOpen,
+  userId,
+  date,
+  event,
+  onClose,
+  onSaved,
+}: Props) {
+  const [eventDate, setEventDate] = useState(event?.date ?? date)
+  const [allDay, setAllDay] = useState(event ? !event.start_time : false)
+  const [title, setTitle] = useState(event?.title ?? '')
+  const [startTime, setStartTime] = useState(event?.start_time?.slice(0, 5) ?? '')
+  const [endTime, setEndTime] = useState(event?.end_time?.slice(0, 5) ?? '')
+  const [plannedExpense, setPlannedExpense] = useState(
+    event?.planned_expense ? String(event.planned_expense) : ''
+  )
+  const [memo, setMemo] = useState(event?.memo ?? '')
+  const [titleError, setTitleError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -43,7 +52,10 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSave() {
-    if (!title.trim()) { setTitleError('予定名を入力してください'); return }
+    if (!title.trim()) {
+      setTitleError('予定名を入力してください')
+      return
+    }
     setTitleError(null)
     setError(null)
     setIsSubmitting(true)
@@ -88,11 +100,15 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
       isOpen={isOpen}
       onClose={onClose}
       title={event ? '予定を編集' : '予定を追加'}
-      rightAction={event ? {
-        onClick: handleDelete,
-        disabled: isSubmitting,
-        tone: 'danger',
-      } : undefined}
+      rightAction={
+        event
+          ? {
+              onClick: handleDelete,
+              disabled: isSubmitting,
+              tone: 'danger',
+            }
+          : undefined
+      }
       footer={
         <button
           type="button"
@@ -117,7 +133,10 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
             <label className="text-xs text-ink-muted">予定名</label>
             <Input
               value={title}
-              onChange={(e) => { setTitle(e.target.value); if (titleError) setTitleError(null) }}
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (titleError) setTitleError(null)
+              }}
               placeholder="例: 会議、買い物"
               error={!!titleError}
               className="mt-1"
@@ -125,14 +144,28 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
             <ErrorText>{titleError}</ErrorText>
           </div>
 
-          <div className={`space-y-2 transition-opacity duration-200 ${allDay ? 'opacity-35 pointer-events-none' : 'opacity-100'}`}>
+          <div
+            className={`space-y-2 transition-opacity duration-200 ${allDay ? 'opacity-35 pointer-events-none' : 'opacity-100'}`}
+          >
             <div className="flex items-center gap-3">
               <label className="text-xs text-ink-muted w-14 flex-shrink-0">開始時間</label>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} disabled={allDay} className="flex-1 min-w-0 bg-white dark:bg-surface" />
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                disabled={allDay}
+                className="flex-1 min-w-0 bg-white dark:bg-surface"
+              />
             </div>
             <div className="flex items-center gap-3">
               <label className="text-xs text-ink-muted w-14 flex-shrink-0">終了時間</label>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} disabled={allDay} className="flex-1 min-w-0 bg-white dark:bg-surface" />
+              <Input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                disabled={allDay}
+                className="flex-1 min-w-0 bg-white dark:bg-surface"
+              />
             </div>
           </div>
 
@@ -151,14 +184,26 @@ export default function CalendarEventForm({ isOpen, userId, date, event, onClose
           <div>
             <label className="text-xs text-ink-muted">予定出費</label>
             <div className="flex items-center gap-2 mt-1">
-              <Input type="number" inputMode="numeric" placeholder="0" value={plannedExpense} onChange={(e) => setPlannedExpense(e.target.value)} className="flex-1 w-auto" />
+              <Input
+                type="number"
+                inputMode="numeric"
+                placeholder="0"
+                value={plannedExpense}
+                onChange={(e) => setPlannedExpense(e.target.value)}
+                className="flex-1 w-auto"
+              />
               <span className="text-sm text-ink-muted">円</span>
             </div>
           </div>
 
           <div>
             <label className="text-xs text-ink-muted">メモ（任意）</label>
-            <Textarea value={memo} onChange={(e) => setMemo(e.target.value)} rows={2} className="mt-1" />
+            <Textarea
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+              rows={2}
+              className="mt-1"
+            />
           </div>
         </div>
       </div>

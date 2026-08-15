@@ -43,7 +43,9 @@ function saveDefaultPayment(payment: DefaultPayment) {
 
 export function usePaymentMethods() {
   const [methods, setMethods] = useState<PaymentMethod[]>(() => loadMethods())
-  const [defaultPayment, setDefaultPaymentState] = useState<DefaultPayment>(() => loadDefaultPayment())
+  const [defaultPayment, setDefaultPaymentState] = useState<DefaultPayment>(() =>
+    loadDefaultPayment()
+  )
 
   const addMethod = useCallback((type: PaymentType, name: string) => {
     const trimmed = name.trim()
@@ -55,20 +57,23 @@ export function usePaymentMethods() {
     })
   }, [])
 
-  const removeMethod = useCallback((id: string) => {
-    setMethods((prev) => {
-      const next = prev.filter((m) => m.id !== id)
-      saveMethods(next)
-      return next
-    })
-    setDefaultPaymentState((prev) => {
-      const removed = methods.find((m) => m.id === id)
-      if (!removed || prev.name !== removed.name || prev.type !== removed.type) return prev
-      const next: DefaultPayment = { type: 'cash', name: null }
-      saveDefaultPayment(next)
-      return next
-    })
-  }, [methods])
+  const removeMethod = useCallback(
+    (id: string) => {
+      setMethods((prev) => {
+        const next = prev.filter((m) => m.id !== id)
+        saveMethods(next)
+        return next
+      })
+      setDefaultPaymentState((prev) => {
+        const removed = methods.find((m) => m.id === id)
+        if (!removed || prev.name !== removed.name || prev.type !== removed.type) return prev
+        const next: DefaultPayment = { type: 'cash', name: null }
+        saveDefaultPayment(next)
+        return next
+      })
+    },
+    [methods]
+  )
 
   const setDefaultPayment = useCallback((payment: DefaultPayment) => {
     saveDefaultPayment(payment)

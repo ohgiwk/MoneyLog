@@ -1,5 +1,11 @@
 import type { Consumable } from '../lib/database.types'
-import { categoryInfo, formatYen, nextPurchaseDate, daysUntil, monthlyConsumableCost } from '../utils'
+import {
+  categoryInfo,
+  formatYen,
+  nextPurchaseDate,
+  daysUntil,
+  monthlyConsumableCost,
+} from '../utils'
 
 interface Props {
   consumable: Consumable

@@ -44,7 +44,10 @@ export default function ExchangeRateScreen() {
                 type="number"
                 inputMode="decimal"
                 value={rate}
-                onChange={(e) => { setRate(e.target.value); setError(null) }}
+                onChange={(e) => {
+                  setRate(e.target.value)
+                  setError(null)
+                }}
                 placeholder="150"
                 error={!!error}
                 className="flex-1 w-auto"

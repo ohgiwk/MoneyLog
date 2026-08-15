@@ -12,7 +12,9 @@ interface CustomItemStepProps {
 
 export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) {
   const [name, setName] = useState('')
-  const [category, setCategory] = useState(FIXED_EXPENSE_CATEGORIES[FIXED_EXPENSE_CATEGORIES.length - 1].name)
+  const [category, setCategory] = useState(
+    FIXED_EXPENSE_CATEGORIES[FIXED_EXPENSE_CATEGORIES.length - 1].name
+  )
   const [amount, setAmount] = useState('')
   const [cycle, setCycle] = useState<'monthly' | 'yearly'>('monthly')
 
@@ -49,14 +51,20 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
             <button
               type="button"
               onClick={() => setCycle('monthly')}
-              className={'px-3 transition ' + (cycle === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')}
+              className={
+                'px-3 transition ' +
+                (cycle === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
+              }
             >
               月
             </button>
             <button
               type="button"
               onClick={() => setCycle('yearly')}
-              className={'px-3 transition border-l border-line ' + (cycle === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')}
+              className={
+                'px-3 transition border-l border-line ' +
+                (cycle === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted')
+              }
             >
               年
             </button>
@@ -72,7 +80,9 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
               onChange={(e) => setAmount(e.target.value)}
               className="pr-8"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">円</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-muted">
+              円
+            </span>
           </div>
           <Button
             type="button"
@@ -92,7 +102,10 @@ export function CustomItemStep({ items, onAdd, onRemove }: CustomItemStepProps) 
           items.map((item, i) => {
             const catInfo = FIXED_EXPENSE_CATEGORIES.find((c) => c.name === item.category)
             return (
-              <div key={`${item.name}-${i}`} className="flex items-center gap-3 bg-surface rounded-xl px-3 py-2.5 shadow-sm">
+              <div
+                key={`${item.name}-${i}`}
+                className="flex items-center gap-3 bg-surface rounded-xl px-3 py-2.5 shadow-sm"
+              >
                 <span className="text-lg shrink-0">{catInfo?.icon ?? '📦'}</span>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-ink truncate">{item.name}</div>

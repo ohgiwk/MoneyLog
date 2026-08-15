@@ -14,8 +14,14 @@ export default meta
 type Story = StoryObj<typeof ProgressBar>
 
 export const Default: Story = {
-  args: { ratio: 0.6, className: 'w-64' } as Parameters<typeof ProgressBar>[0] & { className?: string },
-  render: (args) => <div className="w-64"><ProgressBar {...args} /></div>,
+  args: { ratio: 0.6, className: 'w-64' } as Parameters<typeof ProgressBar>[0] & {
+    className?: string
+  },
+  render: (args) => (
+    <div className="w-64">
+      <ProgressBar {...args} />
+    </div>
+  ),
 }
 
 export const AllStates: Story = {
@@ -27,15 +33,15 @@ export const AllStates: Story = {
       </div>
       <div>
         <p className="text-xs text-ink-muted mb-1">70%（標準）</p>
-        <ProgressBar ratio={0.70} />
+        <ProgressBar ratio={0.7} />
       </div>
       <div>
         <p className="text-xs text-ink-muted mb-1">90%（注意）</p>
-        <ProgressBar ratio={0.90} color="#f59e0b" />
+        <ProgressBar ratio={0.9} color="#f59e0b" />
       </div>
       <div>
         <p className="text-xs text-ink-muted mb-1">120%（超過）</p>
-        <ProgressBar ratio={1.20} />
+        <ProgressBar ratio={1.2} />
       </div>
     </div>
   ),

@@ -13,7 +13,9 @@ function loadDefaultPaymentType(): PaymentType {
   try {
     const raw = localStorage.getItem(DEFAULT_PAYMENT_KEY)
     if (raw) return (JSON.parse(raw) as { type: PaymentType }).type
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return 'cash'
 }
 
@@ -22,11 +24,25 @@ interface Props {
   itemNames: string[]
   expenseCategories: CategoryInfo[]
   initialStoreType?: string
-  onConfirm: (category: string, amount: number, memo: string, date: string, storeType: string | null, paymentType: string | null) => Promise<void>
+  onConfirm: (
+    category: string,
+    amount: number,
+    memo: string,
+    date: string,
+    storeType: string | null,
+    paymentType: string | null
+  ) => Promise<void>
   onCancel: () => void
 }
 
-export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, initialStoreType, onConfirm, onCancel }: Props) {
+export default function PurchaseDialog({
+  isOpen,
+  itemNames,
+  expenseCategories,
+  initialStoreType,
+  onConfirm,
+  onCancel,
+}: Props) {
   const [category, setCategory] = useState(expenseCategories[0]?.name ?? '')
   const [amount, setAmount] = useState('')
   const [memo, setMemo] = useState(itemNames.join('・'))
@@ -37,7 +53,7 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const selectedStoreType = STORE_TYPES.find(s => s.name === storeType)
+  const selectedStoreType = STORE_TYPES.find((s) => s.name === storeType)
 
   // 閉じるアニメーション中もコンテンツを表示するために最後の非空値を保持
   const [lastItemNames, setLastItemNames] = useState<string[]>(itemNames)
@@ -62,8 +78,14 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
 
   async function handleSubmit() {
     const parsed = parseInt(amount, 10)
-    if (!category) { setError('カテゴリを選択してください'); return }
-    if (isNaN(parsed) || parsed <= 0) { setError('金額を入力してください'); return }
+    if (!category) {
+      setError('カテゴリを選択してください')
+      return
+    }
+    if (isNaN(parsed) || parsed <= 0) {
+      setError('金額を入力してください')
+      return
+    }
     setError(null)
     setSubmitting(true)
     try {
@@ -95,7 +117,9 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
           <p className="text-xs text-ink-muted mb-1">購入した商品</p>
           <ul className="space-y-0.5">
             {displayItemNames.map((itemName, i) => (
-              <li key={i} className="text-sm text-ink">• {itemName}</li>
+              <li key={i} className="text-sm text-ink">
+                • {itemName}
+              </li>
             ))}
           </ul>
         </div>
@@ -109,7 +133,7 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
               type="number"
               inputMode="numeric"
               value={amount}
-              onChange={e => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
               className="flex-1 bg-white border-white/30 text-ink"
             />
@@ -120,7 +144,7 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
         <div>
           <FormLabel>カテゴリ</FormLabel>
           <div className="grid grid-cols-3 gap-2">
-            {expenseCategories.map(cat => (
+            {expenseCategories.map((cat) => (
               <button
                 key={cat.name}
                 onClick={() => setCategory(cat.name)}
@@ -140,20 +164,31 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
 
         <div>
           <FormLabel>メモ（任意）</FormLabel>
-          <Input type="text" value={memo} onChange={e => setMemo(e.target.value)} placeholder="例：スーパーで購入" />
+          <Input
+            type="text"
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
+            placeholder="例：スーパーで購入"
+          />
         </div>
 
         <button
           type="button"
-          onClick={() => setShowDetails(v => !v)}
+          onClick={() => setShowDetails((v) => !v)}
           className="flex items-center gap-1.5 text-xs text-ink-muted"
         >
           <svg
-            width="13" height="13" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className={'transition-transform ' + (showDetails ? '' : '-rotate-90')}
           >
-            <polyline points="6 9 12 15 18 9"/>
+            <polyline points="6 9 12 15 18 9" />
           </svg>
           詳細記録（店舗種別・支払い方法）
           {(storeType || paymentType) && !showDetails && (
@@ -167,7 +202,7 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
               <FormLabel>店舗種別（任意）</FormLabel>
               <button
                 type="button"
-                onClick={() => setStoreTypeOpen(v => !v)}
+                onClick={() => setStoreTypeOpen((v) => !v)}
                 className="w-full mt-1 flex items-center justify-between border border-line rounded-xl px-3 py-2 text-sm text-ink bg-surface"
               >
                 <span className="flex items-center gap-2">
@@ -187,18 +222,34 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
                   <div className="absolute top-full left-0 right-0 mt-1 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto">
                     <button
                       type="button"
-                      onClick={() => { setStoreType(''); setStoreTypeOpen(false) }}
-                      className={'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' + (storeType === '' ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')}
+                      onClick={() => {
+                        setStoreType('')
+                        setStoreTypeOpen(false)
+                      }}
+                      className={
+                        'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
+                        (storeType === ''
+                          ? 'bg-primary-50 text-primary-700'
+                          : 'text-ink active:bg-surface-subtle')
+                      }
                     >
                       <span className="text-lg">🏷️</span>
                       <span>未選択</span>
                     </button>
-                    {STORE_TYPES.map(s => (
+                    {STORE_TYPES.map((s) => (
                       <button
                         key={s.name}
                         type="button"
-                        onClick={() => { setStoreType(s.name); setStoreTypeOpen(false) }}
-                        className={'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' + (storeType === s.name ? 'bg-primary-50 text-primary-700' : 'text-ink active:bg-surface-subtle')}
+                        onClick={() => {
+                          setStoreType(s.name)
+                          setStoreTypeOpen(false)
+                        }}
+                        className={
+                          'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
+                          (storeType === s.name
+                            ? 'bg-primary-50 text-primary-700'
+                            : 'text-ink active:bg-surface-subtle')
+                        }
                       >
                         <span className="text-lg">{s.icon}</span>
                         <span>{s.name}</span>
@@ -212,10 +263,10 @@ export default function PurchaseDialog({ isOpen, itemNames, expenseCategories, i
             <div>
               <FormLabel>支払い方法（任意）</FormLabel>
               <div className="grid grid-cols-2 gap-2">
-                {PAYMENT_TYPES.map(p => (
+                {PAYMENT_TYPES.map((p) => (
                   <button
                     key={p.type}
-                    onClick={() => setPaymentType(prev => prev === p.type ? '' : p.type)}
+                    onClick={() => setPaymentType((prev) => (prev === p.type ? '' : p.type))}
                     className={
                       'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-medium transition-colors ' +
                       (paymentType === p.type

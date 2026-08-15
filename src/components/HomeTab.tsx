@@ -8,7 +8,14 @@ import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import { useQuery } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen, periodDayCount, periodDayIndex, periodKey, todayStr } from '../utils'
+import {
+  formatDateWithWeekday,
+  formatYen,
+  periodDayCount,
+  periodDayIndex,
+  periodKey,
+  todayStr,
+} from '../utils'
 import { oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
@@ -39,20 +46,37 @@ export default function HomeTab({ userId }: Props) {
   const householdMembers = profile?.household_members ?? 1
   const period = periodKey(today, monthStartDay)
 
-  const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, period, monthStartDay)
-  const { data: budgetMonthTx = [], isError: budgetTxError } = useTransactionsQuery(userId, calendarMonth)
+  const { data: transactions = [], isError: txError } = useTransactionsQuery(
+    userId,
+    period,
+    monthStartDay
+  )
+  const { data: budgetMonthTx = [], isError: budgetTxError } = useTransactionsQuery(
+    userId,
+    calendarMonth
+  )
   const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
   const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
-  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
+  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(
+    userId,
+    calendarMonth
+  )
   const { data: upcomingEvents = [], isError: upcomingError } = useQuery({
     queryKey: ['calendarEvents', 'upcoming', userId, today],
     queryFn: () => calendarEventService.fetchUpcomingExpenses(userId, today),
     enabled: !!userId,
   })
 
-  const fetchError = profileError || txError || budgetTxError || fixedError || consumablesError || budgetError || upcomingError
-    ? 'データの読み込みに失敗しました'
-    : null
+  const fetchError =
+    profileError ||
+    txError ||
+    budgetTxError ||
+    fixedError ||
+    consumablesError ||
+    budgetError ||
+    upcomingError
+      ? 'データの読み込みに失敗しました'
+      : null
 
   function handleCarryOverChange(next: boolean) {
     setCarryOver(next)
@@ -61,10 +85,7 @@ export default function HomeTab({ userId }: Props) {
 
   const dailyBudgetTotal = oneTimeBudgetTotal(budget)
 
-  const daysInMonth = useMemo(
-    () => periodDayCount(period, monthStartDay),
-    [period, monthStartDay]
-  )
+  const daysInMonth = useMemo(() => periodDayCount(period, monthStartDay), [period, monthStartDay])
 
   const dailyAllowance = dailyBudgetTotal / daysInMonth
 
@@ -109,18 +130,21 @@ export default function HomeTab({ userId }: Props) {
   })
 
   const categoryMode = localStorage.getItem(`budgetCategoryMode_${userId}`) ?? 'detail'
-  const displayCategoryRows = categoryMode === 'total' && oneTimeCategoryRows.length > 0
-    ? [{
-        cat: '通常出費',
-        icon: '⚡',
-        spent: oneTimeCategoryRows.reduce((s, r) => s + r.spent, 0),
-        weekBudget: oneTimeCategoryRows.reduce((s, r) => s + r.weekBudget, 0),
-        daySpent: oneTimeCategoryRows.reduce((s, r) => s + r.daySpent, 0),
-        dayBudget: oneTimeCategoryRows.reduce((s, r) => s + r.dayBudget, 0),
-        monthSpent: oneTimeCategoryRows.reduce((s, r) => s + r.monthSpent, 0),
-        monthBudget: oneTimeCategoryRows.reduce((s, r) => s + r.monthBudget, 0),
-      }]
-    : oneTimeCategoryRows
+  const displayCategoryRows =
+    categoryMode === 'total' && oneTimeCategoryRows.length > 0
+      ? [
+          {
+            cat: '通常出費',
+            icon: '⚡',
+            spent: oneTimeCategoryRows.reduce((s, r) => s + r.spent, 0),
+            weekBudget: oneTimeCategoryRows.reduce((s, r) => s + r.weekBudget, 0),
+            daySpent: oneTimeCategoryRows.reduce((s, r) => s + r.daySpent, 0),
+            dayBudget: oneTimeCategoryRows.reduce((s, r) => s + r.dayBudget, 0),
+            monthSpent: oneTimeCategoryRows.reduce((s, r) => s + r.monthSpent, 0),
+            monthBudget: oneTimeCategoryRows.reduce((s, r) => s + r.monthBudget, 0),
+          },
+        ]
+      : oneTimeCategoryRows
 
   return (
     <div className="p-4 space-y-4">
@@ -141,14 +165,62 @@ export default function HomeTab({ userId }: Props) {
           >
             <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
               <circle cx="8" cy="7" r="2.5" fill="currentColor" />
-              <line x1="2" y1="7" x2="5.5" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <line x1="10.5" y1="7" x2="22" y2="7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line
+                x1="2"
+                y1="7"
+                x2="5.5"
+                y2="7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <line
+                x1="10.5"
+                y1="7"
+                x2="22"
+                y2="7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
               <circle cx="16" cy="12" r="2.5" fill="currentColor" />
-              <line x1="2" y1="12" x2="13.5" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <line x1="18.5" y1="12" x2="22" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line
+                x1="2"
+                y1="12"
+                x2="13.5"
+                y2="12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <line
+                x1="18.5"
+                y1="12"
+                x2="22"
+                y2="12"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
               <circle cx="10" cy="17" r="2.5" fill="currentColor" />
-              <line x1="2" y1="17" x2="7.5" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              <line x1="12.5" y1="17" x2="22" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <line
+                x1="2"
+                y1="17"
+                x2="7.5"
+                y2="17"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <line
+                x1="12.5"
+                y1="17"
+                x2="22"
+                y2="17"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
 
@@ -184,7 +256,9 @@ export default function HomeTab({ userId }: Props) {
 
           <div className="text-sm font-semibold text-ink-muted">本日のお小遣い</div>
           <div className="relative flex items-center justify-center gap-1.5">
-            <div className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-income-600' : 'text-danger-500'}`}>
+            <div
+              className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-income-600' : 'text-danger-500'}`}
+            >
               {formatYen(todayAllowance)}
             </div>
             <button
@@ -195,7 +269,15 @@ export default function HomeTab({ userId }: Props) {
             >
               <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-                <line x1="12" y1="11" x2="12" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <line
+                  x1="12"
+                  y1="11"
+                  x2="12"
+                  y2="17"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
                 <circle cx="12" cy="8" r="1" fill="currentColor" />
               </svg>
             </button>
@@ -255,7 +337,11 @@ export default function HomeTab({ userId }: Props) {
                             <div key={n} className="flex justify-between">
                               <span>{n}日後</span>
                               <span className="flex items-center gap-1">
-                                <span className={future >= 0 ? 'text-income-600' : 'text-danger-500'}>{formatYen(future)}</span>
+                                <span
+                                  className={future >= 0 ? 'text-income-600' : 'text-danger-500'}
+                                >
+                                  {formatYen(future)}
+                                </span>
                                 <span className="text-[10px] text-income-600">
                                   (+{formatYen(Math.round(dailyAllowance))})
                                 </span>
@@ -297,7 +383,11 @@ export default function HomeTab({ userId }: Props) {
         <div className="text-sm font-semibold text-ink">収支</div>
         <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
         <Row label="貯蓄" value={`-${formatYen(savings)}`} valueColor="text-ink-muted" />
-        <Row label="固定費" value={`-${formatYen(Math.round(totalFixed))}`} valueColor="text-danger-500" />
+        <Row
+          label="固定費"
+          value={`-${formatYen(Math.round(totalFixed))}`}
+          valueColor="text-danger-500"
+        />
         <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-danger-500" />
         <div className="h-px bg-surface-hover" />
         <Row
@@ -316,12 +406,18 @@ export default function HomeTab({ userId }: Props) {
               <li key={event.id}>
                 <button
                   type="button"
-                  onClick={() => { setMonth(event.date.slice(0, 7)); setCalendarSelectedDate(event.date); navigate('/calendar') }}
+                  onClick={() => {
+                    setMonth(event.date.slice(0, 7))
+                    setCalendarSelectedDate(event.date)
+                    navigate('/calendar')
+                  }}
                   className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
                 >
                   <div className="flex flex-col">
                     <span className="text-ink">{event.title}</span>
-                    <span className="text-xs text-ink-muted">{formatDateWithWeekday(event.date)}</span>
+                    <span className="text-xs text-ink-muted">
+                      {formatDateWithWeekday(event.date)}
+                    </span>
                   </div>
                   <span className="font-semibold text-ink">{formatYen(event.planned_expense)}</span>
                 </button>

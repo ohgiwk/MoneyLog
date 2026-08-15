@@ -7,9 +7,9 @@ interface Props {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  '固定費': '📋',
-  '出費記録': '✏️',
-  '買い物メモ': '🛒',
+  固定費: '📋',
+  出費記録: '✏️',
+  買い物メモ: '🛒',
 }
 
 function AchievementItem({ a }: { a: Achievement }) {
@@ -25,9 +25,7 @@ function AchievementItem({ a }: { a: Achievement }) {
           </div>
         )}
       </div>
-      {a.achieved && (
-        <span className="text-primary-500 text-lg">✓</span>
-      )}
+      {a.achieved && <span className="text-primary-500 text-lg">✓</span>}
     </div>
   )
 }
@@ -63,13 +61,18 @@ export default function AchievementsScreen({ userId }: Props) {
             const items = achievements.filter((a) => a.category === cat)
             const catAchieved = items.filter((a) => a.achieved).length
             return (
-              <div key={cat} className="bg-surface rounded-xl shadow-sm border border-line-subtle overflow-hidden">
+              <div
+                key={cat}
+                className="bg-surface rounded-xl shadow-sm border border-line-subtle overflow-hidden"
+              >
                 <div className="px-4 py-3 border-b border-line-subtle flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{CATEGORY_ICONS[cat]}</span>
                     <span className="font-semibold text-ink-strong text-sm">{cat}</span>
                   </div>
-                  <span className="text-xs text-ink-muted">{catAchieved} / {items.length}</span>
+                  <span className="text-xs text-ink-muted">
+                    {catAchieved} / {items.length}
+                  </span>
                 </div>
                 <div className="divide-y divide-line-subtle">
                   {items.map((a) => (

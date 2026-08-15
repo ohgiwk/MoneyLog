@@ -44,35 +44,56 @@ export default function DrawerMenu({ onSignOut, onClose }: Props) {
           </button>
         </div>
         <nav className="flex-1 py-2">
-          <button onClick={() => go('/mypage')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/mypage')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">👤</span>
             マイページ
           </button>
           <div className="mx-5 border-t border-line-subtle" />
-          <button onClick={() => go('/setup')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/setup')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">🚀</span>
             セットアップ
           </button>
-          <button onClick={() => go('/budget')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/budget')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">💰</span>
             予算
           </button>
-          <button onClick={() => go('/saving-tips')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/saving-tips')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">💡</span>
             節約のコツ
           </button>
-          <button onClick={() => go('/achievements')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/achievements')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">🏆</span>
             実績
           </button>
-          <button onClick={() => go('/settings')} className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm">
+          <button
+            onClick={() => go('/settings')}
+            className="w-full flex items-center gap-3 px-5 py-3.5 text-ink active:bg-surface-subtle text-sm"
+          >
             <span className="text-lg">⚙️</span>
             設定
           </button>
         </nav>
         <div className="border-t border-line-subtle py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <button
-            onClick={() => { onSignOut(); onClose() }}
+            onClick={() => {
+              onSignOut()
+              onClose()
+            }}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-danger-500 active:bg-danger-50 text-sm"
           >
             <span className="text-lg">🚪</span>

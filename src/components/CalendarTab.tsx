@@ -18,12 +18,29 @@ interface Props {
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 
-const DAY_TYPE_LABELS: Record<WorkSchedule['day_type'], { label: string; color: string; cellBg: string }> = {
-  work:    { label: '勤務日', color: 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 border-primary-200 dark:border-primary-900', cellBg: 'bg-primary-50 dark:bg-primary-950/50' },
-  off:     { label: '休暇',   color: 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-900', cellBg: 'bg-sky-50 dark:bg-sky-950/50' },
-  holiday: { label: 'その他', color: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900', cellBg: 'bg-warning-50 dark:bg-warning-950/50' },
+const DAY_TYPE_LABELS: Record<
+  WorkSchedule['day_type'],
+  { label: string; color: string; cellBg: string }
+> = {
+  work: {
+    label: '勤務日',
+    color:
+      'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 border-primary-200 dark:border-primary-900',
+    cellBg: 'bg-primary-50 dark:bg-primary-950/50',
+  },
+  off: {
+    label: '休暇',
+    color:
+      'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-900',
+    cellBg: 'bg-sky-50 dark:bg-sky-950/50',
+  },
+  holiday: {
+    label: 'その他',
+    color:
+      'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900',
+    cellBg: 'bg-warning-50 dark:bg-warning-950/50',
+  },
 }
-
 
 export default function CalendarTab({ userId }: Props) {
   const { month, calendarSelectedDate, categories } = useAppContext()
@@ -45,7 +62,8 @@ export default function CalendarTab({ userId }: Props) {
   const { data: workSchedule = [], isError: scheduleError } = useWorkScheduleQuery(userId, month)
   const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
 
-  const fetchError = eventsError || scheduleError || txError ? 'データの読み込みに失敗しました' : null
+  const fetchError =
+    eventsError || scheduleError || txError ? 'データの読み込みに失敗しました' : null
 
   const dayTypeByDate = useMemo(() => {
     const map = new Map<string, WorkSchedule['day_type']>()
@@ -154,7 +172,13 @@ export default function CalendarTab({ userId }: Props) {
         {/* 日付セル */}
         <div className="grid grid-cols-7">
           {calendarDays.map((date, i) => {
-            if (!date) return <div key={i} className="h-16 border-b border-r border-line-subtle last:border-r-0" />
+            if (!date)
+              return (
+                <div
+                  key={i}
+                  className="h-16 border-b border-r border-line-subtle last:border-r-0"
+                />
+              )
             const isSelected = date === selectedDate
             const isToday = date === todayStr()
             const dow = new Date(date + 'T00:00:00').getDay()
@@ -169,8 +193,13 @@ export default function CalendarTab({ userId }: Props) {
                 onClick={() => setSelectedDate(date)}
                 className={
                   'relative h-16 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
-                  cellBg + ' ' +
-                  (isSelected ? 'ring-2 ring-inset ring-primary-400' : cellBg ? '' : 'active:bg-surface-subtle')
+                  cellBg +
+                  ' ' +
+                  (isSelected
+                    ? 'ring-2 ring-inset ring-primary-400'
+                    : cellBg
+                      ? ''
+                      : 'active:bg-surface-subtle')
                 }
               >
                 <span
@@ -179,19 +208,27 @@ export default function CalendarTab({ userId }: Props) {
                     (isToday
                       ? 'bg-primary-500 text-white'
                       : dow === 0
-                      ? 'text-danger-400'
-                      : dow === 6
-                      ? 'text-sky-500'
-                      : 'text-ink')
+                        ? 'text-danger-400'
+                        : dow === 6
+                          ? 'text-sky-500'
+                          : 'text-ink')
                   }
                 >
                   {dayNum}
                 </span>
                 {expense > 0 && (
-                  <span className={
-                    'rounded-full bg-danger-400 mt-0.5 ' +
-                    (expense >= 15000 ? 'w-2.5 h-2.5' : expense >= 5000 ? 'w-2 h-2' : expense >= 1000 ? 'w-1.5 h-1.5' : 'w-1 h-1')
-                  } />
+                  <span
+                    className={
+                      'rounded-full bg-danger-400 mt-0.5 ' +
+                      (expense >= 15000
+                        ? 'w-2.5 h-2.5'
+                        : expense >= 5000
+                          ? 'w-2 h-2'
+                          : expense >= 1000
+                            ? 'w-1.5 h-1.5'
+                            : 'w-1 h-1')
+                    }
+                  />
                 )}
                 {planned > 0 && (
                   <span className="text-[9px] text-ink-muted leading-tight">
@@ -225,7 +262,9 @@ export default function CalendarTab({ userId }: Props) {
                 onClick={() => void handleDayTypeChange(selected ? null : t)}
                 className={
                   'flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ' +
-                  (selected ? DAY_TYPE_LABELS[t].color : 'border-line-subtle text-ink-muted bg-surface-subtle')
+                  (selected
+                    ? DAY_TYPE_LABELS[t].color
+                    : 'border-line-subtle text-ink-muted bg-surface-subtle')
                 }
               >
                 {DAY_TYPE_LABELS[t].label}
@@ -238,39 +277,41 @@ export default function CalendarTab({ userId }: Props) {
       {/* 選択日の予定リスト */}
       <div className="space-y-1">
         <span className="text-xs text-ink-muted px-1">予定</span>
-      {selectedEvents.length === 0 ? (
-        <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
-          予定はありません
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {selectedEvents.map((ev) => (
-            <button
-              key={ev.id}
-              onClick={() => openEdit(ev)}
-              className="w-full bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-start justify-between gap-3 text-left active:bg-surface-subtle"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold text-ink truncate">{ev.title}</span>
-                </div>
-                {(ev.start_time || ev.end_time) && (
-                  <div className="text-xs text-ink-muted mt-0.5">
-                    {ev.start_time ? ev.start_time.slice(0, 5) : ''}
-                    {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
+        {selectedEvents.length === 0 ? (
+          <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
+            予定はありません
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {selectedEvents.map((ev) => (
+              <button
+                key={ev.id}
+                onClick={() => openEdit(ev)}
+                className="w-full bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-start justify-between gap-3 text-left active:bg-surface-subtle"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-ink truncate">{ev.title}</span>
                   </div>
+                  {(ev.start_time || ev.end_time) && (
+                    <div className="text-xs text-ink-muted mt-0.5">
+                      {ev.start_time ? ev.start_time.slice(0, 5) : ''}
+                      {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
+                    </div>
+                  )}
+                  {ev.memo && (
+                    <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>
+                  )}
+                </div>
+                {ev.planned_expense > 0 && (
+                  <span className="text-sm font-semibold text-danger-500 shrink-0">
+                    -{formatYen(ev.planned_expense)}
+                  </span>
                 )}
-                {ev.memo && <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>}
-              </div>
-              {ev.planned_expense > 0 && (
-                <span className="text-sm font-semibold text-danger-500 shrink-0">
-                  -{formatYen(ev.planned_expense)}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 選択日の出費記録 */}
@@ -294,7 +335,9 @@ export default function CalendarTab({ userId }: Props) {
                   </span>
                   <div className="min-w-0">
                     <span className="text-sm text-ink truncate block">{tx.category}</span>
-                    {tx.memo && <span className="text-xs text-ink-muted truncate block">{tx.memo}</span>}
+                    {tx.memo && (
+                      <span className="text-xs text-ink-muted truncate block">{tx.memo}</span>
+                    )}
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-danger-500 shrink-0">
@@ -318,7 +361,10 @@ export default function CalendarTab({ userId }: Props) {
         date={selectedDate}
         event={editingEvent}
         onClose={closeForm}
-        onSaved={() => { closeForm(); void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] }) }}
+        onSaved={() => {
+          closeForm()
+          void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] })
+        }}
       />
     </div>
   )

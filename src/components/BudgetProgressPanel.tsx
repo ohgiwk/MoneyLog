@@ -5,9 +5,39 @@ import { calcBudgetProgress, formatYen, mondayFirstDow } from '../utils'
 export type PeriodMode = 'week' | 'month'
 
 const DUMMY_ROWS = [
-  { cat: '食費', icon: '🍽️', spent: 18000, budget: 30000, weekBudget: 7000, daySpent: 0, dayBudget: 0, monthSpent: 18000, monthBudget: 30000 },
-  { cat: '日用品', icon: '🧴', spent: 4500, budget: 10000, weekBudget: 2500, daySpent: 0, dayBudget: 0, monthSpent: 4500, monthBudget: 10000 },
-  { cat: '娯楽', icon: '🎮', spent: 6000, budget: 8000, weekBudget: 2000, daySpent: 0, dayBudget: 0, monthSpent: 6000, monthBudget: 8000 },
+  {
+    cat: '食費',
+    icon: '🍽️',
+    spent: 18000,
+    budget: 30000,
+    weekBudget: 7000,
+    daySpent: 0,
+    dayBudget: 0,
+    monthSpent: 18000,
+    monthBudget: 30000,
+  },
+  {
+    cat: '日用品',
+    icon: '🧴',
+    spent: 4500,
+    budget: 10000,
+    weekBudget: 2500,
+    daySpent: 0,
+    dayBudget: 0,
+    monthSpent: 4500,
+    monthBudget: 10000,
+  },
+  {
+    cat: '娯楽',
+    icon: '🎮',
+    spent: 6000,
+    budget: 8000,
+    weekBudget: 2000,
+    daySpent: 0,
+    dayBudget: 0,
+    monthSpent: 6000,
+    monthBudget: 8000,
+  },
 ]
 
 export default function BudgetProgressPanel({
@@ -119,16 +149,17 @@ export default function BudgetProgressPanel({
       <div className="h-px bg-surface-hover" />
 
       {/* カテゴリ別予算進捗 */}
-      {rows.length > 0 && rows.map(({ cat, icon, spent, budget }) => (
-        <BudgetProgress
-          key={cat}
-          label={cat}
-          icon={icon}
-          spent={spent}
-          budget={budget}
-          color="bg-warning-400"
-        />
-      ))}
+      {rows.length > 0 &&
+        rows.map(({ cat, icon, spent, budget }) => (
+          <BudgetProgress
+            key={cat}
+            label={cat}
+            icon={icon}
+            spent={spent}
+            budget={budget}
+            color="bg-warning-400"
+          />
+        ))}
 
       <div className="h-px bg-surface-hover" />
 
@@ -148,10 +179,10 @@ export default function BudgetProgressPanel({
           >
             {formatYen(periodMode === 'week' ? weekTotalSpent : monthTotalSpent)}
           </span>
-            {' / '}
-            <span className="text-ink-muted">
-              {formatYen(periodMode === 'week' ? weekTotalBudget : monthTotalBudget)}
-            </span>
+          {' / '}
+          <span className="text-ink-muted">
+            {formatYen(periodMode === 'week' ? weekTotalBudget : monthTotalBudget)}
+          </span>
         </div>
       </div>
 
@@ -164,7 +195,14 @@ export default function BudgetProgressPanel({
       )}
 
       {!hasBudget && (
-        <div className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-3" style={{ backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', background: 'rgb(var(--color-surface) / 0.55)' }}>
+        <div
+          className="absolute inset-0 rounded-2xl flex flex-col items-center justify-center gap-3"
+          style={{
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            background: 'rgb(var(--color-surface) / 0.55)',
+          }}
+        >
           <p className="text-sm font-semibold text-ink">予算がまだ設定されていません</p>
           {onManageBudget && (
             <div>
