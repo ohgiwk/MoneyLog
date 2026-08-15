@@ -30,7 +30,8 @@ const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
 
 export default function HomeTab({ userId }: Props) {
   const navigate = useNavigate()
-  const { setCalendarSelectedDate, setMonth } = useAppContext()
+  const { setCalendarSelectedDate, setMonth, categories } = useAppContext()
+  const { expenseCategories } = categories
   const [carryOver, setCarryOver] = useState(() => {
     const stored = localStorage.getItem(carryOverKey(userId))
     return stored === null ? true : stored === 'true'
@@ -130,22 +131,34 @@ export default function HomeTab({ userId }: Props) {
     month: calendarMonth,
   })
 
+  const catOrder = useMemo(
+    () => new Map(expenseCategories.map((c, i) => [c.name, i])),
+    [expenseCategories]
+  )
+  const sortedCategoryRows = useMemo(
+    () =>
+      [...oneTimeCategoryRows].sort(
+        (a, b) => (catOrder.get(a.cat) ?? Infinity) - (catOrder.get(b.cat) ?? Infinity)
+      ),
+    [oneTimeCategoryRows, catOrder]
+  )
+
   const categoryMode = localStorage.getItem(`budgetCategoryMode_${userId}`) ?? 'detail'
   const displayCategoryRows =
-    categoryMode === 'total' && oneTimeCategoryRows.length > 0
+    categoryMode === 'total' && sortedCategoryRows.length > 0
       ? [
           {
             cat: '通常出費',
             icon: '⚡',
-            spent: oneTimeCategoryRows.reduce((s, r) => s + r.spent, 0),
-            weekBudget: oneTimeCategoryRows.reduce((s, r) => s + r.weekBudget, 0),
-            daySpent: oneTimeCategoryRows.reduce((s, r) => s + r.daySpent, 0),
-            dayBudget: oneTimeCategoryRows.reduce((s, r) => s + r.dayBudget, 0),
-            monthSpent: oneTimeCategoryRows.reduce((s, r) => s + r.monthSpent, 0),
-            monthBudget: oneTimeCategoryRows.reduce((s, r) => s + r.monthBudget, 0),
+            spent: sortedCategoryRows.reduce((s, r) => s + r.spent, 0),
+            weekBudget: sortedCategoryRows.reduce((s, r) => s + r.weekBudget, 0),
+            daySpent: sortedCategoryRows.reduce((s, r) => s + r.daySpent, 0),
+            dayBudget: sortedCategoryRows.reduce((s, r) => s + r.dayBudget, 0),
+            monthSpent: sortedCategoryRows.reduce((s, r) => s + r.monthSpent, 0),
+            monthBudget: sortedCategoryRows.reduce((s, r) => s + r.monthBudget, 0),
           },
         ]
-      : oneTimeCategoryRows
+      : sortedCategoryRows
 
   return (
     <div className="p-4 space-y-4">
