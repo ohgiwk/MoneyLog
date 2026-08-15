@@ -3,7 +3,7 @@ import BottomSheet from './ui/BottomSheet'
 import Input from './ui/Input'
 import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
-import { STORE_TYPES } from '../constants'
+import { useStoreTypes } from '../hooks/useStoreTypes'
 import type { ShoppingItem } from '../lib/database.types'
 
 interface Props {
@@ -11,12 +11,25 @@ interface Props {
   item?: ShoppingItem
   defaultGroup?: string
   groups?: string[]
-  onConfirm: (name: string, memo: string | null, budgetAmount: number, group: string) => Promise<void>
+  onConfirm: (
+    name: string,
+    memo: string | null,
+    budgetAmount: number,
+    group: string
+  ) => Promise<void>
   onCancel: () => void
 }
 
-export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups = [], onConfirm, onCancel }: Props) {
-  const [step, setStep] = useState<1 | 2>((item || defaultGroup !== undefined) ? 2 : 1)
+export default function ShoppingItemDialog({
+  isOpen,
+  item,
+  defaultGroup,
+  groups = [],
+  onConfirm,
+  onCancel,
+}: Props) {
+  const { items: storeTypes } = useStoreTypes()
+  const [step, setStep] = useState<1 | 2>(item || defaultGroup !== undefined ? 2 : 1)
   const [group, setGroup] = useState(item?.category ?? defaultGroup ?? '')
   const [customGroup, setCustomGroup] = useState('')
   const [name, setName] = useState(item?.name ?? '')
@@ -27,7 +40,7 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
 
   useEffect(() => {
     if (!isOpen) return
-    const initialStep = (item || defaultGroup !== undefined) ? 2 : 1
+    const initialStep = item || defaultGroup !== undefined ? 2 : 1
     setStep(initialStep)
     setGroup(item?.category ?? defaultGroup ?? '')
     setCustomGroup('')
@@ -40,11 +53,14 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
 
   const isCustomGroup = group === '__custom__'
   const resolvedGroup = isCustomGroup ? customGroup.trim() : group
-  const customGroups = groups.filter(g => !STORE_TYPES.some(st => st.name === g))
+  const customGroups = groups.filter((g) => !storeTypes.some((st) => st.name === g))
 
   async function handleSubmit() {
     const trimmedName = name.trim()
-    if (!trimmedName) { setError('商品名を入力してください'); return }
+    if (!trimmedName) {
+      setError('商品名を入力してください')
+      return
+    }
     const parsedBudget = budget.trim() ? parseInt(budget, 10) : 0
     if (budget.trim() && (isNaN(parsedBudget) || parsedBudget < 0)) {
       setError('予算は0以上の数値で入力してください')
@@ -60,26 +76,27 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
     }
   }
 
-  const title = step === 1 ? 'グループを選択' : (item ? '買い物メモを編集' : '商品を入力')
+  const title = step === 1 ? 'グループを選択' : item ? '買い物メモを編集' : '商品を入力'
 
-  const footer = step === 1 ? (
-    <button
-      type="button"
-      onClick={() => setStep(2)}
-      className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
-    >
-      {resolvedGroup ? `「${resolvedGroup}」で次へ` : 'グループなしで次へ'}
-    </button>
-  ) : (
-    <button
-      type="button"
-      onClick={handleSubmit}
-      disabled={submitting}
-      className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold disabled:opacity-50"
-    >
-      {submitting ? '保存中...' : '保存する'}
-    </button>
-  )
+  const footer =
+    step === 1 ? (
+      <button
+        type="button"
+        onClick={() => setStep(2)}
+        className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
+      >
+        {resolvedGroup ? `「${resolvedGroup}」で次へ` : 'グループなしで次へ'}
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold disabled:opacity-50"
+      >
+        {submitting ? '保存中...' : '保存する'}
+      </button>
+    )
 
   return (
     <BottomSheet isOpen={isOpen} onClose={onCancel} title={title} footer={footer}>
@@ -88,7 +105,7 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
           <div>
             <p className="text-xs text-ink-muted mb-2">店舗種別</p>
             <div className="grid grid-cols-4 gap-2">
-              {STORE_TYPES.filter(st => st.name !== 'ガソリンスタンド' && st.name !== '飲食店').map(st => (
+              {storeTypes.map((st) => (
                 <button
                   key={st.name}
                   type="button"
@@ -111,7 +128,7 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
             <div>
               <p className="text-xs text-ink-muted mb-2">既存グループ</p>
               <div className="grid grid-cols-4 gap-2">
-                {customGroups.map(g => (
+                {customGroups.map((g) => (
                   <button
                     key={g}
                     type="button"
@@ -136,7 +153,10 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
             <Input
               type="text"
               value={customGroup}
-              onChange={(e) => { setCustomGroup(e.target.value); setGroup('__custom__') }}
+              onChange={(e) => {
+                setCustomGroup(e.target.value)
+                setGroup('__custom__')
+              }}
               onFocus={() => setGroup('__custom__')}
               placeholder="グループ名を入力..."
               className={isCustomGroup ? 'border-primary-400' : ''}
@@ -151,8 +171,17 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
               onClick={() => setStep(1)}
               className="flex items-center gap-1 text-sm text-ink-muted active:text-ink"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
               </svg>
               グループ選択に戻る
             </button>
@@ -162,9 +191,23 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-50 dark:bg-primary-950/60 rounded-xl w-fit">
               <span className="text-xs text-primary-600 font-medium">{resolvedGroup}</span>
               {defaultGroup === undefined && (
-                <button type="button" onClick={() => setStep(1)} className="text-primary-400 active:text-primary-600">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="text-primary-400 active:text-primary-600"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               )}
@@ -177,19 +220,26 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
                 <FormLabel>グループ</FormLabel>
                 <select
                   value={isCustomGroup ? '__custom__' : group}
-                  onChange={(e) => { setGroup(e.target.value); if (e.target.value !== '__custom__') setCustomGroup('') }}
+                  onChange={(e) => {
+                    setGroup(e.target.value)
+                    if (e.target.value !== '__custom__') setCustomGroup('')
+                  }}
                   className="w-full border border-line rounded-xl px-3 py-2.5 text-sm text-ink-strong focus:outline-none focus:border-primary-400 bg-surface"
                 >
                   <option value="">グループなし</option>
                   <optgroup label="店舗種別">
-                    {STORE_TYPES.filter(st => st.name !== 'ガソリンスタンド' && st.name !== '飲食店').map(st => (
-                      <option key={st.name} value={st.name}>{st.icon} {st.name}</option>
+                    {storeTypes.map((st) => (
+                      <option key={st.name} value={st.name}>
+                        {st.icon} {st.name}
+                      </option>
                     ))}
                   </optgroup>
                   {customGroups.length > 0 && (
                     <optgroup label="既存グループ">
-                      {customGroups.map(g => (
-                        <option key={g} value={g}>{g}</option>
+                      {customGroups.map((g) => (
+                        <option key={g} value={g}>
+                          {g}
+                        </option>
                       ))}
                     </optgroup>
                   )}
@@ -210,18 +260,31 @@ export default function ShoppingItemDialog({ isOpen, item, defaultGroup, groups 
 
             <div>
               <FormLabel>商品名</FormLabel>
-              <Input autoFocus type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="例: 牛乳" />
+              <Input
+                autoFocus
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="例: 牛乳"
+              />
             </div>
 
             <div>
               <FormLabel>メモ（任意）</FormLabel>
-              <Input type="text" value={memo} onChange={(e) => setMemo(e.target.value)} placeholder="例: 特売のもの" />
+              <Input
+                type="text"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="例: 特売のもの"
+              />
             </div>
 
             <div>
               <FormLabel>予算（任意）</FormLabel>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">¥</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted text-sm">
+                  ¥
+                </span>
                 <Input
                   type="number"
                   inputMode="numeric"

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { MEAL_TYPES, PAYMENT_TYPES, STORE_TYPES, type CategoryInfo } from '../constants'
+import { MEAL_TYPES, PAYMENT_TYPES, type CategoryInfo } from '../constants'
+import { useStoreTypes } from '../hooks/useStoreTypes'
 import type { Transaction } from '../lib/database.types'
 import { useOneTimeForm } from '../hooks/useOneTimeForm'
 import { usePaymentMethods } from '../hooks/usePaymentMethods'
@@ -59,14 +60,25 @@ export default function OneTimeTransactionForm({
     selectPaymentType,
     handleSubmit,
     handleDelete,
-  } = useOneTimeForm({ userId, expenseCategories, incomeCategories, editingTx, duplicateTx, onBack: closeAndNotify })
+  } = useOneTimeForm({
+    userId,
+    expenseCategories,
+    incomeCategories,
+    editingTx,
+    duplicateTx,
+    onBack: closeAndNotify,
+  })
 
-  if (submitRef) submitRef.current = () => { void handleSubmit() }
+  if (submitRef)
+    submitRef.current = () => {
+      void handleSubmit()
+    }
 
+  const { items: storeTypes } = useStoreTypes()
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
   const [storeTypeDropUp, setStoreTypeDropUp] = useState(false)
   const storeTypeButtonRef = useRef<HTMLButtonElement>(null)
-  const selectedStoreType = STORE_TYPES.find((s) => s.name === values.storeType)
+  const selectedStoreType = storeTypes.find((s) => s.name === values.storeType)
   const { methods: paymentMethods } = usePaymentMethods()
   const paymentMethodsForType = paymentMethods.filter((m) => m.type === values.paymentType)
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
@@ -96,7 +108,12 @@ export default function OneTimeTransactionForm({
       title: editingTx ? '記録を編集' : '出費を記録',
       onBack: requestBack,
       action: editingTx
-        ? { label: '削除', onClick: () => setConfirmDelete(true), disabled: isSubmitting, tone: 'danger' }
+        ? {
+            label: '削除',
+            onClick: () => setConfirmDelete(true),
+            disabled: isSubmitting,
+            tone: 'danger',
+          }
         : undefined,
     })
   }, [editingTx, isDirty, isSubmitting]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -107,7 +124,10 @@ export default function OneTimeTransactionForm({
         <ConfirmDialog
           message="入力内容を破棄しますか？"
           confirmLabel="破棄する"
-          onConfirm={() => { setShowDiscardConfirm(false); closeAndNotify() }}
+          onConfirm={() => {
+            setShowDiscardConfirm(false)
+            closeAndNotify()
+          }}
           onCancel={() => setShowDiscardConfirm(false)}
         />
       )}
@@ -116,7 +136,10 @@ export default function OneTimeTransactionForm({
         <ConfirmDialog
           message="この記録を削除しますか？"
           confirmLabel="削除する"
-          onConfirm={() => { setConfirmDelete(false); handleDelete() }}
+          onConfirm={() => {
+            setConfirmDelete(false)
+            handleDelete()
+          }}
           onCancel={() => setConfirmDelete(false)}
         />
       )}
@@ -138,7 +161,15 @@ export default function OneTimeTransactionForm({
             <Button fullWidth type="button" onClick={() => setShowSuccess(false)}>
               続けて記録する
             </Button>
-            <Button fullWidth variant="secondary" type="button" onClick={() => { setShowSuccess(false); closeAndNotify() }}>
+            <Button
+              fullWidth
+              variant="secondary"
+              type="button"
+              onClick={() => {
+                setShowSuccess(false)
+                closeAndNotify()
+              }}
+            >
               一覧を見る
             </Button>
           </div>
@@ -150,7 +181,10 @@ export default function OneTimeTransactionForm({
         <div className="flex rounded-xl bg-surface-hover p-1">
           <button
             type="button"
-            onClick={() => { handleTypeChange('expense'); onTypeChange?.('expense') }}
+            onClick={() => {
+              handleTypeChange('expense')
+              onTypeChange?.('expense')
+            }}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
               (values.type === 'expense' ? 'bg-danger-500 text-white shadow' : 'text-ink-muted')
@@ -160,7 +194,10 @@ export default function OneTimeTransactionForm({
           </button>
           <button
             type="button"
-            onClick={() => { handleTypeChange('income'); onTypeChange?.('income') }}
+            onClick={() => {
+              handleTypeChange('income')
+              onTypeChange?.('income')
+            }}
             className={
               'flex-1 py-2 rounded-lg text-sm font-semibold transition ' +
               (values.type === 'income' ? 'bg-income-500 text-white shadow' : 'text-ink-muted')
@@ -176,7 +213,9 @@ export default function OneTimeTransactionForm({
         </div>
 
         {/* 金額 */}
-        <div className={`rounded-xl px-4 py-3 ${values.type === 'expense' ? 'bg-danger-500' : 'bg-income-500'}`}>
+        <div
+          className={`rounded-xl px-4 py-3 ${values.type === 'expense' ? 'bg-danger-500' : 'bg-income-500'}`}
+        >
           <label className="text-xs text-white/80 font-bold">金額</label>
           <div className="flex items-center gap-2 mt-1">
             <Input
@@ -264,26 +303,38 @@ export default function OneTimeTransactionForm({
                   className="fixed inset-0 z-10 cursor-default"
                   onClick={() => setStoreTypeOpen(false)}
                 />
-                <div className={`absolute left-0 right-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto ${storeTypeDropUp ? 'bottom-full' : 'top-full mt-1'}`}>
+                <div
+                  className={`absolute left-0 right-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto ${storeTypeDropUp ? 'bottom-full' : 'top-full mt-1'}`}
+                >
                   <button
                     type="button"
-                    onClick={() => { setValue('storeType', ''); setStoreTypeOpen(false) }}
+                    onClick={() => {
+                      setValue('storeType', '')
+                      setStoreTypeOpen(false)
+                    }}
                     className={
                       'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                      (values.storeType === '' ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400' : 'text-ink active:bg-surface-subtle')
+                      (values.storeType === ''
+                        ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
+                        : 'text-ink active:bg-surface-subtle')
                     }
                   >
                     <span className="text-lg">🏷️</span>
                     <span>未選択</span>
                   </button>
-                  {STORE_TYPES.map((s) => (
+                  {storeTypes.map((s) => (
                     <button
                       key={s.name}
                       type="button"
-                      onClick={() => { setValue('storeType', s.name); setStoreTypeOpen(false) }}
+                      onClick={() => {
+                        setValue('storeType', s.name)
+                        setStoreTypeOpen(false)
+                      }}
                       className={
                         'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                        (values.storeType === s.name ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400' : 'text-ink active:bg-surface-subtle')
+                        (values.storeType === s.name
+                          ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
+                          : 'text-ink active:bg-surface-subtle')
                       }
                     >
                       <span className="text-lg">{s.icon}</span>
@@ -314,9 +365,7 @@ export default function OneTimeTransactionForm({
                   }
                 >
                   <span className="text-lg">{p.icon}</span>
-                  <span className="text-[10px] leading-tight text-ink text-center">
-                    {p.name}
-                  </span>
+                  <span className="text-[10px] leading-tight text-ink text-center">{p.name}</span>
                 </button>
               ))}
             </div>
@@ -330,7 +379,9 @@ export default function OneTimeTransactionForm({
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() => setValue('paymentMethod', values.paymentMethod === m.name ? '' : m.name)}
+                        onClick={() =>
+                          setValue('paymentMethod', values.paymentMethod === m.name ? '' : m.name)
+                        }
                         className={
                           'px-3 py-1 rounded-lg text-xs font-medium border ' +
                           (values.paymentMethod === m.name

@@ -17,6 +17,7 @@ import CategoryEditScreen from './components/CategoryEditScreen'
 import BudgetScreen from './components/BudgetScreen'
 import ExchangeRateScreen from './components/ExchangeRateScreen'
 import PaymentMethodsScreen from './components/PaymentMethodsScreen'
+import StoreTypesScreen from './components/StoreTypesScreen'
 import OnboardingScreen from './components/OnboardingScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
@@ -36,11 +37,18 @@ function AppRoutes() {
     let hideHandle: { remove: () => void } | null = null
     void Keyboard.addListener('keyboardWillShow', (info) => {
       document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`)
-    }).then(h => { showHandle = h })
+    }).then((h) => {
+      showHandle = h
+    })
     void Keyboard.addListener('keyboardWillHide', () => {
       document.documentElement.style.setProperty('--keyboard-height', '0px')
-    }).then(h => { hideHandle = h })
-    return () => { showHandle?.remove(); hideHandle?.remove() }
+    }).then((h) => {
+      hideHandle = h
+    })
+    return () => {
+      showHandle?.remove()
+      hideHandle?.remove()
+    }
   }, [])
   const location = useLocation()
   const direction = useNavDirection()
@@ -50,8 +58,14 @@ function AppRoutes() {
     return (
       <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-8">
         <div className="flex items-center gap-3">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="w-16 h-16 object-contain" />
-          <p className="text-3xl text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>キンカク手帖</p>
+          <img
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt=""
+            className="w-16 h-16 object-contain"
+          />
+          <p className="text-3xl text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>
+            キンカク手帖
+          </p>
         </div>
         <div className="w-48 h-1 bg-surface-muted rounded-full overflow-hidden">
           <div className="h-full bg-primary-500 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
@@ -83,6 +97,7 @@ function AppRoutes() {
         <Route path="settings/categories" element={<CategoryEditScreen />} />
         <Route path="settings/exchange-rate" element={<ExchangeRateScreen />} />
         <Route path="settings/payment-methods" element={<PaymentMethodsScreen />} />
+        <Route path="settings/store-types" element={<StoreTypesScreen />} />
         <Route path="budget" element={<BudgetScreen userId={user.id} />} />
         <Route path="analytics" element={<AnalyticsScreen userId={user.id} />} />
         <Route path="saving-tips" element={<SavingTipsScreen />} />

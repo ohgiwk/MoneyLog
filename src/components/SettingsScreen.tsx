@@ -19,7 +19,9 @@ export default function SettingsScreen({ userId }: Props) {
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const { data: profile } = useProfileQuery(userId)
   const monthStartDay = profile?.month_start_day ?? 1
@@ -59,7 +61,9 @@ export default function SettingsScreen({ userId }: Props) {
                 className="border border-line rounded-xl px-3 py-1.5 text-sm font-semibold text-ink bg-surface focus:outline-none focus:ring-2 focus:ring-primary-300"
               >
                 {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                  <option key={d} value={d}>{d}日</option>
+                  <option key={d} value={d}>
+                    {d}日
+                  </option>
                 ))}
               </select>
             </div>
@@ -115,18 +119,35 @@ export default function SettingsScreen({ userId }: Props) {
             <span className="text-xl">💱</span>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-ink">為替レート設定</div>
-              <div className="text-xs text-ink-muted">USD/JPY レートを設定（固定費のドル入力に使用）</div>
+              <div className="text-xs text-ink-muted">
+                USD/JPY レートを設定（固定費のドル入力に使用）
+              </div>
             </div>
             <span className="text-ink-subtle text-lg">›</span>
           </button>
           <button
             onClick={() => navigate('/settings/payment-methods')}
-            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
           >
             <span className="text-xl">💳</span>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-ink">支払い方法</div>
-              <div className="text-xs text-ink-muted">クレジットカード・電子マネー・QR決済の登録とデフォルト設定</div>
+              <div className="text-xs text-ink-muted">
+                クレジットカード・電子マネー・QR決済の登録とデフォルト設定
+              </div>
+            </div>
+            <span className="text-ink-subtle text-lg">›</span>
+          </button>
+          <button
+            onClick={() => navigate('/settings/store-types')}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
+          >
+            <span className="text-xl">🏪</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink">店舗種別</div>
+              <div className="text-xs text-ink-muted">
+                出費入力・買い物メモで使う店舗種別を追加・編集・並び替え
+              </div>
             </div>
             <span className="text-ink-subtle text-lg">›</span>
           </button>

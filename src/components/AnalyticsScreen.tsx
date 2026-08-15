@@ -7,7 +7,8 @@ import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQuery } from '@tanstack/react-query'
-import { STORE_TYPES, PAYMENT_TYPES } from '../constants'
+import { PAYMENT_TYPES } from '../constants'
+import { useStoreTypes } from '../hooks/useStoreTypes'
 import { categoryInfo, formatYen, todayStr } from '../utils'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
@@ -24,8 +25,11 @@ interface Props {
 
 export default function AnalyticsScreen({ userId }: Props) {
   const navigate = useNavigate()
-  useEffect(() => { window.scrollTo(0, 0) }, [])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
+  const { items: storeTypes } = useStoreTypes()
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
   const [storePeriod, setStorePeriod] = useState<Period>('monthly')
@@ -44,11 +48,15 @@ export default function AnalyticsScreen({ userId }: Props) {
   })
   const { data: fixedExpenses = [], isError: fixedError } = useFixedExpensesQuery(userId)
   const { data: consumables = [], isError: consumablesError } = useConsumablesQuery(userId)
-  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(userId, month)
+  const { data: budget = EMPTY_BUDGET_SETTINGS, isError: budgetError } = useBudgetQuery(
+    userId,
+    month
+  )
 
-  const fetchError = profileError || txError || yearTxError || fixedError || consumablesError || budgetError
-    ? 'データの読み込みに失敗しました'
-    : null
+  const fetchError =
+    profileError || txError || yearTxError || fixedError || consumablesError || budgetError
+      ? 'データの読み込みに失敗しました'
+      : null
 
   const dailyExpenses = useMemo(() => {
     const [y, m] = month.split('-').map(Number)
@@ -59,7 +67,10 @@ export default function AnalyticsScreen({ userId }: Props) {
       const day = parseInt(t.date.slice(8))
       map.set(day, (map.get(day) ?? 0) + t.amount)
     }
-    return Array.from({ length: daysInMonth }, (_, i) => ({ day: i + 1, amount: map.get(i + 1) ?? 0 }))
+    return Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      amount: map.get(i + 1) ?? 0,
+    }))
   }, [transactions, month])
 
   const storeCounts = useMemo(() => {
@@ -113,7 +124,14 @@ export default function AnalyticsScreen({ userId }: Props) {
     fixedByCat,
     consumableByCat,
     hasBreakdown,
-  } = useSummaryCalculations({ transactions, fixedExpenses, consumables, householdMembers, budget, month })
+  } = useSummaryCalculations({
+    transactions,
+    fixedExpenses,
+    consumables,
+    householdMembers,
+    budget,
+    month,
+  })
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
@@ -150,11 +168,13 @@ export default function AnalyticsScreen({ userId }: Props) {
           <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
             <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
             <TabGroup
-              tabs={[
-                { key: 'fixed', label: '固定費' },
-                { key: 'consumable', label: '定期購入' },
-                { key: 'oneTime', label: '出費' },
-              ] as { key: BreakdownTab; label: string }[]}
+              tabs={
+                [
+                  { key: 'fixed', label: '固定費' },
+                  { key: 'consumable', label: '定期購入' },
+                  { key: 'oneTime', label: '出費' },
+                ] as { key: BreakdownTab; label: string }[]
+              }
               active={breakdownTab}
               onChange={setBreakdownTab}
               size="sm"
@@ -217,11 +237,11 @@ export default function AnalyticsScreen({ userId }: Props) {
           </div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">記録数</div>
-            <StoreBars entries={storeCounts} valueType="count" />
+            <StoreBars entries={storeCounts} valueType="count" storeTypes={storeTypes} />
           </div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">合計額</div>
-            <StoreBars entries={storeAmounts} valueType="amount" />
+            <StoreBars entries={storeAmounts} valueType="amount" storeTypes={storeTypes} />
           </div>
         </div>
 
@@ -264,14 +284,14 @@ function niceMax(value: number, steps = 4): number {
   if (value <= 0) return steps
   const rough = value / steps
   const mag = Math.pow(10, Math.floor(Math.log10(rough)))
-  const factor = [1, 2, 3, 5, 10].find(f => f * mag >= rough) ?? 10
+  const factor = [1, 2, 3, 5, 10].find((f) => f * mag >= rough) ?? 10
   return factor * mag * steps
 }
 
 function DailyExpenseChart({ entries }: { entries: { day: number; amount: number }[] }) {
-  const rawMax = Math.max(...entries.map(e => e.amount), 1)
+  const rawMax = Math.max(...entries.map((e) => e.amount), 1)
   const max = niceMax(rawMax)
-  const hasData = entries.some(e => e.amount > 0)
+  const hasData = entries.some((e) => e.amount > 0)
 
   if (!hasData) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
@@ -279,7 +299,7 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
 
   const CHART_H = 120
   const LABEL_W = 48 // 左の金額ラベル幅
-  const DAY_H = 16   // 日付ラベルの高さ
+  const DAY_H = 16 // 日付ラベルの高さ
   const BAR_H = CHART_H - DAY_H
 
   const gridRatios = [1, 0.75, 0.5, 0.25]
@@ -287,8 +307,11 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
   return (
     <div className="flex gap-1">
       {/* 縦軸ラベル */}
-      <div className="flex flex-col justify-between pb-4 shrink-0" style={{ width: LABEL_W, height: CHART_H }}>
-        {gridRatios.map(r => (
+      <div
+        className="flex flex-col justify-between pb-4 shrink-0"
+        style={{ width: LABEL_W, height: CHART_H }}
+      >
+        {gridRatios.map((r) => (
           <span key={r} className="text-[9px] text-ink-muted text-right leading-none">
             {formatYen(Math.round(max * r))}
           </span>
@@ -298,8 +321,11 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
       {/* グラフ本体 */}
       <div className="relative flex-1 min-w-0" style={{ height: CHART_H }}>
         {/* グリッド線 */}
-        <div className="absolute left-0 right-0 pointer-events-none" style={{ top: 0, height: BAR_H }}>
-          {gridRatios.map(r => (
+        <div
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: 0, height: BAR_H }}
+        >
+          {gridRatios.map((r) => (
             <div
               key={r}
               className="absolute left-0 right-0 border-t border-line-subtle"
@@ -313,7 +339,11 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
           {entries.map(({ day, amount }) => {
             const pct = amount > 0 ? (amount / max) * 100 : 0
             return (
-              <div key={day} className="flex flex-col items-center flex-1 min-w-0" style={{ height: '100%' }}>
+              <div
+                key={day}
+                className="flex flex-col items-center flex-1 min-w-0"
+                style={{ height: '100%' }}
+              >
                 <div className="w-full flex flex-col justify-end" style={{ height: BAR_H }}>
                   {amount > 0 && (
                     <div
@@ -322,7 +352,15 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
                     />
                   )}
                 </div>
-                <div className="text-[9px] text-ink-muted leading-none" style={{ height: DAY_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div
+                  className="text-[9px] text-ink-muted leading-none"
+                  style={{
+                    height: DAY_H,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   {day % 5 === 0 || day === 1 ? day : ''}
                 </div>
               </div>
@@ -336,7 +374,15 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
 
 // ─── Store Bars ─────────────────────────────────────────────────
 
-function StoreBars({ entries, valueType }: { entries: [string, number][]; valueType: 'amount' | 'count' }) {
+function StoreBars({
+  entries,
+  valueType,
+  storeTypes,
+}: {
+  entries: [string, number][]
+  valueType: 'amount' | 'count'
+  storeTypes: { name: string; icon: string }[]
+}) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
@@ -344,23 +390,27 @@ function StoreBars({ entries, valueType }: { entries: [string, number][]; valueT
   const total = entries.reduce((s, [, v]) => s + v, 0)
   const barColor = valueType === 'amount' ? 'bg-danger-400' : 'bg-indigo-400'
   const valueColor = valueType === 'amount' ? 'text-danger-500' : 'text-ink'
-  const fmt = (v: number) => valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`
+  const fmt = (v: number) => (valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`)
   return (
     <div className="space-y-2">
       {entries.map(([storeName, value]) => {
-        const info = STORE_TYPES.find((s) => s.name === storeName)
+        const info = storeTypes.find((s) => s.name === storeName)
         const icon = storeName === '未記録' ? '−' : (info?.icon ?? '🏷️')
         const pct = max > 0 ? (value / max) * 100 : 0
         return (
           <div key={storeName}>
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
-                <span>{icon}</span>{storeName}
+                <span>{icon}</span>
+                {storeName}
               </span>
               <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+              <div
+                className={`h-full ${barColor} rounded-full transition-all`}
+                style={{ width: `${pct}%` }}
+              />
             </div>
           </div>
         )
@@ -375,7 +425,13 @@ function StoreBars({ entries, valueType }: { entries: [string, number][]; valueT
 
 // ─── Payment Bars ───────────────────────────────────────────────
 
-function PaymentBars({ entries, valueType }: { entries: [string, number][]; valueType: 'amount' | 'count' }) {
+function PaymentBars({
+  entries,
+  valueType,
+}: {
+  entries: [string, number][]
+  valueType: 'amount' | 'count'
+}) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
@@ -383,7 +439,7 @@ function PaymentBars({ entries, valueType }: { entries: [string, number][]; valu
   const total = entries.reduce((s, [, v]) => s + v, 0)
   const barColor = valueType === 'amount' ? 'bg-danger-400' : 'bg-indigo-400'
   const valueColor = valueType === 'amount' ? 'text-danger-500' : 'text-ink'
-  const fmt = (v: number) => valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`
+  const fmt = (v: number) => (valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`)
   return (
     <div className="space-y-2">
       {entries.map(([paymentType, value]) => {
@@ -395,12 +451,16 @@ function PaymentBars({ entries, valueType }: { entries: [string, number][]; valu
           <div key={paymentType}>
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
-                <span>{icon}</span>{label}
+                <span>{icon}</span>
+                {label}
               </span>
               <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+              <div
+                className={`h-full ${barColor} rounded-full transition-all`}
+                style={{ width: `${pct}%` }}
+              />
             </div>
           </div>
         )
@@ -438,9 +498,12 @@ function BreakdownBars({
           <div key={cat}>
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
-                <span>{info.icon}</span>{cat}
+                <span>{info.icon}</span>
+                {cat}
               </span>
-              <span className={`text-xs font-semibold ${valueColor}`}>-{formatYen(Math.round(amt))}</span>
+              <span className={`text-xs font-semibold ${valueColor}`}>
+                -{formatYen(Math.round(amt))}
+              </span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
               <div
@@ -453,7 +516,9 @@ function BreakdownBars({
       })}
       <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
         <span className="text-xs text-ink-muted">合計</span>
-        <span className={`text-sm font-semibold ${valueColor}`}>-{formatYen(Math.round(total))}</span>
+        <span className={`text-sm font-semibold ${valueColor}`}>
+          -{formatYen(Math.round(total))}
+        </span>
       </div>
     </div>
   )
