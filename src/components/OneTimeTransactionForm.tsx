@@ -95,11 +95,12 @@ export default function OneTimeTransactionForm({
     if (showSuccess) setSuccessTip(TIPS[Math.floor(Math.random() * TIPS.length)])
   }, [showSuccess])
 
-  // ページ遷移アニメーション(320ms)完了後にフォーカスしてキーボードを表示
+  // 新規入力時のみ、ページ遷移アニメーション(320ms)完了後にフォーカスしてキーボードを表示
   useEffect(() => {
+    if (editingTx) return
     const id = setTimeout(() => amountRef.current?.focus(), 350)
     return () => clearTimeout(id)
-  }, [])
+  }, [editingTx])
 
   // ヘッダーに戻るボタンを表示する。編集時は削除ボタンも表示する
   useEffect(() => {
