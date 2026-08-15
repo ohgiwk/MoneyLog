@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { EXPENSE_CATEGORIES } from '../constants'
 import { budgetService, oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS, type BudgetSettings } from '../lib/services/budgetService'
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
-import { calcBudgetProgress, formatYen, todayStr } from '../utils'
+import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
+import { calcBudgetProgress, formatYen, shiftMonth, todayStr } from '../utils'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
 import Button from './ui/Button'
@@ -31,6 +32,23 @@ export default function BudgetScreen({ userId }: Props) {
 
   const { data: fetchedBudget, isError } = useBudgetQuery(userId, month)
   const mutation = useBudgetMutation(userId, month)
+
+  const lastMonth = useMemo(() => shiftMonth(month, -1), [month])
+  const { data: lastMonthTxs = [] } = useTransactionsQuery(userId, lastMonth)
+
+  const lastMonthOneTimeByCat = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const t of lastMonthTxs) {
+      if (t.type !== 'expense' || t.expense_kind !== 'one_time') continue
+      map[t.category] = (map[t.category] ?? 0) + t.amount
+    }
+    return map
+  }, [lastMonthTxs])
+
+  const lastMonthOneTimeTotal = useMemo(
+    () => Object.values(lastMonthOneTimeByCat).reduce((s, v) => s + v, 0),
+    [lastMonthOneTimeByCat]
+  )
 
   useEffect(() => {
     if (!menuOpen) return
@@ -247,6 +265,7 @@ export default function BudgetScreen({ userId }: Props) {
                 label="通常出費"
                 value={categoryTotal}
                 onChange={handleCategoryTotalChange}
+                actual={lastMonthOneTimeTotal > 0 ? lastMonthOneTimeTotal : undefined}
               />
             ) : (
               <div className="space-y-3">
@@ -256,6 +275,7 @@ export default function BudgetScreen({ userId }: Props) {
                     label={`${cat.icon} ${cat.name}`}
                     value={budget.oneTimeByCategory[cat.name] ?? 0}
                     onChange={(v) => handleCategoryChange(cat.name, v)}
+                    actual={lastMonthOneTimeTotal > 0 ? (lastMonthOneTimeByCat[cat.name] ?? 0) : undefined}
                   />
                 ))}
                 {detailOneTimeTotal > 0 && (
@@ -319,14 +339,21 @@ function BudgetField({
   label,
   value,
   onChange,
+  actual,
 }: {
   label: string
   value: number
   onChange: (v: string) => void
+  actual?: number
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm text-ink flex-1 min-w-0 truncate">{label}</span>
+      <div className="flex flex-col flex-1 min-w-0">
+        <span className="text-sm text-ink truncate">{label}</span>
+        {actual !== undefined && (
+          <span className="text-xs text-ink-muted">先月実績 {formatYen(actual)}</span>
+        )}
+      </div>
       <div className="flex items-center gap-1 shrink-0">
         <span className="text-ink-muted text-xs">¥</span>
         <Input
