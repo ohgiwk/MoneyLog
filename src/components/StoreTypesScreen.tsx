@@ -93,7 +93,7 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
       <span className="flex-1 text-sm text-ink font-medium min-w-0 truncate">{item.name}</span>
       <button
         onClick={() => onEdit(item)}
-        className="w-8 h-8 flex items-center justify-center rounded-full text-primary-500 active:bg-primary-50 dark:active:bg-primary-950/40"
+        className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:text-primary-500 rounded-lg"
         aria-label="編集"
       >
         <svg
@@ -112,7 +112,7 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
       </button>
       <button
         onClick={() => onDelete(item)}
-        className="w-8 h-8 mr-1 flex items-center justify-center rounded-full text-danger-500 active:bg-danger-50 dark:active:bg-danger-950/40"
+        className="w-8 h-8 mr-1 flex items-center justify-center text-ink-subtle active:text-danger-400 rounded-lg"
         aria-label="削除"
       >
         <svg
