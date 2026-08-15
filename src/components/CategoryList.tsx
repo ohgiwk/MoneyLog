@@ -192,13 +192,12 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
         </DndContext>
       </Card>
 
-      {dialog !== null && (
-        <CategoryFormDialog
-          initial={dialogInitial}
-          onSave={handleSave}
-          onClose={() => setDialog(null)}
-        />
-      )}
+      <CategoryFormDialog
+        isOpen={dialog !== null}
+        initial={dialogInitial}
+        onSave={handleSave}
+        onClose={() => setDialog(null)}
+      />
     </>
   )
 })
