@@ -6,6 +6,8 @@ import { useProfileQuery, useProfileMutation } from '../hooks/queries/useProfile
 import { useQueryClient } from '@tanstack/react-query'
 import ScreenHeader from './ui/ScreenHeader'
 import { TabGroup } from './ui/TabGroup'
+import { authService } from '../lib/services/authService'
+import ConfirmDialog from './ui/ConfirmDialog'
 
 interface Props {
   userId: string
@@ -13,11 +15,14 @@ interface Props {
 
 export default function SettingsScreen({ userId }: Props) {
   const navigate = useNavigate()
-  const { theme } = useAppContext()
+  const { theme, signOut } = useAppContext()
   const themeMode = theme.mode
   const onThemeModeChange = theme.setMode
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -26,6 +31,18 @@ export default function SettingsScreen({ userId }: Props) {
   const { data: profile } = useProfileQuery(userId)
   const monthStartDay = profile?.month_start_day ?? 1
   const profileMutation = useProfileMutation(userId)
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true)
+    setDeleteError('')
+    const { error } = await authService.deleteAccount()
+    if (error) {
+      setDeleteError('退会に失敗しました。しばらくしてから再度お試しください。')
+      setDeleteLoading(false)
+    } else {
+      await signOut()
+    }
+  }
 
   async function saveMonthStartDay(value: number) {
     setSaving(true)
@@ -153,6 +170,35 @@ export default function SettingsScreen({ userId }: Props) {
           </button>
         </Card>
 
+        {/* アカウント設定 */}
+        <Card>
+          <div className="px-4 py-3 border-b border-line-subtle">
+            <span className="text-xs font-semibold text-ink-muted uppercase tracking-wide">
+              アカウント設定
+            </span>
+          </div>
+          <button
+            onClick={() => navigate('/settings/change-password')}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
+          >
+            <span className="text-xl">🔑</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink">パスワードを変更</div>
+            </div>
+            <span className="text-ink-subtle text-lg">›</span>
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-danger-50 dark:active:bg-danger-950/30"
+          >
+            <span className="text-xl">🗑️</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-danger-500">アカウントを退会する</div>
+            </div>
+            <span className="text-danger-400 text-lg">›</span>
+          </button>
+        </Card>
+
         {/* 法的情報 */}
         <Card>
           <div className="px-4 py-3 border-b border-line-subtle">
@@ -182,6 +228,18 @@ export default function SettingsScreen({ userId }: Props) {
           </button>
         </Card>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          message={`アカウントを退会しますか？\nすべてのデータが削除され、元に戻すことはできません。${deleteError ? `\n\n${deleteError}` : ''}`}
+          confirmLabel={deleteLoading ? '処理中...' : '退会する'}
+          onConfirm={handleDeleteAccount}
+          onCancel={() => {
+            setShowDeleteConfirm(false)
+            setDeleteError('')
+          }}
+        />
+      )}
     </div>
   )
 }
