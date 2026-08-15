@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { transactionService } from '../lib/services/transactionService'
+import { supabase } from '../lib/supabase'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
 import { useBudgetQuery } from '../hooks/queries/useBudgetQuery'
 import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
@@ -9,15 +10,16 @@ import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQuery } from '@tanstack/react-query'
 import { PAYMENT_TYPES } from '../constants'
 import { useStoreTypes } from '../hooks/useStoreTypes'
-import { categoryInfo, formatYen, todayStr } from '../utils'
+import { categoryInfo, formatYen, shiftMonth, todayStr } from '../utils'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import MonthSwitcher from './ui/MonthSwitcher'
+import YearSwitcher from './ui/YearSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import ScreenHeader from './ui/ScreenHeader'
 
 type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
-type Period = 'monthly' | 'yearly'
+type Period = 'monthly' | 'yearly' | 'all'
 
 interface Props {
   userId: string
@@ -35,6 +37,18 @@ export default function AnalyticsScreen({ userId }: Props) {
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
 
   const year = month.slice(0, 4)
+
+  const { data: allTransactions = [] } = useQuery({
+    queryKey: ['transactions', userId, 'all'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('transactions')
+        .select('date, type, amount, category, store_type, payment_type')
+        .eq('user_id', userId)
+      return data ?? []
+    },
+    enabled: !!userId,
+  })
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const householdMembers = profile?.household_members ?? 1
@@ -72,7 +86,16 @@ export default function AnalyticsScreen({ userId }: Props) {
     }))
   }, [transactions, month])
 
-  const periodSource = period === 'monthly' ? transactions : yearTransactions
+  const periodSource =
+    period === 'monthly' ? transactions : period === 'yearly' ? yearTransactions : allTransactions
+
+  const periodStats = useMemo(() => {
+    const src = periodSource
+    return {
+      recordDays: new Set(src.map((t) => t.date)).size,
+      recordCount: src.length,
+    }
+  }, [periodSource])
 
   const storeCounts = useMemo(() => {
     const map = new Map<string, number>()
@@ -136,6 +159,32 @@ export default function AnalyticsScreen({ userId }: Props) {
     [yearTransactions]
   )
 
+  const allByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of allTransactions) {
+      if (t.type !== 'expense') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [allTransactions])
+
+  const allExpenseTotal = useMemo(
+    () => allTransactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+    [allTransactions]
+  )
+
+  const yearlyExpenses = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of allTransactions) {
+      if (t.type !== 'expense') continue
+      const y = t.date.slice(0, 4)
+      map.set(y, (map.get(y) ?? 0) + t.amount)
+    }
+    return [...map.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([year, amount]) => ({ year, amount }))
+  }, [allTransactions])
+
   const {
     consumableExpense,
     oneTimeExpense,
@@ -165,6 +214,7 @@ export default function AnalyticsScreen({ userId }: Props) {
               [
                 { key: 'monthly', label: '月間' },
                 { key: 'yearly', label: '年間' },
+                { key: 'all', label: '全期間' },
               ] as { key: Period; label: string }[]
             }
             active={period}
@@ -173,7 +223,14 @@ export default function AnalyticsScreen({ userId }: Props) {
         </div>
       </div>
 
-      <MonthSwitcher month={month} setMonth={setMonth} compact />
+      {period === 'monthly' && <MonthSwitcher month={month} setMonth={setMonth} compact />}
+      {period === 'yearly' && (
+        <YearSwitcher
+          year={year}
+          onPrev={() => setMonth(shiftMonth(month, -12))}
+          onNext={() => setMonth(shiftMonth(month, 12))}
+        />
+      )}
 
       {fetchError && (
         <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
@@ -182,6 +239,21 @@ export default function AnalyticsScreen({ userId }: Props) {
       )}
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
+        {/* 累計記録 */}
+        <div className="bg-surface rounded-2xl p-4 shadow-sm">
+          <div className="text-sm font-semibold text-ink mb-3">累計記録</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-surface-subtle rounded-xl p-3 text-center">
+              <div className="text-2xl font-bold text-primary-500">{periodStats.recordDays}</div>
+              <div className="text-xs text-ink-muted mt-0.5">記録日数</div>
+            </div>
+            <div className="bg-surface-subtle rounded-xl p-3 text-center">
+              <div className="text-2xl font-bold text-primary-500">{periodStats.recordCount}</div>
+              <div className="text-xs text-ink-muted mt-0.5">記録回数</div>
+            </div>
+          </div>
+        </div>
+
         {/* 節約進捗 */}
         {totalSaved > 0 && (
           <div className="bg-surface rounded-2xl p-4 shadow-sm">
@@ -243,31 +315,49 @@ export default function AnalyticsScreen({ userId }: Props) {
               この月のデータがありません
             </div>
           )
-        ) : yearByCat.length > 0 ? (
+        ) : period === 'yearly' ? (
+          yearByCat.length > 0 ? (
+            <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+              <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
+              <BreakdownBars
+                entries={yearByCat}
+                total={yearExpenseTotal}
+                barColor="bg-warning-400"
+                valueColor="text-warning-600"
+              />
+            </div>
+          ) : (
+            <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
+              この年のデータがありません
+            </div>
+          )
+        ) : allByCat.length > 0 ? (
           <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
             <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
             <BreakdownBars
-              entries={yearByCat}
-              total={yearExpenseTotal}
+              entries={allByCat}
+              total={allExpenseTotal}
               barColor="bg-warning-400"
               valueColor="text-warning-600"
             />
           </div>
         ) : (
           <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
-            この年のデータがありません
+            データがありません
           </div>
         )}
 
-        {/* 日別/月別出費棒グラフ */}
+        {/* 日別/月別/年別出費棒グラフ */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
           <div className="text-sm font-semibold text-ink">
-            {period === 'monthly' ? '日別出費' : '月別出費'}
+            {period === 'monthly' ? '日別出費' : period === 'yearly' ? '月別出費' : '年別出費'}
           </div>
           {period === 'monthly' ? (
             <DailyExpenseChart entries={dailyExpenses} />
-          ) : (
+          ) : period === 'yearly' ? (
             <MonthlyExpenseChart entries={monthlyExpenses} />
+          ) : (
+            <YearlyExpenseChart entries={yearlyExpenses} />
           )}
         </div>
 
@@ -464,6 +554,85 @@ function MonthlyExpenseChart({ entries }: { entries: { month: number; amount: nu
                   }}
                 >
                   {month}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Yearly Expense Chart ───────────────────────────────────────
+
+function YearlyExpenseChart({ entries }: { entries: { year: string; amount: number }[] }) {
+  const rawMax = Math.max(...entries.map((e) => e.amount), 1)
+  const max = niceMax(rawMax)
+  const hasData = entries.some((e) => e.amount > 0)
+
+  if (!hasData) {
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
+  }
+
+  const CHART_H = 120
+  const LABEL_W = 48
+  const YEAR_H = 16
+  const BAR_H = CHART_H - YEAR_H
+  const gridRatios = [1, 0.75, 0.5, 0.25]
+
+  return (
+    <div className="flex gap-1">
+      <div
+        className="flex flex-col justify-between pb-4 shrink-0"
+        style={{ width: LABEL_W, height: CHART_H }}
+      >
+        {gridRatios.map((r) => (
+          <span key={r} className="text-[9px] text-ink-muted text-right leading-none">
+            {formatYen(Math.round(max * r))}
+          </span>
+        ))}
+      </div>
+      <div className="relative flex-1 min-w-0" style={{ height: CHART_H }}>
+        <div
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: 0, height: BAR_H }}
+        >
+          {gridRatios.map((r) => (
+            <div
+              key={r}
+              className="absolute left-0 right-0 border-t border-line-subtle"
+              style={{ top: `${(1 - r) * 100}%` }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 flex items-end gap-1">
+          {entries.map(({ year, amount }) => {
+            const pct = amount > 0 ? (amount / max) * 100 : 0
+            return (
+              <div
+                key={year}
+                className="flex flex-col items-center flex-1 min-w-0"
+                style={{ height: '100%' }}
+              >
+                <div className="w-full flex flex-col justify-end" style={{ height: BAR_H }}>
+                  {amount > 0 && (
+                    <div
+                      className="w-full bg-danger-400 rounded-t-sm"
+                      style={{ height: `${pct}%` }}
+                    />
+                  )}
+                </div>
+                <div
+                  className="text-[9px] text-ink-muted leading-none"
+                  style={{
+                    height: YEAR_H,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {year.slice(2)}
                 </div>
               </div>
             )
