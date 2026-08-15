@@ -22,7 +22,6 @@ import OnboardingScreen from './components/OnboardingScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
 import AchievementsScreen from './components/AchievementsScreen'
-import MyPageScreen from './components/MyPageScreen'
 import PrivacyPolicyScreen from './components/PrivacyPolicyScreen'
 import TermsOfServiceScreen from './components/TermsOfServiceScreen'
 import ChangePasswordScreen from './components/ChangePasswordScreen'
@@ -105,7 +104,6 @@ function AppRoutes() {
         <Route path="saving-tips" element={<SavingTipsScreen />} />
         <Route path="achievements" element={<AchievementsScreen userId={user.id} />} />
         <Route path="setup" element={<OnboardingScreen userId={user.id} />} />
-        <Route path="mypage" element={<MyPageScreen userId={user.id} />} />
         <Route path="privacy-policy" element={<PrivacyPolicyScreen />} />
         <Route path="terms-of-service" element={<TermsOfServiceScreen />} />
         <Route path="*" element={<Navigate to="/" replace />} />

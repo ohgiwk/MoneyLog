@@ -20,6 +20,7 @@ import { oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS } from '../lib/services/budge
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 import { Row } from './ui/Row'
+import Button from './ui/Button'
 
 interface Props {
   userId: string
@@ -396,6 +397,9 @@ export default function HomeTab({ userId }: Props) {
           valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
           bold
         />
+        <Button variant="secondary" fullWidth size="sm" onClick={() => navigate('/analytics')}>
+          レポートを確認
+        </Button>
       </div>
 
       {upcomingEvents.length > 0 && (
