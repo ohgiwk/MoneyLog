@@ -31,9 +31,8 @@ export default function AnalyticsScreen({ userId }: Props) {
 
   const { items: storeTypes } = useStoreTypes()
   const [month, setMonth] = useState(todayStr().slice(0, 7))
+  const [period, setPeriod] = useState<Period>('monthly')
   const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
-  const [storePeriod, setStorePeriod] = useState<Period>('monthly')
-  const [paymentPeriod, setPaymentPeriod] = useState<Period>('monthly')
 
   const year = month.slice(0, 4)
 
@@ -73,47 +72,69 @@ export default function AnalyticsScreen({ userId }: Props) {
     }))
   }, [transactions, month])
 
+  const periodSource = period === 'monthly' ? transactions : yearTransactions
+
   const storeCounts = useMemo(() => {
-    const source = storePeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
-    for (const t of source) {
+    for (const t of periodSource) {
       const key = t.store_type ?? '未記録'
       map.set(key, (map.get(key) ?? 0) + 1)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
-  }, [storePeriod, transactions, yearTransactions])
+  }, [periodSource])
 
   const storeAmounts = useMemo(() => {
-    const source = storePeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
-    for (const t of source) {
+    for (const t of periodSource) {
       if (t.type !== 'expense') continue
       const key = t.store_type ?? '未記録'
       map.set(key, (map.get(key) ?? 0) + t.amount)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
-  }, [storePeriod, transactions, yearTransactions])
+  }, [periodSource])
 
   const paymentCounts = useMemo(() => {
-    const source = paymentPeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
-    for (const t of source) {
+    for (const t of periodSource) {
       const key = t.payment_type ?? '未記録'
       map.set(key, (map.get(key) ?? 0) + 1)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
-  }, [paymentPeriod, transactions, yearTransactions])
+  }, [periodSource])
 
   const paymentAmounts = useMemo(() => {
-    const source = paymentPeriod === 'monthly' ? transactions : yearTransactions
     const map = new Map<string, number>()
-    for (const t of source) {
+    for (const t of periodSource) {
       if (t.type !== 'expense') continue
       const key = t.payment_type ?? '未記録'
       map.set(key, (map.get(key) ?? 0) + t.amount)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)
-  }, [paymentPeriod, transactions, yearTransactions])
+  }, [periodSource])
+
+  const monthlyExpenses = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const t of yearTransactions) {
+      if (t.type !== 'expense') continue
+      const m = parseInt(t.date.slice(5, 7))
+      map.set(m, (map.get(m) ?? 0) + t.amount)
+    }
+    return Array.from({ length: 12 }, (_, i) => ({ month: i + 1, amount: map.get(i + 1) ?? 0 }))
+  }, [yearTransactions])
+
+  const yearByCat = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of yearTransactions) {
+      if (t.type !== 'expense') continue
+      map.set(t.category, (map.get(t.category) ?? 0) + t.amount)
+    }
+    return [...map.entries()].sort(([, a], [, b]) => b - a)
+  }, [yearTransactions])
+
+  const yearExpenseTotal = useMemo(
+    () => yearTransactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+    [yearTransactions]
+  )
 
   const {
     consumableExpense,
@@ -138,9 +159,21 @@ export default function AnalyticsScreen({ userId }: Props) {
       {/* ヘッダー */}
       <div className="bg-surface border-b border-line-subtle">
         <ScreenHeader title="分析" onBack={() => navigate(-1)} />
+        <div className="px-4 pt-3 pb-3">
+          <TabGroup
+            tabs={
+              [
+                { key: 'monthly', label: '月間' },
+                { key: 'yearly', label: '年間' },
+              ] as { key: Period; label: string }[]
+            }
+            active={period}
+            onChange={setPeriod}
+          />
+        </div>
       </div>
 
-      <MonthSwitcher month={month} setMonth={setMonth} />
+      <MonthSwitcher month={month} setMonth={setMonth} compact />
 
       {fetchError && (
         <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
@@ -164,77 +197,83 @@ export default function AnalyticsScreen({ userId }: Props) {
         )}
 
         {/* カテゴリ別内訳 */}
-        {hasBreakdown ? (
+        {period === 'monthly' ? (
+          hasBreakdown ? (
+            <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+              <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
+              <TabGroup
+                tabs={
+                  [
+                    { key: 'fixed', label: '固定費' },
+                    { key: 'consumable', label: '定期購入' },
+                    { key: 'oneTime', label: '出費' },
+                  ] as { key: BreakdownTab; label: string }[]
+                }
+                active={breakdownTab}
+                onChange={setBreakdownTab}
+                size="sm"
+              />
+              {breakdownTab === 'fixed' && (
+                <BreakdownBars
+                  entries={fixedByCat}
+                  total={Math.round(totalFixed)}
+                  barColor="bg-surface-muted"
+                  valueColor="text-ink"
+                />
+              )}
+              {breakdownTab === 'consumable' && (
+                <BreakdownBars
+                  entries={consumableByCat}
+                  total={consumableExpense}
+                  barColor="bg-blue-400"
+                  valueColor="text-blue-600"
+                />
+              )}
+              {breakdownTab === 'oneTime' && (
+                <BreakdownBars
+                  entries={oneTimeByCat}
+                  total={oneTimeExpense}
+                  barColor="bg-warning-400"
+                  valueColor="text-warning-600"
+                />
+              )}
+            </div>
+          ) : (
+            <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
+              この月のデータがありません
+            </div>
+          )
+        ) : yearByCat.length > 0 ? (
           <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
             <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
-            <TabGroup
-              tabs={
-                [
-                  { key: 'fixed', label: '固定費' },
-                  { key: 'consumable', label: '定期購入' },
-                  { key: 'oneTime', label: '出費' },
-                ] as { key: BreakdownTab; label: string }[]
-              }
-              active={breakdownTab}
-              onChange={setBreakdownTab}
-              size="sm"
+            <BreakdownBars
+              entries={yearByCat}
+              total={yearExpenseTotal}
+              barColor="bg-warning-400"
+              valueColor="text-warning-600"
             />
-            {breakdownTab === 'fixed' && (
-              <BreakdownBars
-                entries={fixedByCat}
-                total={Math.round(totalFixed)}
-                barColor="bg-surface-muted"
-                valueColor="text-ink"
-              />
-            )}
-            {breakdownTab === 'consumable' && (
-              <BreakdownBars
-                entries={consumableByCat}
-                total={consumableExpense}
-                barColor="bg-blue-400"
-                valueColor="text-blue-600"
-              />
-            )}
-            {breakdownTab === 'oneTime' && (
-              <BreakdownBars
-                entries={oneTimeByCat}
-                total={oneTimeExpense}
-                barColor="bg-warning-400"
-                valueColor="text-warning-600"
-              />
-            )}
           </div>
         ) : (
           <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
-            この月のデータがありません
+            この年のデータがありません
           </div>
         )}
 
-        {/* 日別出費棒グラフ */}
+        {/* 日別/月別出費棒グラフ */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-ink">日別出費</div>
-          <DailyExpenseChart entries={dailyExpenses} />
+          <div className="text-sm font-semibold text-ink">
+            {period === 'monthly' ? '日別出費' : '月別出費'}
+          </div>
+          {period === 'monthly' ? (
+            <DailyExpenseChart entries={dailyExpenses} />
+          ) : (
+            <MonthlyExpenseChart entries={monthlyExpenses} />
+          )}
         </div>
 
         {/* 店舗種別 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-ink">店舗種別</div>
-            <div className="flex rounded-lg overflow-hidden border border-line text-xs">
-              <button
-                onClick={() => setStorePeriod('monthly')}
-                className={`px-2.5 py-1 ${storePeriod === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
-              >
-                月間
-              </button>
-              <button
-                onClick={() => setStorePeriod('yearly')}
-                className={`px-2.5 py-1 ${storePeriod === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
-              >
-                年間
-              </button>
-            </div>
-          </div>
+          <div className="text-sm font-semibold text-ink">店舗種別</div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">記録数</div>
             <StoreBars entries={storeCounts} valueType="count" storeTypes={storeTypes} />
@@ -247,23 +286,7 @@ export default function AnalyticsScreen({ userId }: Props) {
 
         {/* 支払い方法別 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-semibold text-ink">支払い方法別</div>
-            <div className="flex rounded-lg overflow-hidden border border-line text-xs">
-              <button
-                onClick={() => setPaymentPeriod('monthly')}
-                className={`px-2.5 py-1 ${paymentPeriod === 'monthly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
-              >
-                月間
-              </button>
-              <button
-                onClick={() => setPaymentPeriod('yearly')}
-                className={`px-2.5 py-1 ${paymentPeriod === 'yearly' ? 'bg-surface-strong text-white' : 'bg-surface text-ink-muted'}`}
-              >
-                年間
-              </button>
-            </div>
-          </div>
+          <div className="text-sm font-semibold text-ink">支払い方法別</div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">記録数</div>
             <PaymentBars entries={paymentCounts} valueType="count" />
@@ -362,6 +385,85 @@ function DailyExpenseChart({ entries }: { entries: { day: number; amount: number
                   }}
                 >
                   {day % 5 === 0 || day === 1 ? day : ''}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Monthly Expense Chart ──────────────────────────────────────
+
+function MonthlyExpenseChart({ entries }: { entries: { month: number; amount: number }[] }) {
+  const rawMax = Math.max(...entries.map((e) => e.amount), 1)
+  const max = niceMax(rawMax)
+  const hasData = entries.some((e) => e.amount > 0)
+
+  if (!hasData) {
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
+  }
+
+  const CHART_H = 120
+  const LABEL_W = 48
+  const MONTH_H = 16
+  const BAR_H = CHART_H - MONTH_H
+  const gridRatios = [1, 0.75, 0.5, 0.25]
+
+  return (
+    <div className="flex gap-1">
+      <div
+        className="flex flex-col justify-between pb-4 shrink-0"
+        style={{ width: LABEL_W, height: CHART_H }}
+      >
+        {gridRatios.map((r) => (
+          <span key={r} className="text-[9px] text-ink-muted text-right leading-none">
+            {formatYen(Math.round(max * r))}
+          </span>
+        ))}
+      </div>
+      <div className="relative flex-1 min-w-0" style={{ height: CHART_H }}>
+        <div
+          className="absolute left-0 right-0 pointer-events-none"
+          style={{ top: 0, height: BAR_H }}
+        >
+          {gridRatios.map((r) => (
+            <div
+              key={r}
+              className="absolute left-0 right-0 border-t border-line-subtle"
+              style={{ top: `${(1 - r) * 100}%` }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 flex items-end gap-px">
+          {entries.map(({ month, amount }) => {
+            const pct = amount > 0 ? (amount / max) * 100 : 0
+            return (
+              <div
+                key={month}
+                className="flex flex-col items-center flex-1 min-w-0"
+                style={{ height: '100%' }}
+              >
+                <div className="w-full flex flex-col justify-end" style={{ height: BAR_H }}>
+                  {amount > 0 && (
+                    <div
+                      className="w-full bg-danger-400 rounded-t-sm"
+                      style={{ height: `${pct}%` }}
+                    />
+                  )}
+                </div>
+                <div
+                  className="text-[9px] text-ink-muted leading-none"
+                  style={{
+                    height: MONTH_H,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {month}
                 </div>
               </div>
             )
