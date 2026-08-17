@@ -18,6 +18,7 @@ export function useCalendarEventInsert(userId: string, month: string) {
     mutationFn: (data: CalendarEventInsert) => calendarEventService.insert(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] })
+      queryClient.invalidateQueries({ queryKey: ['calendarEvents', 'upcoming', userId] })
     },
   })
 }
@@ -29,6 +30,7 @@ export function useCalendarEventUpdate(userId: string, month: string) {
       calendarEventService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] })
+      queryClient.invalidateQueries({ queryKey: ['calendarEvents', 'upcoming', userId] })
     },
   })
 }
@@ -39,6 +41,7 @@ export function useCalendarEventDelete(userId: string, month: string) {
     mutationFn: (id: string) => calendarEventService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] })
+      queryClient.invalidateQueries({ queryKey: ['calendarEvents', 'upcoming', userId] })
     },
   })
 }

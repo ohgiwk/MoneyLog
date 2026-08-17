@@ -364,6 +364,7 @@ export default function CalendarTab({ userId }: Props) {
         onSaved={() => {
           closeForm()
           void queryClient.invalidateQueries({ queryKey: ['calendarEvents', userId, month] })
+          void queryClient.invalidateQueries({ queryKey: ['calendarEvents', 'upcoming', userId] })
         }}
       />
     </div>
