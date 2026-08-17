@@ -358,7 +358,7 @@ export default function BudgetScreen({ userId }: Props) {
             ))}
           </div>
         )}
-        <Button size="fab" onClick={handleSave} className="w-[60%]">
+        <Button size="fab" onClick={handleSave} disabled={mutation.isPending} className="w-[60%]">
           {saved ? '✓ 保存しました' : '保存する'}
         </Button>
       </div>

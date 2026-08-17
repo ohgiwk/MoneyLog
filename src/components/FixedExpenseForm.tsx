@@ -102,6 +102,7 @@ export default function FixedExpenseForm({
     onHeaderChange?.({
       title: expense ? '固定費を編集' : '固定費を追加',
       onBack: requestBack,
+      isSubmitting,
       action: expense
         ? {
             label: '削除',

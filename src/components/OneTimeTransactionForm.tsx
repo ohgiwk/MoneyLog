@@ -108,6 +108,7 @@ export default function OneTimeTransactionForm({
     onHeaderChange?.({
       title: editingTx ? '記録を編集' : '出費を記録',
       onBack: requestBack,
+      isSubmitting,
       action: editingTx
         ? {
             label: '削除',

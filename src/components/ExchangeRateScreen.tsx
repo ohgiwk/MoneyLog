@@ -57,7 +57,7 @@ export default function ExchangeRateScreen() {
             <ErrorText>{error}</ErrorText>
           </div>
 
-          <Button fullWidth size="sm" onClick={save}>
+          <Button fullWidth size="sm" onClick={save} disabled={saved}>
             {saved ? '保存しました ✓' : '保存する'}
           </Button>
         </div>

@@ -294,7 +294,8 @@ export default function ConsumablesList({
           <button
             type="button"
             onClick={() => submitRef.current?.()}
-            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
+            disabled={!!formHeaderState?.isSubmitting}
+            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold disabled:opacity-50"
           >
             保存する
           </button>

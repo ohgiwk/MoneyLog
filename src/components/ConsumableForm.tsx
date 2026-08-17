@@ -77,6 +77,7 @@ export default function ConsumableForm({
     onHeaderChange?.({
       title: consumable ? '定期購入を編集' : '定期購入を追加',
       onBack: requestBack,
+      isSubmitting,
       action: consumable
         ? {
             label: '削除',

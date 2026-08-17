@@ -203,8 +203,9 @@ export default function RecordTab({ userId }: Props) {
           <button
             type="button"
             onClick={() => submitRef.current?.()}
+            disabled={!!formHeaderState?.isSubmitting}
             className={
-              'w-full py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold ' +
+              'w-full py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold disabled:opacity-50 ' +
               (formType === 'expense'
                 ? 'bg-danger-500 active:bg-danger-600'
                 : 'bg-income-500 active:bg-income-600')
