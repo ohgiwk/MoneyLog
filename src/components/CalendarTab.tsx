@@ -230,11 +230,7 @@ export default function CalendarTab({ userId }: Props) {
                     }
                   />
                 )}
-                {planned > 0 && (
-                  <span className="text-[9px] text-ink-muted leading-tight">
-                    予{planned >= 1000 ? `${Math.round(planned / 1000)}k` : planned}
-                  </span>
-                )}
+                {planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-income-400 mt-0.5" />}
               </button>
             )
           })}
