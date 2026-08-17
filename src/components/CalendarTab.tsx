@@ -216,21 +216,25 @@ export default function CalendarTab({ userId }: Props) {
                 >
                   {dayNum}
                 </span>
-                {expense > 0 && (
-                  <span
-                    className={
-                      'rounded-full bg-danger-400 mt-0.5 ' +
-                      (expense >= 15000
-                        ? 'w-2.5 h-2.5'
-                        : expense >= 5000
-                          ? 'w-2 h-2'
-                          : expense >= 1000
-                            ? 'w-1.5 h-1.5'
-                            : 'w-1 h-1')
-                    }
-                  />
+                {(expense > 0 || planned > 0) && (
+                  <div className="flex flex-row items-center gap-0.5 mt-0.5">
+                    {expense > 0 && (
+                      <span
+                        className={
+                          'rounded-full bg-danger-400 ' +
+                          (expense >= 15000
+                            ? 'w-2.5 h-2.5'
+                            : expense >= 5000
+                              ? 'w-2 h-2'
+                              : expense >= 1000
+                                ? 'w-1.5 h-1.5'
+                                : 'w-1 h-1')
+                        }
+                      />
+                    )}
+                    {planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
+                  </div>
                 )}
-                {planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-income-400 mt-0.5" />}
               </button>
             )
           })}
