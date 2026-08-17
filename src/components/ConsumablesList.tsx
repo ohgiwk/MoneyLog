@@ -296,7 +296,7 @@ export default function ConsumablesList({
             onClick={() => submitRef.current?.()}
             className="w-full py-3.5 text-base rounded-[2rem] shadow-lg bg-primary-500 active:bg-primary-600 text-white font-semibold"
           >
-            保存
+            保存する
           </button>
         }
       >

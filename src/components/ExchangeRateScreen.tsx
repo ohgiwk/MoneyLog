@@ -58,7 +58,7 @@ export default function ExchangeRateScreen() {
           </div>
 
           <Button fullWidth size="sm" onClick={save}>
-            {saved ? '保存しました ✓' : '保存'}
+            {saved ? '保存しました ✓' : '保存する'}
           </Button>
         </div>
 
