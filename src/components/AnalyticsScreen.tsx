@@ -939,7 +939,7 @@ function FoodTable({
                   return (
                     <td
                       key={col}
-                      className={`text-center py-1 px-1 tabular-nums ${amt > 0 ? 'text-ink' : 'text-ink-muted'}`}
+                      className={`text-center py-1 px-1 tabular-nums ${amt > 0 ? 'text-ink' : 'text-ink-muted opacity-30'}`}
                     >
                       {fmtShort(amt)}
                     </td>
