@@ -8,7 +8,7 @@ import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import { useConsumablesQuery } from '../hooks/queries/useConsumablesQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQuery } from '@tanstack/react-query'
-import { PAYMENT_TYPES } from '../constants'
+import { MEAL_TYPES, PAYMENT_TYPES } from '../constants'
 import { useStoreTypes } from '../hooks/useStoreTypes'
 import { categoryInfo, formatYen, shiftMonth, todayStr } from '../utils'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
@@ -183,6 +183,38 @@ export default function AnalyticsScreen({ userId }: Props) {
       .map(([year, amount]) => ({ year, amount }))
   }, [allTransactions])
 
+  const FOOD_MEAL_COLS = MEAL_TYPES.map((m) => m.name)
+
+  // 月間: 日 × 食事種別の食費マップ
+  const dailyFoodByMeal = useMemo(() => {
+    const [y, m] = month.split('-').map(Number)
+    const days = new Date(y, m, 0).getDate()
+    const map = new Map<number, Map<string, number>>()
+    for (let d = 1; d <= days; d++) map.set(d, new Map())
+    for (const t of transactions) {
+      if (t.type !== 'expense' || t.category !== '食費') continue
+      const day = parseInt(t.date.slice(8))
+      const meal = FOOD_MEAL_COLS.includes(t.meal_type ?? '') ? (t.meal_type as string) : 'その他'
+      const dm = map.get(day)!
+      dm.set(meal, (dm.get(meal) ?? 0) + t.amount)
+    }
+    return { map, days }
+  }, [transactions, month, FOOD_MEAL_COLS])
+
+  // 年間: 月 × 食事種別の食費マップ
+  const yearlyFoodByMeal = useMemo(() => {
+    const map = new Map<number, Map<string, number>>()
+    for (let m = 1; m <= 12; m++) map.set(m, new Map())
+    for (const t of yearTransactions) {
+      if (t.type !== 'expense' || t.category !== '食費') continue
+      const m = parseInt(t.date.slice(5, 7))
+      const meal = FOOD_MEAL_COLS.includes(t.meal_type ?? '') ? (t.meal_type as string) : 'その他'
+      const mm = map.get(m)!
+      mm.set(meal, (mm.get(meal) ?? 0) + t.amount)
+    }
+    return map
+  }, [yearTransactions, FOOD_MEAL_COLS])
+
   const { oneTimeExpense, totalFixed, totalSaved, oneTimeByCat, fixedByCat, hasBreakdown } =
     useSummaryCalculations({
       transactions,
@@ -344,6 +376,30 @@ export default function AnalyticsScreen({ userId }: Props) {
             <YearlyExpenseChart entries={yearlyExpenses} />
           )}
         </div>
+
+        {/* 日別/月別 食費テーブル */}
+        {(period === 'monthly' || period === 'yearly') && (
+          <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+            <div className="text-sm font-semibold text-ink">日別食費</div>
+            {period === 'monthly' ? (
+              <FoodTable
+                cols={FOOD_MEAL_COLS}
+                rows={Array.from({ length: dailyFoodByMeal.days }, (_, i) => ({
+                  label: `${i + 1}`,
+                  meals: dailyFoodByMeal.map.get(i + 1)!,
+                }))}
+              />
+            ) : (
+              <FoodTable
+                cols={FOOD_MEAL_COLS}
+                rows={Array.from({ length: 12 }, (_, i) => ({
+                  label: `${i + 1}月`,
+                  meals: yearlyFoodByMeal.get(i + 1)!,
+                }))}
+              />
+            )}
+          </div>
+        )}
 
         {/* 店舗種別 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
@@ -831,6 +887,65 @@ function BreakdownBars({
           -{formatYen(Math.round(total))}
         </span>
       </div>
+    </div>
+  )
+}
+
+// ─── Food Table ─────────────────────────────────────────────────
+
+function fmtShort(amount: number): string {
+  if (amount === 0) return ''
+  if (amount >= 10000) return `${Math.round(amount / 1000)}k`
+  if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`
+  return String(amount)
+}
+
+function FoodTable({
+  cols,
+  rows,
+}: {
+  cols: string[]
+  rows: { label: string; meals: Map<string, number> }[]
+}) {
+  const hasAnyData = rows.some((r) => cols.some((c) => (r.meals.get(c) ?? 0) > 0))
+  if (!hasAnyData) {
+    return <div className="text-sm text-ink-muted py-1">データがありません</div>
+  }
+  return (
+    <div className="overflow-x-auto -mx-1">
+      <table className="w-full text-[10px] border-collapse min-w-[320px]">
+        <thead>
+          <tr className="border-b border-line-subtle">
+            <th className="text-left text-ink-muted font-medium py-1 pr-2 w-8 sticky left-0 bg-surface" />
+            {cols.map((col) => (
+              <th key={col} className="text-center text-ink-muted font-medium py-1 px-1">
+                {col.replace('飲み物', '飲料')}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(({ label, meals }) => {
+            const rowTotal = cols.reduce((s, c) => s + (meals.get(c) ?? 0), 0)
+            if (rowTotal === 0) return null
+            return (
+              <tr key={label} className="border-b border-line-subtle last:border-0">
+                <td className="text-ink-muted py-1 pr-2 sticky left-0 bg-surface font-medium">
+                  {label}
+                </td>
+                {cols.map((col) => {
+                  const amt = meals.get(col) ?? 0
+                  return (
+                    <td key={col} className="text-center py-1 px-1 text-ink tabular-nums">
+                      {amt > 0 ? fmtShort(amt) : ''}
+                    </td>
+                  )
+                })}
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
