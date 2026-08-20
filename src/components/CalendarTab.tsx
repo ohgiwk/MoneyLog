@@ -2,15 +2,19 @@ import Card from './ui/Card'
 import FabButton from './ui/FabButton'
 import CalendarEventForm from './CalendarEventForm'
 import ErrorText from './ui/ErrorText'
-import { useEffect, useMemo, useState } from 'react'
+import BottomSheet from './ui/BottomSheet'
+import OneTimeTransactionForm from './OneTimeTransactionForm'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
-import type { CalendarEvent, WorkSchedule } from '../lib/database.types'
+import type { CalendarEvent, Transaction, WorkSchedule } from '../lib/database.types'
+import type { HeaderState } from '../types/layout'
 import { workScheduleService } from '../lib/services/workScheduleService'
 import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
+import { MEAL_TYPES, STORE_TYPES } from '../constants'
 
 interface Props {
   userId: string
@@ -45,11 +49,16 @@ const DAY_TYPE_LABELS: Record<
 export default function CalendarTab({ userId }: Props) {
   const { month, calendarSelectedDate, categories } = useAppContext()
   const expenseCategories = categories.expenseCategories
+  const incomeCategories = categories.incomeCategories
   const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState<string>(calendarSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
   const [dayTypeError, setDayTypeError] = useState<string | null>(null)
+  const [txModalOpen, setTxModalOpen] = useState(false)
+  const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
+  const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
+  const submitRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (selectedDate.slice(0, 7) !== month) {
@@ -143,6 +152,18 @@ export default function CalendarTab({ userId }: Props) {
   function closeForm() {
     setShowForm(false)
     setEditingEvent(null)
+  }
+
+  function openEditTx(tx: Transaction) {
+    setFormEditingTx(tx)
+    setFormHeaderState(null)
+    setTxModalOpen(true)
+  }
+
+  function closeTxModal() {
+    setTxModalOpen(false)
+    setFormEditingTx(null)
+    void queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
   }
 
   return (
@@ -324,27 +345,54 @@ export default function CalendarTab({ userId }: Props) {
             </span>
           </div>
           <div className="space-y-2">
-            {selectedTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-lg shrink-0">
-                    {expenseCategories.find((c) => c.name === tx.category)?.icon ?? '📦'}
-                  </span>
-                  <div className="min-w-0">
-                    <span className="text-sm text-ink truncate block">{tx.category}</span>
-                    {tx.memo && (
-                      <span className="text-xs text-ink-muted truncate block">{tx.memo}</span>
-                    )}
+            {selectedTransactions.map((tx) => {
+              const store = tx.store_type
+                ? STORE_TYPES.find((s) => s.name === tx.store_type)
+                : undefined
+              const meal =
+                tx.category === '食費' && tx.meal_type
+                  ? MEAL_TYPES.find((m) => m.name === tx.meal_type)
+                  : undefined
+              return (
+                <button
+                  key={tx.id}
+                  type="button"
+                  onClick={() => openEditTx(tx)}
+                  className="w-full bg-surface rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between gap-3 text-left active:bg-surface-subtle"
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className="text-lg shrink-0">
+                      {expenseCategories.find((c) => c.name === tx.category)?.icon ?? '📦'}
+                    </span>
+                    <div className="min-w-0">
+                      <span className="text-sm text-ink truncate block">{tx.category}</span>
+                      {(meal || store || tx.memo) && (
+                        <div className="text-xs text-ink-muted flex items-center gap-1">
+                          {meal && (
+                            <span className="flex items-center gap-0.5">
+                              <span>{meal.icon}</span>
+                              <span>{meal.name}</span>
+                            </span>
+                          )}
+                          {meal && (store || tx.memo) && <span>/</span>}
+                          {store && (
+                            <span className="flex items-center gap-0.5">
+                              <span>{store.icon}</span>
+                              <span>{store.name}</span>
+                            </span>
+                          )}
+                          {store && tx.memo && <span>/</span>}
+                          {tx.memo && <span className="truncate">{tx.memo}</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <span className="text-sm font-semibold text-danger-500 shrink-0">
-                  -{formatYen(tx.amount)}
-                </span>
-              </div>
-            ))}
+                  <span className="text-sm font-semibold text-danger-500 shrink-0">
+                    -{formatYen(tx.amount)}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -354,7 +402,44 @@ export default function CalendarTab({ userId }: Props) {
         <FabButton onClick={openAdd} ariaLabel="予定を追加" />
       </div>
 
-      {/* 追加・編集ボトムシート */}
+      {/* 出費記録編集ボトムシート */}
+      <BottomSheet
+        isOpen={txModalOpen}
+        onClose={closeTxModal}
+        title="出費を編集"
+        rightAction={
+          formHeaderState?.action
+            ? {
+                onClick: formHeaderState.action.onClick,
+                disabled: formHeaderState.action.disabled,
+                tone: 'danger',
+              }
+            : undefined
+        }
+        footer={
+          <button
+            type="button"
+            onClick={() => submitRef.current?.()}
+            disabled={!!formHeaderState?.isSubmitting}
+            className="w-full py-3.5 text-base rounded-[2rem] shadow-lg text-white font-semibold disabled:opacity-50 bg-danger-500 active:bg-danger-600"
+          >
+            更新する
+          </button>
+        }
+      >
+        <OneTimeTransactionForm
+          userId={userId}
+          expenseCategories={expenseCategories}
+          incomeCategories={incomeCategories}
+          editingTx={formEditingTx}
+          onBack={closeTxModal}
+          onTypeChange={() => {}}
+          onHeaderChange={setFormHeaderState}
+          submitRef={submitRef}
+        />
+      </BottomSheet>
+
+      {/* カレンダー予定追加・編集ボトムシート */}
       <CalendarEventForm
         isOpen={showForm}
         userId={userId}
