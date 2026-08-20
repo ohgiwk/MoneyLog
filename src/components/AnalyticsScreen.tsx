@@ -383,7 +383,7 @@ export default function AnalyticsScreen({ userId }: Props) {
                     ? 0
                     : parseInt(today.slice(5, 7))
             return (
-              <CollapsiblePanel title="日別食費">
+              <CollapsiblePanel title={period === 'monthly' ? '日別食費' : '月別食費'}>
                 {period === 'monthly' ? (
                   <FoodTable
                     cols={FOOD_MEAL_COLS}
