@@ -894,11 +894,13 @@ function BreakdownBars({
 // ─── Food Table ─────────────────────────────────────────────────
 
 function fmtShort(amount: number): string {
-  if (amount === 0) return ''
-  if (amount >= 10000) return `${Math.round(amount / 1000)}k`
-  if (amount >= 1000) return `${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`
-  return String(amount)
+  if (amount === 0) return '¥0'
+  if (amount >= 10000) return `¥${Math.round(amount / 1000)}k`
+  if (amount >= 1000) return `¥${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`
+  return `¥${amount}`
 }
+
+const ROW_BG = ['bg-surface', 'bg-surface-subtle'] as const
 
 function FoodTable({
   cols,
@@ -925,19 +927,21 @@ function FoodTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ label, meals }) => {
-            const rowTotal = cols.reduce((s, c) => s + (meals.get(c) ?? 0), 0)
-            if (rowTotal === 0) return null
+          {rows.map(({ label, meals }, idx) => {
+            const bg = ROW_BG[idx % 2]
             return (
-              <tr key={label} className="border-b border-line-subtle last:border-0">
-                <td className="text-ink-muted py-1 pr-2 sticky left-0 bg-surface font-medium">
+              <tr key={label} className={`border-b border-line-subtle last:border-0 ${bg}`}>
+                <td className={`text-ink-muted py-1 pr-2 sticky left-0 ${bg} font-medium`}>
                   {label}
                 </td>
                 {cols.map((col) => {
                   const amt = meals.get(col) ?? 0
                   return (
-                    <td key={col} className="text-center py-1 px-1 text-ink tabular-nums">
-                      {amt > 0 ? fmtShort(amt) : ''}
+                    <td
+                      key={col}
+                      className={`text-center py-1 px-1 tabular-nums ${amt > 0 ? 'text-ink' : 'text-ink-muted'}`}
+                    >
+                      {fmtShort(amt)}
                     </td>
                   )
                 })}
