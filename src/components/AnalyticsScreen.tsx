@@ -18,7 +18,6 @@ import YearSwitcher from './ui/YearSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import ScreenHeader from './ui/ScreenHeader'
 
-type BreakdownTab = 'fixed' | 'consumable' | 'oneTime'
 type Period = 'monthly' | 'yearly' | 'all'
 
 interface Props {
@@ -34,7 +33,6 @@ export default function AnalyticsScreen({ userId }: Props) {
   const { items: storeTypes } = useStoreTypes()
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [period, setPeriod] = useState<Period>('monthly')
-  const [breakdownTab, setBreakdownTab] = useState<BreakdownTab>('fixed')
 
   const year = month.slice(0, 4)
 
@@ -185,23 +183,15 @@ export default function AnalyticsScreen({ userId }: Props) {
       .map(([year, amount]) => ({ year, amount }))
   }, [allTransactions])
 
-  const {
-    consumableExpense,
-    oneTimeExpense,
-    totalFixed,
-    totalSaved,
-    oneTimeByCat,
-    fixedByCat,
-    consumableByCat,
-    hasBreakdown,
-  } = useSummaryCalculations({
-    transactions,
-    fixedExpenses,
-    consumables,
-    householdMembers,
-    budget,
-    month,
-  })
+  const { oneTimeExpense, totalFixed, totalSaved, oneTimeByCat, fixedByCat, hasBreakdown } =
+    useSummaryCalculations({
+      transactions,
+      fixedExpenses,
+      consumables,
+      householdMembers,
+      budget,
+      month,
+    })
 
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
@@ -273,44 +263,31 @@ export default function AnalyticsScreen({ userId }: Props) {
           hasBreakdown ? (
             <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
               <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
-              <TabGroup
-                tabs={
-                  [
-                    { key: 'fixed', label: '固定費' },
-                    { key: 'consumable', label: '定期購入' },
-                    { key: 'oneTime', label: '出費' },
-                  ] as { key: BreakdownTab; label: string }[]
-                }
-                active={breakdownTab}
-                onChange={setBreakdownTab}
-                size="sm"
-              />
-              {breakdownTab === 'fixed' && (
-                <BreakdownBars
-                  entries={fixedByCat}
-                  total={Math.round(totalFixed)}
-                  barColor="bg-surface-muted"
-                  valueColor="text-ink"
-                />
+              {fixedByCat.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-ink-muted">固定費</div>
+                  <BreakdownBars
+                    entries={fixedByCat}
+                    total={Math.round(totalFixed)}
+                    barColor="bg-surface-muted"
+                    valueColor="text-ink"
+                  />
+                </div>
               )}
-              {breakdownTab === 'consumable' && (
-                <BreakdownBars
-                  entries={consumableByCat}
-                  total={consumableExpense}
-                  barColor="bg-blue-400"
-                  valueColor="text-blue-600"
-                />
-              )}
-              {breakdownTab === 'oneTime' && (
-                <BreakdownBars
-                  entries={oneTimeByCat}
-                  total={oneTimeExpense}
-                  barColor="bg-warning-400"
-                  valueColor="text-warning-600"
-                  onItemClick={(cat) =>
-                    navigate('/expense-filter', { state: { categoryFilter: cat } })
-                  }
-                />
+              {oneTimeByCat.length > 0 && (
+                <div className="space-y-2">
+                  {fixedByCat.length > 0 && <div className="h-px bg-surface-hover" />}
+                  <div className="text-xs font-semibold text-ink-muted">出費</div>
+                  <BreakdownBars
+                    entries={oneTimeByCat}
+                    total={oneTimeExpense}
+                    barColor="bg-warning-400"
+                    valueColor="text-warning-600"
+                    onItemClick={(cat) =>
+                      navigate('/expense-filter', { state: { categoryFilter: cat } })
+                    }
+                  />
+                </div>
               )}
             </div>
           ) : (
