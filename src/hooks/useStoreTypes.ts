@@ -12,7 +12,24 @@ const STORE_TYPES_KEY = 'moneylog_store_types'
 function loadOrInitStoreTypes(): StoreTypeItem[] {
   try {
     const raw = localStorage.getItem(STORE_TYPES_KEY)
-    if (raw) return JSON.parse(raw) as StoreTypeItem[]
+    if (raw) {
+      const stored = JSON.parse(raw) as StoreTypeItem[]
+      // 定数に存在するが保存データにない項目を「その他」の直前に追加
+      const storedNames = new Set(stored.map((s) => s.name))
+      const missing = STORE_TYPES.filter((st) => !storedNames.has(st.name)).map((st) => ({
+        id: crypto.randomUUID(),
+        name: st.name,
+        icon: st.icon,
+      }))
+      if (missing.length === 0) return stored
+      const otherIndex = stored.findIndex((s) => s.name === 'その他')
+      const merged =
+        otherIndex >= 0
+          ? [...stored.slice(0, otherIndex), ...missing, ...stored.slice(otherIndex)]
+          : [...stored, ...missing]
+      localStorage.setItem(STORE_TYPES_KEY, JSON.stringify(merged))
+      return merged
+    }
   } catch (_) {
     // localStorage unavailable or corrupt — fall through to defaults
   }
