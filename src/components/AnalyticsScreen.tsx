@@ -378,28 +378,50 @@ export default function AnalyticsScreen({ userId }: Props) {
         </div>
 
         {/* 日別/月別 食費テーブル */}
-        {(period === 'monthly' || period === 'yearly') && (
-          <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-            <div className="text-sm font-semibold text-ink">日別食費</div>
-            {period === 'monthly' ? (
-              <FoodTable
-                cols={FOOD_MEAL_COLS}
-                rows={Array.from({ length: dailyFoodByMeal.days }, (_, i) => ({
-                  label: `${i + 1}日`,
-                  meals: dailyFoodByMeal.map.get(i + 1)!,
-                }))}
-              />
-            ) : (
-              <FoodTable
-                cols={FOOD_MEAL_COLS}
-                rows={Array.from({ length: 12 }, (_, i) => ({
-                  label: `${i + 1}月`,
-                  meals: yearlyFoodByMeal.get(i + 1)!,
-                }))}
-              />
-            )}
-          </div>
-        )}
+        {(period === 'monthly' || period === 'yearly') &&
+          (() => {
+            const today = todayStr()
+            const todayDay = parseInt(today.slice(8))
+            const todayYM = today.slice(0, 7)
+            const todayY = today.slice(0, 4)
+            // 未来行の開始インデックス（0-based）。以降の行は¥0→"-"
+            const futureFrom =
+              period === 'monthly'
+                ? month < todayYM
+                  ? Infinity
+                  : month > todayYM
+                    ? 0
+                    : todayDay
+                : year < todayY
+                  ? Infinity
+                  : year > todayY
+                    ? 0
+                    : parseInt(today.slice(5, 7))
+            return (
+              <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
+                <div className="text-sm font-semibold text-ink">日別食費</div>
+                {period === 'monthly' ? (
+                  <FoodTable
+                    cols={FOOD_MEAL_COLS}
+                    rows={Array.from({ length: dailyFoodByMeal.days }, (_, i) => ({
+                      label: `${i + 1}日`,
+                      meals: dailyFoodByMeal.map.get(i + 1)!,
+                      future: i + 1 > futureFrom,
+                    }))}
+                  />
+                ) : (
+                  <FoodTable
+                    cols={FOOD_MEAL_COLS}
+                    rows={Array.from({ length: 12 }, (_, i) => ({
+                      label: `${i + 1}月`,
+                      meals: yearlyFoodByMeal.get(i + 1)!,
+                      future: i + 1 > futureFrom,
+                    }))}
+                  />
+                )}
+              </div>
+            )
+          })()}
 
         {/* 店舗種別 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
@@ -905,9 +927,9 @@ function FoodTable({
   rows,
 }: {
   cols: string[]
-  rows: { label: string; meals: Map<string, number> }[]
+  rows: { label: string; meals: Map<string, number>; future?: boolean }[]
 }) {
-  const hasAnyData = rows.some((r) => cols.some((c) => (r.meals.get(c) ?? 0) > 0))
+  const hasAnyData = rows.some((r) => !r.future && cols.some((c) => (r.meals.get(c) ?? 0) > 0))
   if (!hasAnyData) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
   }
@@ -925,7 +947,7 @@ function FoodTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ label, meals }, idx) => {
+          {rows.map(({ label, meals, future }, idx) => {
             const bg = ROW_BG[idx % 2]
             return (
               <tr key={label} className={`border-b border-line-subtle last:border-0 ${bg}`}>
@@ -936,12 +958,13 @@ function FoodTable({
                 </td>
                 {cols.map((col) => {
                   const amt = meals.get(col) ?? 0
+                  const isFutureZero = future && amt === 0
                   return (
                     <td
                       key={col}
                       className={`text-center py-1 px-1 tabular-nums ${amt > 0 ? 'text-ink' : 'text-ink-muted opacity-30'}`}
                     >
-                      {fmtShort(amt)}
+                      {isFutureZero ? '-' : fmtShort(amt)}
                     </td>
                   )
                 })}
