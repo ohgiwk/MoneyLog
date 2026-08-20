@@ -241,7 +241,7 @@ function BudgetProgress({
   return (
     <div onClick={onClick} className={onClick ? 'cursor-pointer relative z-0 group' : undefined}>
       {onClick && (
-        <div className="absolute -inset-x-2 -inset-y-1.5 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
+        <div className="absolute -inset-x-2 -inset-y-1.5 -z-10 rounded-lg transition-colors group-active:bg-surface-muted" />
       )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-ink flex items-center gap-1">
