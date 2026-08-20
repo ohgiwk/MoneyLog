@@ -51,9 +51,18 @@ body {
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 *::-webkit-scrollbar {
   display: none;
+}
+
+input,
+textarea,
+select {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 input[type='number']::-webkit-inner-spin-button {
