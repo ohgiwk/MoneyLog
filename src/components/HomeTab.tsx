@@ -423,29 +423,59 @@ export default function HomeTab({ userId }: Props) {
         {upcomingEvents.length === 0 ? (
           <div className="text-sm text-ink-muted">なし</div>
         ) : (
-          <ul className="divide-y divide-line-subtle">
-            {upcomingEvents.map((event) => (
-              <li key={event.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMonth(event.date.slice(0, 7))
-                    setCalendarSelectedDate(event.date)
-                    navigate('/calendar')
-                  }}
-                  className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-ink">{event.title}</span>
-                    <span className="text-xs text-ink-muted">
-                      {formatDateWithWeekday(event.date)}
-                    </span>
+          <div className="space-y-4">
+            {(() => {
+              const groups = upcomingEvents.reduce<
+                Record<string, { total: number; events: typeof upcomingEvents }>
+              >((acc, event) => {
+                const month = event.date.slice(0, 7)
+                if (!acc[month]) acc[month] = { total: 0, events: [] }
+                acc[month].total += event.planned_expense
+                acc[month].events.push(event)
+                return acc
+              }, {})
+              return Object.entries(groups).map(([month, { total, events }], i) => {
+                const [y, m] = month.split('-')
+                const label = `${y}年${Number(m)}月`
+                return (
+                  <div key={month}>
+                    {i > 0 && <div className="h-px bg-line-subtle mb-3" />}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-ink-muted tracking-wide">
+                        {label}
+                      </span>
+                      <span className="text-xs font-bold text-danger-500">{formatYen(total)}</span>
+                    </div>
+                    <ul className="divide-y divide-line-subtle">
+                      {events.map((event) => (
+                        <li key={event.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMonth(event.date.slice(0, 7))
+                              setCalendarSelectedDate(event.date)
+                              navigate('/calendar')
+                            }}
+                            className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
+                          >
+                            <div className="flex flex-col">
+                              <span className="text-ink">{event.title}</span>
+                              <span className="text-xs text-ink-muted">
+                                {formatDateWithWeekday(event.date)}
+                              </span>
+                            </div>
+                            <span className="font-semibold text-ink">
+                              {formatYen(event.planned_expense)}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <span className="font-semibold text-ink">{formatYen(event.planned_expense)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+                )
+              })
+            })()}
+          </div>
         )}
       </div>
     </div>
