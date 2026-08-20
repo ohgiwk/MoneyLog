@@ -42,9 +42,16 @@ export default function RecordTab({ userId }: Props) {
   const [dateTo, setDateTo] = useState('')
   const [rangeTransactions, setRangeTransactions] = useState<Transaction[] | null>(null)
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
-  const initialCategoryFilter =
-    (location.state as { categoryFilter?: string } | null)?.categoryFilter ?? 'all'
+  type LocationState = {
+    categoryFilter?: string
+    storeTypeFilter?: string
+    paymentTypeFilter?: string
+  } | null
+  const locationState = location.state as LocationState
+  const initialCategoryFilter = locationState?.categoryFilter ?? 'all'
   const [categoryFilter, setCategoryFilter] = useState<string>(initialCategoryFilter)
+  const storeTypeFilter = locationState?.storeTypeFilter
+  const paymentTypeFilter = locationState?.paymentTypeFilter
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const monthStartDay = profile?.month_start_day ?? 1
@@ -175,6 +182,8 @@ export default function RecordTab({ userId }: Props) {
         setTypeFilter={setTypeFilter}
         categoryFilter={categoryFilter}
         setCategoryFilter={setCategoryFilter}
+        storeTypeFilter={storeTypeFilter}
+        paymentTypeFilter={paymentTypeFilter}
       />
 
       {/* 入力ボトムシート */}

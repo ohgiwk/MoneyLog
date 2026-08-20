@@ -26,6 +26,8 @@ interface Props {
   setTypeFilter?: (v: 'all' | 'expense' | 'income') => void
   categoryFilter?: string
   setCategoryFilter?: (v: string) => void
+  storeTypeFilter?: string
+  paymentTypeFilter?: string
 }
 
 export default function TransactionDetailView({
@@ -47,6 +49,8 @@ export default function TransactionDetailView({
   setTypeFilter: controlledSetTypeFilter,
   categoryFilter: controlledCategoryFilter,
   setCategoryFilter: controlledSetCategoryFilter,
+  storeTypeFilter: controlledStoreTypeFilter,
+  paymentTypeFilter: controlledPaymentTypeFilter,
 }: Props) {
   const {
     typeFilter,
@@ -81,6 +85,8 @@ export default function TransactionDetailView({
           setTypeFilter: controlledSetTypeFilter,
           categoryFilter: controlledCategoryFilter ?? 'all',
           setCategoryFilter: controlledSetCategoryFilter,
+          storeTypeFilter: controlledStoreTypeFilter,
+          paymentTypeFilter: controlledPaymentTypeFilter,
         }
       : undefined
   )

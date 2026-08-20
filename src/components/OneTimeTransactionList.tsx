@@ -21,6 +21,8 @@ interface Props {
   setTypeFilter?: (v: 'all' | 'expense' | 'income') => void
   categoryFilter?: string
   setCategoryFilter?: (v: string) => void
+  storeTypeFilter?: string
+  paymentTypeFilter?: string
 }
 
 export default function OneTimeTransactionList({
@@ -42,6 +44,8 @@ export default function OneTimeTransactionList({
   setTypeFilter,
   categoryFilter,
   setCategoryFilter,
+  storeTypeFilter,
+  paymentTypeFilter,
 }: Props) {
   return (
     <>
@@ -65,6 +69,8 @@ export default function OneTimeTransactionList({
           setTypeFilter={setTypeFilter}
           categoryFilter={categoryFilter}
           setCategoryFilter={setCategoryFilter}
+          storeTypeFilter={storeTypeFilter}
+          paymentTypeFilter={paymentTypeFilter}
         />
       </div>
     </>

@@ -14,6 +14,8 @@ interface ControlledTypeCategoryFilter {
   setTypeFilter: (v: 'all' | 'expense' | 'income') => void
   categoryFilter: string
   setCategoryFilter: (v: string) => void
+  storeTypeFilter?: string
+  paymentTypeFilter?: string
 }
 
 export function useTransactionFilters(
@@ -30,6 +32,8 @@ export function useTransactionFilters(
   const categoryFilter = controlledTypeCategoryFilter?.categoryFilter ?? internalCategoryFilter
   const setCategoryFilter =
     controlledTypeCategoryFilter?.setCategoryFilter ?? setInternalCategoryFilter
+  const storeTypeFilter = controlledTypeCategoryFilter?.storeTypeFilter
+  const paymentTypeFilter = controlledTypeCategoryFilter?.paymentTypeFilter
   const [internalDateFrom, setInternalDateFrom] = useState<string>('')
   const [internalDateTo, setInternalDateTo] = useState<string>('')
   const dateFrom = controlledDateRange?.dateFrom ?? internalDateFrom
@@ -39,7 +43,12 @@ export function useTransactionFilters(
   const [filterOpen, setFilterOpen] = useState(false)
 
   const isFiltered =
-    typeFilter !== 'all' || categoryFilter !== 'all' || dateFrom !== '' || dateTo !== ''
+    typeFilter !== 'all' ||
+    categoryFilter !== 'all' ||
+    dateFrom !== '' ||
+    dateTo !== '' ||
+    (storeTypeFilter != null && storeTypeFilter !== 'all') ||
+    (paymentTypeFilter != null && paymentTypeFilter !== 'all')
   const hasDateRange = dateFrom !== '' && dateTo !== ''
 
   const monthTx = useMemo(
@@ -61,9 +70,13 @@ export function useTransactionFilters(
       if (categoryFilter !== 'all' && t.category !== categoryFilter) return false
       if (dateFrom !== '' && t.date < dateFrom) return false
       if (dateTo !== '' && t.date > dateTo) return false
+      if (storeTypeFilter && storeTypeFilter !== 'all' && t.store_type !== storeTypeFilter)
+        return false
+      if (paymentTypeFilter && paymentTypeFilter !== 'all' && t.payment_type !== paymentTypeFilter)
+        return false
       return true
     })
-  }, [monthTx, typeFilter, categoryFilter, dateFrom, dateTo])
+  }, [monthTx, typeFilter, categoryFilter, dateFrom, dateTo, storeTypeFilter, paymentTypeFilter])
 
   const grouped = useMemo(() => {
     const map = new Map<string, Transaction[]>()

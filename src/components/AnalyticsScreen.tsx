@@ -307,6 +307,9 @@ export default function AnalyticsScreen({ userId }: Props) {
                   total={oneTimeExpense}
                   barColor="bg-warning-400"
                   valueColor="text-warning-600"
+                  onItemClick={(cat) =>
+                    navigate('/expense-filter', { state: { categoryFilter: cat } })
+                  }
                 />
               )}
             </div>
@@ -324,6 +327,9 @@ export default function AnalyticsScreen({ userId }: Props) {
                 total={yearExpenseTotal}
                 barColor="bg-warning-400"
                 valueColor="text-warning-600"
+                onItemClick={(cat) =>
+                  navigate('/expense-filter', { state: { categoryFilter: cat } })
+                }
               />
             </div>
           ) : (
@@ -339,6 +345,7 @@ export default function AnalyticsScreen({ userId }: Props) {
               total={allExpenseTotal}
               barColor="bg-warning-400"
               valueColor="text-warning-600"
+              onItemClick={(cat) => navigate('/expense-filter', { state: { categoryFilter: cat } })}
             />
           </div>
         ) : (
@@ -366,11 +373,25 @@ export default function AnalyticsScreen({ userId }: Props) {
           <div className="text-sm font-semibold text-ink">店舗種別</div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">記録数</div>
-            <StoreBars entries={storeCounts} valueType="count" storeTypes={storeTypes} />
+            <StoreBars
+              entries={storeCounts}
+              valueType="count"
+              storeTypes={storeTypes}
+              onItemClick={(storeName) =>
+                navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
+              }
+            />
           </div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">合計額</div>
-            <StoreBars entries={storeAmounts} valueType="amount" storeTypes={storeTypes} />
+            <StoreBars
+              entries={storeAmounts}
+              valueType="amount"
+              storeTypes={storeTypes}
+              onItemClick={(storeName) =>
+                navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
+              }
+            />
           </div>
         </div>
 
@@ -379,11 +400,23 @@ export default function AnalyticsScreen({ userId }: Props) {
           <div className="text-sm font-semibold text-ink">支払い方法別</div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">記録数</div>
-            <PaymentBars entries={paymentCounts} valueType="count" />
+            <PaymentBars
+              entries={paymentCounts}
+              valueType="count"
+              onItemClick={(paymentType) =>
+                navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
+              }
+            />
           </div>
           <div className="space-y-1">
             <div className="text-xs font-semibold text-ink-muted">合計額</div>
-            <PaymentBars entries={paymentAmounts} valueType="amount" />
+            <PaymentBars
+              entries={paymentAmounts}
+              valueType="amount"
+              onItemClick={(paymentType) =>
+                navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
+              }
+            />
           </div>
         </div>
       </div>
@@ -649,10 +682,12 @@ function StoreBars({
   entries,
   valueType,
   storeTypes,
+  onItemClick,
 }: {
   entries: [string, number][]
   valueType: 'amount' | 'count'
   storeTypes: { name: string; icon: string }[]
+  onItemClick?: (storeName: string) => void
 }) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
@@ -668,8 +703,16 @@ function StoreBars({
         const info = storeTypes.find((s) => s.name === storeName)
         const icon = storeName === '未記録' ? '−' : (info?.icon ?? '🏷️')
         const pct = max > 0 ? (value / max) * 100 : 0
+        const clickable = onItemClick != null && storeName !== '未記録'
         return (
-          <div key={storeName}>
+          <div
+            key={storeName}
+            onClick={clickable ? () => onItemClick(storeName) : undefined}
+            className={clickable ? 'cursor-pointer relative z-0 group' : undefined}
+          >
+            {clickable && (
+              <div className="absolute -inset-x-1 -inset-y-1 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
+            )}
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
                 <span>{icon}</span>
@@ -699,9 +742,11 @@ function StoreBars({
 function PaymentBars({
   entries,
   valueType,
+  onItemClick,
 }: {
   entries: [string, number][]
   valueType: 'amount' | 'count'
+  onItemClick?: (paymentType: string) => void
 }) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
@@ -718,8 +763,16 @@ function PaymentBars({
         const icon = paymentType === '未記録' ? '−' : (info?.icon ?? '💳')
         const label = paymentType === '未記録' ? '未記録' : (info?.name ?? paymentType)
         const pct = max > 0 ? (value / max) * 100 : 0
+        const clickable = onItemClick != null && paymentType !== '未記録'
         return (
-          <div key={paymentType}>
+          <div
+            key={paymentType}
+            onClick={clickable ? () => onItemClick(paymentType) : undefined}
+            className={clickable ? 'cursor-pointer relative z-0 group' : undefined}
+          >
+            {clickable && (
+              <div className="absolute -inset-x-1 -inset-y-1 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
+            )}
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
                 <span>{icon}</span>
@@ -751,11 +804,13 @@ function BreakdownBars({
   total,
   barColor,
   valueColor,
+  onItemClick,
 }: {
   entries: [string, number][]
   total: number
   barColor: string
   valueColor: string
+  onItemClick?: (cat: string) => void
 }) {
   if (entries.length === 0) {
     return <div className="text-sm text-ink-muted py-1">データがありません</div>
@@ -765,8 +820,16 @@ function BreakdownBars({
       {entries.map(([cat, amt]) => {
         const pct = total > 0 ? (amt / total) * 100 : 0
         const info = categoryInfo(cat)
+        const clickable = onItemClick != null
         return (
-          <div key={cat}>
+          <div
+            key={cat}
+            onClick={clickable ? () => onItemClick(cat) : undefined}
+            className={clickable ? 'cursor-pointer relative z-0 group' : undefined}
+          >
+            {clickable && (
+              <div className="absolute -inset-x-1 -inset-y-1 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
+            )}
             <div className="flex justify-between items-center mb-0.5">
               <span className="text-xs text-ink flex items-center gap-1">
                 <span>{info.icon}</span>
