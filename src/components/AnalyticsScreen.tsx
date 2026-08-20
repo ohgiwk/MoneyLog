@@ -680,7 +680,7 @@ function StoreBars({
         const info = storeTypes.find((s) => s.name === storeName)
         const icon = storeName === '未記録' ? '−' : (info?.icon ?? '🏷️')
         const pct = max > 0 ? (value / max) * 100 : 0
-        const clickable = onItemClick != null && storeName !== '未記録'
+        const clickable = onItemClick != null
         return (
           <div
             key={storeName}
@@ -740,7 +740,7 @@ function PaymentBars({
         const icon = paymentType === '未記録' ? '−' : (info?.icon ?? '💳')
         const label = paymentType === '未記録' ? '未記録' : (info?.name ?? paymentType)
         const pct = max > 0 ? (value / max) * 100 : 0
-        const clickable = onItemClick != null && paymentType !== '未記録'
+        const clickable = onItemClick != null
         return (
           <div
             key={paymentType}

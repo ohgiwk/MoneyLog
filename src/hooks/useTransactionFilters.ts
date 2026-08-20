@@ -70,10 +70,14 @@ export function useTransactionFilters(
       if (categoryFilter !== 'all' && t.category !== categoryFilter) return false
       if (dateFrom !== '' && t.date < dateFrom) return false
       if (dateTo !== '' && t.date > dateTo) return false
-      if (storeTypeFilter && storeTypeFilter !== 'all' && t.store_type !== storeTypeFilter)
-        return false
-      if (paymentTypeFilter && paymentTypeFilter !== 'all' && t.payment_type !== paymentTypeFilter)
-        return false
+      if (storeTypeFilter && storeTypeFilter !== 'all') {
+        const txStore = t.store_type ?? '未記録'
+        if (txStore !== storeTypeFilter) return false
+      }
+      if (paymentTypeFilter && paymentTypeFilter !== 'all') {
+        const txPayment = t.payment_type ?? '未記録'
+        if (txPayment !== paymentTypeFilter) return false
+      }
       return true
     })
   }, [monthTx, typeFilter, categoryFilter, dateFrom, dateTo, storeTypeFilter, paymentTypeFilter])
