@@ -385,7 +385,7 @@ export default function AnalyticsScreen({ userId }: Props) {
               <FoodTable
                 cols={FOOD_MEAL_COLS}
                 rows={Array.from({ length: dailyFoodByMeal.days }, (_, i) => ({
-                  label: `${i + 1}`,
+                  label: `${i + 1}日`,
                   meals: dailyFoodByMeal.map.get(i + 1)!,
                 }))}
               />
@@ -895,9 +895,7 @@ function BreakdownBars({
 
 function fmtShort(amount: number): string {
   if (amount === 0) return '¥0'
-  if (amount >= 10000) return `¥${Math.round(amount / 1000)}k`
-  if (amount >= 1000) return `¥${(amount / 1000).toFixed(1).replace(/\.0$/, '')}k`
-  return `¥${amount}`
+  return `¥${amount.toLocaleString()}`
 }
 
 const ROW_BG = ['bg-surface', 'bg-surface-subtle'] as const
@@ -918,7 +916,7 @@ function FoodTable({
       <table className="w-full text-[10px] border-collapse min-w-[320px]">
         <thead>
           <tr className="border-b border-line-subtle">
-            <th className="text-left text-ink-muted font-medium py-1 pr-2 w-8 sticky left-0 bg-surface" />
+            <th className="text-left text-ink-muted font-medium py-1 pr-2 w-10 sticky left-0 bg-surface border-r border-line-subtle" />
             {cols.map((col) => (
               <th key={col} className="text-center text-ink-muted font-medium py-1 px-1">
                 {col.replace('飲み物', '飲料')}
@@ -931,7 +929,9 @@ function FoodTable({
             const bg = ROW_BG[idx % 2]
             return (
               <tr key={label} className={`border-b border-line-subtle last:border-0 ${bg}`}>
-                <td className={`text-ink-muted py-1 pr-2 sticky left-0 ${bg} font-medium`}>
+                <td
+                  className={`text-ink-muted py-1 pr-2 sticky left-0 ${bg} font-medium border-r border-line-subtle`}
+                >
                   {label}
                 </td>
                 {cols.map((col) => {
