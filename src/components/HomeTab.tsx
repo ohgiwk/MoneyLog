@@ -418,9 +418,11 @@ export default function HomeTab({ userId }: Props) {
         </Button>
       </div>
 
-      {upcomingEvents.length > 0 && (
-        <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-ink-muted">今後の予定出費</div>
+      <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
+        <div className="text-sm font-semibold text-ink-muted">今後の出費予定</div>
+        {upcomingEvents.length === 0 ? (
+          <div className="text-sm text-ink-muted">なし</div>
+        ) : (
           <ul className="divide-y divide-line-subtle">
             {upcomingEvents.map((event) => (
               <li key={event.id}>
@@ -444,8 +446,8 @@ export default function HomeTab({ userId }: Props) {
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
