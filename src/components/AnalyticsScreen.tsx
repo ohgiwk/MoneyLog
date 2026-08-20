@@ -262,8 +262,7 @@ export default function AnalyticsScreen({ userId }: Props) {
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
         {/* 累計記録 */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm">
-          <div className="text-sm font-semibold text-ink mb-3">累計記録</div>
+        <CollapsiblePanel title="累計記録">
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-surface-subtle rounded-xl p-3 text-center">
               <div className="text-2xl font-bold text-primary-500">{periodStats.recordDays}</div>
@@ -274,12 +273,11 @@ export default function AnalyticsScreen({ userId }: Props) {
               <div className="text-xs text-ink-muted mt-0.5">記録回数</div>
             </div>
           </div>
-        </div>
+        </CollapsiblePanel>
 
         {/* 節約進捗 */}
         {totalSaved > 0 && (
-          <div className="bg-surface rounded-2xl p-4 shadow-sm">
-            <div className="text-sm font-semibold text-ink mb-1">固定費の節約効果</div>
+          <CollapsiblePanel title="固定費の節約効果">
             <div className="text-2xl font-bold text-income-600 mb-1">
               -{formatYen(Math.round(totalSaved))}
               <span className="text-sm font-normal text-ink-muted">/月</span>
@@ -287,50 +285,46 @@ export default function AnalyticsScreen({ userId }: Props) {
             <div className="text-xs text-ink-muted">
               累計節約 {formatYen(Math.round(totalSaved * 12))}/年換算
             </div>
-          </div>
+          </CollapsiblePanel>
         )}
 
         {/* カテゴリ別内訳 */}
-        {period === 'monthly' ? (
-          hasBreakdown ? (
-            <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-              <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
-              {fixedByCat.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-xs font-semibold text-ink-muted">固定費</div>
-                  <BreakdownBars
-                    entries={fixedByCat}
-                    total={Math.round(totalFixed)}
-                    barColor="bg-surface-muted"
-                    valueColor="text-ink"
-                  />
-                </div>
-              )}
-              {oneTimeByCat.length > 0 && (
-                <div className="space-y-2">
-                  {fixedByCat.length > 0 && <div className="h-px bg-surface-hover" />}
-                  <div className="text-xs font-semibold text-ink-muted">出費</div>
-                  <BreakdownBars
-                    entries={oneTimeByCat}
-                    total={oneTimeExpense}
-                    barColor="bg-warning-400"
-                    valueColor="text-warning-600"
-                    onItemClick={(cat) =>
-                      navigate('/expense-filter', { state: { categoryFilter: cat } })
-                    }
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
-              この月のデータがありません
-            </div>
-          )
-        ) : period === 'yearly' ? (
-          yearByCat.length > 0 ? (
-            <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-              <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
+        <CollapsiblePanel title="カテゴリ別内訳">
+          {period === 'monthly' ? (
+            hasBreakdown ? (
+              <div className="space-y-3">
+                {fixedByCat.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-semibold text-ink-muted">固定費</div>
+                    <BreakdownBars
+                      entries={fixedByCat}
+                      total={Math.round(totalFixed)}
+                      barColor="bg-surface-muted"
+                      valueColor="text-ink"
+                    />
+                  </div>
+                )}
+                {oneTimeByCat.length > 0 && (
+                  <div className="space-y-2">
+                    {fixedByCat.length > 0 && <div className="h-px bg-surface-hover" />}
+                    <div className="text-xs font-semibold text-ink-muted">出費</div>
+                    <BreakdownBars
+                      entries={oneTimeByCat}
+                      total={oneTimeExpense}
+                      barColor="bg-warning-400"
+                      valueColor="text-warning-600"
+                      onItemClick={(cat) =>
+                        navigate('/expense-filter', { state: { categoryFilter: cat } })
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-ink-muted text-center">この月のデータがありません</div>
+            )
+          ) : period === 'yearly' ? (
+            yearByCat.length > 0 ? (
               <BreakdownBars
                 entries={yearByCat}
                 total={yearExpenseTotal}
@@ -340,15 +334,10 @@ export default function AnalyticsScreen({ userId }: Props) {
                   navigate('/expense-filter', { state: { categoryFilter: cat } })
                 }
               />
-            </div>
-          ) : (
-            <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
-              この年のデータがありません
-            </div>
-          )
-        ) : allByCat.length > 0 ? (
-          <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-            <div className="text-sm font-semibold text-ink">カテゴリ別内訳</div>
+            ) : (
+              <div className="text-sm text-ink-muted text-center">この年のデータがありません</div>
+            )
+          ) : allByCat.length > 0 ? (
             <BreakdownBars
               entries={allByCat}
               total={allExpenseTotal}
@@ -356,18 +345,15 @@ export default function AnalyticsScreen({ userId }: Props) {
               valueColor="text-warning-600"
               onItemClick={(cat) => navigate('/expense-filter', { state: { categoryFilter: cat } })}
             />
-          </div>
-        ) : (
-          <div className="bg-surface rounded-2xl p-4 shadow-sm text-sm text-ink-muted text-center">
-            データがありません
-          </div>
-        )}
+          ) : (
+            <div className="text-sm text-ink-muted text-center">データがありません</div>
+          )}
+        </CollapsiblePanel>
 
         {/* 日別/月別/年別出費棒グラフ */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="text-sm font-semibold text-ink">
-            {period === 'monthly' ? '日別出費' : period === 'yearly' ? '月別出費' : '年別出費'}
-          </div>
+        <CollapsiblePanel
+          title={period === 'monthly' ? '日別出費' : period === 'yearly' ? '月別出費' : '年別出費'}
+        >
           {period === 'monthly' ? (
             <DailyExpenseChart entries={dailyExpenses} />
           ) : period === 'yearly' ? (
@@ -375,7 +361,7 @@ export default function AnalyticsScreen({ userId }: Props) {
           ) : (
             <YearlyExpenseChart entries={yearlyExpenses} />
           )}
-        </div>
+        </CollapsiblePanel>
 
         {/* 日別/月別 食費テーブル */}
         {(period === 'monthly' || period === 'yearly') &&
@@ -384,7 +370,6 @@ export default function AnalyticsScreen({ userId }: Props) {
             const todayDay = parseInt(today.slice(8))
             const todayYM = today.slice(0, 7)
             const todayY = today.slice(0, 4)
-            // 未来行の開始インデックス（0-based）。以降の行は¥0→"-"
             const futureFrom =
               period === 'monthly'
                 ? month < todayYM
@@ -398,8 +383,7 @@ export default function AnalyticsScreen({ userId }: Props) {
                     ? 0
                     : parseInt(today.slice(5, 7))
             return (
-              <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">
-                <div className="text-sm font-semibold text-ink">日別食費</div>
+              <CollapsiblePanel title="日別食費">
                 {period === 'monthly' ? (
                   <FoodTable
                     cols={FOOD_MEAL_COLS}
@@ -419,60 +403,101 @@ export default function AnalyticsScreen({ userId }: Props) {
                     }))}
                   />
                 )}
-              </div>
+              </CollapsiblePanel>
             )
           })()}
 
         {/* 店舗種別 */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-          <div className="text-sm font-semibold text-ink">店舗種別</div>
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-ink-muted">記録数</div>
-            <StoreBars
-              entries={storeCounts}
-              valueType="count"
-              storeTypes={storeTypes}
-              onItemClick={(storeName) =>
-                navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
-              }
-            />
+        <CollapsiblePanel title="店舗種別">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-ink-muted">記録数</div>
+              <StoreBars
+                entries={storeCounts}
+                valueType="count"
+                storeTypes={storeTypes}
+                onItemClick={(storeName) =>
+                  navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-ink-muted">合計額</div>
+              <StoreBars
+                entries={storeAmounts}
+                valueType="amount"
+                storeTypes={storeTypes}
+                onItemClick={(storeName) =>
+                  navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
+                }
+              />
+            </div>
           </div>
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-ink-muted">合計額</div>
-            <StoreBars
-              entries={storeAmounts}
-              valueType="amount"
-              storeTypes={storeTypes}
-              onItemClick={(storeName) =>
-                navigate('/expense-filter', { state: { storeTypeFilter: storeName } })
-              }
-            />
-          </div>
-        </div>
+        </CollapsiblePanel>
 
         {/* 支払い方法別 */}
-        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-          <div className="text-sm font-semibold text-ink">支払い方法別</div>
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-ink-muted">記録数</div>
-            <PaymentBars
-              entries={paymentCounts}
-              valueType="count"
-              onItemClick={(paymentType) =>
-                navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
-              }
-            />
+        <CollapsiblePanel title="支払い方法別">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-ink-muted">記録数</div>
+              <PaymentBars
+                entries={paymentCounts}
+                valueType="count"
+                onItemClick={(paymentType) =>
+                  navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <div className="text-xs font-semibold text-ink-muted">合計額</div>
+              <PaymentBars
+                entries={paymentAmounts}
+                valueType="amount"
+                onItemClick={(paymentType) =>
+                  navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
+                }
+              />
+            </div>
           </div>
-          <div className="space-y-1">
-            <div className="text-xs font-semibold text-ink-muted">合計額</div>
-            <PaymentBars
-              entries={paymentAmounts}
-              valueType="amount"
-              onItemClick={(paymentType) =>
-                navigate('/expense-filter', { state: { paymentTypeFilter: paymentType } })
-              }
-            />
-          </div>
+        </CollapsiblePanel>
+      </div>
+    </div>
+  )
+}
+
+// ─── Collapsible Panel ──────────────────────────────────────────
+
+function CollapsiblePanel({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(true)
+  return (
+    <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-4 py-3 active:bg-surface-hover"
+      >
+        <span className="text-sm font-semibold text-ink">{title}</span>
+        <svg
+          className={`w-4 h-4 text-ink-muted transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateRows: open ? '1fr' : '0fr',
+          transition: 'grid-template-rows 0.2s ease',
+        }}
+      >
+        <div style={{ overflow: 'hidden' }}>
+          <div className="px-4 pb-4 space-y-3">{children}</div>
         </div>
       </div>
     </div>
