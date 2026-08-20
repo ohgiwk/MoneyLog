@@ -100,6 +100,7 @@ export const STORE_TYPES: CategoryInfo[] = [
   { name: '100円ショップ', icon: '💴', color: '#ec4899' },
   { name: '家電量販店', icon: '🖥️', color: '#6366f1' },
   { name: '自動販売機', icon: '🥤', color: '#0ea5e9' },
+  { name: '温泉・銭湯', icon: '♨️', color: '#f87171' },
   { name: 'その他', icon: '🏷️', color: '#64748b' },
 ]
 
