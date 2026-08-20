@@ -49,6 +49,7 @@ export default function BudgetProgressPanel({
   oneTimeCategoryRows,
   hasBudget = true,
   onManageBudget,
+  onCategoryClick,
   naked = false,
 }: {
   periodMode: PeriodMode
@@ -68,6 +69,7 @@ export default function BudgetProgressPanel({
   }[]
   hasBudget?: boolean
   onManageBudget?: () => void
+  onCategoryClick?: (cat: string) => void
   naked?: boolean
 }) {
   // 期間ラベルと進捗率
@@ -158,6 +160,7 @@ export default function BudgetProgressPanel({
             spent={spent}
             budget={budget}
             color="bg-warning-400"
+            onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
           />
         ))}
 
@@ -225,16 +228,21 @@ function BudgetProgress({
   spent,
   budget,
   color,
+  onClick,
 }: {
   label: string
   icon: string
   spent: number
   budget: number
   color: string
+  onClick?: () => void
 }) {
   const { pct, over } = calcBudgetProgress(spent, budget)
   return (
-    <div>
+    <div onClick={onClick} className={onClick ? 'cursor-pointer relative z-0 group' : undefined}>
+      {onClick && (
+        <div className="absolute -inset-x-2 -inset-y-1.5 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
+      )}
       <div className="flex justify-between items-center mb-1">
         <span className="text-xs text-ink flex items-center gap-1">
           <span>{icon}</span>

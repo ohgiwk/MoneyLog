@@ -389,6 +389,9 @@ export default function HomeTab({ userId }: Props) {
             oneTimeCategoryRows={displayCategoryRows}
             hasBudget={hasBudget}
             onManageBudget={() => navigate('/budget')}
+            onCategoryClick={(cat) =>
+              navigate('/expense-filter', { state: { categoryFilter: cat } })
+            }
           />
         </div>
       </div>

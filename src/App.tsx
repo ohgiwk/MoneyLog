@@ -25,6 +25,7 @@ import AchievementsScreen from './components/AchievementsScreen'
 import PrivacyPolicyScreen from './components/PrivacyPolicyScreen'
 import TermsOfServiceScreen from './components/TermsOfServiceScreen'
 import ChangePasswordScreen from './components/ChangePasswordScreen'
+import ExpenseFilterScreen from './components/ExpenseFilterScreen'
 
 const TAB_PATHS = ['/', '/record', '/shopping', '/fixed', '/calendar']
 
@@ -103,6 +104,7 @@ function AppRoutes() {
         <Route path="analytics" element={<AnalyticsScreen userId={user.id} />} />
         <Route path="saving-tips" element={<SavingTipsScreen />} />
         <Route path="achievements" element={<AchievementsScreen userId={user.id} />} />
+        <Route path="expense-filter" element={<ExpenseFilterScreen />} />
         <Route path="setup" element={<OnboardingScreen userId={user.id} />} />
         <Route path="privacy-policy" element={<PrivacyPolicyScreen />} />
         <Route path="terms-of-service" element={<TermsOfServiceScreen />} />

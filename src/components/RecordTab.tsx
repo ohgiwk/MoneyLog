@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export default function RecordTab({ userId }: Props) {
+  const location = useLocation()
   const {
     month,
     setMonth,
@@ -40,7 +42,9 @@ export default function RecordTab({ userId }: Props) {
   const [dateTo, setDateTo] = useState('')
   const [rangeTransactions, setRangeTransactions] = useState<Transaction[] | null>(null)
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'income'>('all')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const initialCategoryFilter =
+    (location.state as { categoryFilter?: string } | null)?.categoryFilter ?? 'all'
+  const [categoryFilter, setCategoryFilter] = useState<string>(initialCategoryFilter)
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const monthStartDay = profile?.month_start_day ?? 1
