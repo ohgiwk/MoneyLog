@@ -151,18 +151,21 @@ export default function BudgetProgressPanel({
       <div className="h-px bg-surface-hover" />
 
       {/* カテゴリ別予算進捗 */}
-      {rows.length > 0 &&
-        rows.map(({ cat, icon, spent, budget }) => (
-          <BudgetProgress
-            key={cat}
-            label={cat}
-            icon={icon}
-            spent={spent}
-            budget={budget}
-            color="bg-warning-400"
-            onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
-          />
-        ))}
+      {rows.length > 0 && (
+        <div className="space-y-2.5">
+          {rows.map(({ cat, icon, spent, budget }) => (
+            <BudgetProgress
+              key={cat}
+              label={cat}
+              icon={icon}
+              spent={spent}
+              budget={budget}
+              color="bg-warning-400"
+              onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="h-px bg-surface-hover" />
 
@@ -239,34 +242,38 @@ function BudgetProgress({
 }) {
   const { pct, over } = calcBudgetProgress(spent, budget)
   return (
-    <div onClick={onClick} className={onClick ? 'cursor-pointer relative z-0 group' : undefined}>
-      {onClick && (
-        <div className="absolute -inset-x-2 -inset-y-1.5 -z-10 rounded-lg transition-colors group-active:bg-surface-muted" />
-      )}
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-xs text-ink flex items-center gap-1">
-          <span>{icon}</span>
-          {label}
-        </span>
-        <span className="text-xs text-ink-muted">
-          <span className={over ? 'text-danger-500 font-semibold' : 'font-medium'}>
-            {formatYen(spent)}
+    <div
+      onClick={onClick}
+      className={`px-3 py-2 rounded-xl bg-surface transition-colors flex items-center gap-2 ${onClick ? 'cursor-pointer active:bg-surface-hover' : ''}`}
+      style={{ boxShadow: '0 1px 4px 0 rgb(0 0 0 / 0.12)' }}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs text-ink flex items-center gap-1">
+            <span>{icon}</span>
+            {label}
           </span>
-          {' / '}
-          <span className="text-ink-muted">{formatYen(budget)}</span>
-        </span>
-      </div>
-      <div className="h-2.5 bg-surface-hover rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all ${over ? 'bg-danger-400' : color}`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      {over && (
-        <div className="text-xs text-danger-500 mt-0.5 text-right">
-          {formatYen(spent - budget)} オーバー
+          <span className="text-xs text-ink-muted">
+            <span className={over ? 'text-danger-500 font-semibold' : 'font-medium'}>
+              {formatYen(spent)}
+            </span>
+            {' / '}
+            <span className="text-ink-muted">{formatYen(budget)}</span>
+          </span>
         </div>
-      )}
+        <div className="h-2.5 bg-surface-muted rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${over ? 'bg-danger-400' : color}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        {over && (
+          <div className="text-xs text-danger-500 mt-0.5 text-right">
+            {formatYen(spent - budget)} オーバー
+          </div>
+        )}
+      </div>
+      {onClick && <span className="text-line-strong text-base leading-none flex-shrink-0">›</span>}
     </div>
   )
 }
