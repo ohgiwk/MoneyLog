@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MEAL_TYPES, PAYMENT_TYPES, type CategoryInfo } from '../constants'
 import { useStoreTypes } from '../hooks/useStoreTypes'
 import type { Transaction } from '../lib/database.types'
@@ -76,7 +77,12 @@ export default function OneTimeTransactionForm({
 
   const { items: storeTypes } = useStoreTypes()
   const [storeTypeOpen, setStoreTypeOpen] = useState(false)
-  const [storeTypeDropUp, setStoreTypeDropUp] = useState(false)
+  const [dropdownRect, setDropdownRect] = useState<{
+    top?: number
+    bottom?: number
+    left: number
+    width: number
+  } | null>(null)
   const storeTypeButtonRef = useRef<HTMLButtonElement>(null)
   const selectedStoreType = storeTypes.find((s) => s.name === values.storeType)
   const { methods: paymentMethods } = usePaymentMethods()
@@ -284,7 +290,14 @@ export default function OneTimeTransactionForm({
                 if (!storeTypeOpen && storeTypeButtonRef.current) {
                   const rect = storeTypeButtonRef.current.getBoundingClientRect()
                   const spaceBelow = window.innerHeight - rect.bottom
-                  setStoreTypeDropUp(spaceBelow < 280)
+                  const dropUp = spaceBelow < 280
+                  setDropdownRect({
+                    ...(dropUp
+                      ? { bottom: window.innerHeight - rect.top }
+                      : { top: rect.bottom + 4 }),
+                    left: rect.left,
+                    width: rect.width,
+                  })
                 }
                 setStoreTypeOpen((v) => !v)
               }}
@@ -297,55 +310,66 @@ export default function OneTimeTransactionForm({
               <span className="text-ink-muted text-xs">{storeTypeOpen ? '▲' : '▼'}</span>
             </button>
 
-            {storeTypeOpen && (
-              <>
-                <button
-                  type="button"
-                  aria-label="閉じる"
-                  className="fixed inset-0 z-10 cursor-default"
-                  onClick={() => setStoreTypeOpen(false)}
-                />
-                <div
-                  className={`absolute left-0 right-0 bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden z-20 max-h-64 overflow-y-auto ${storeTypeDropUp ? 'bottom-full' : 'top-full mt-1'}`}
-                >
+            {storeTypeOpen &&
+              dropdownRect &&
+              createPortal(
+                <>
                   <button
                     type="button"
-                    onClick={() => {
-                      setValue('storeType', '')
-                      setStoreTypeOpen(false)
+                    aria-label="閉じる"
+                    className="fixed inset-0 cursor-default"
+                    style={{ zIndex: 9998 }}
+                    onClick={() => setStoreTypeOpen(false)}
+                  />
+                  <div
+                    className="fixed bg-surface rounded-xl shadow-lg border border-line-subtle overflow-hidden overflow-y-auto max-h-64"
+                    style={{
+                      zIndex: 9999,
+                      top: dropdownRect.top,
+                      bottom: dropdownRect.bottom,
+                      left: dropdownRect.left,
+                      width: dropdownRect.width,
                     }}
-                    className={
-                      'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                      (values.storeType === ''
-                        ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
-                        : 'text-ink active:bg-surface-subtle')
-                    }
                   >
-                    <span className="text-lg">🏷️</span>
-                    <span>未選択</span>
-                  </button>
-                  {storeTypes.map((s) => (
                     <button
-                      key={s.name}
                       type="button"
                       onClick={() => {
-                        setValue('storeType', s.name)
+                        setValue('storeType', '')
                         setStoreTypeOpen(false)
                       }}
                       className={
                         'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
-                        (values.storeType === s.name
+                        (values.storeType === ''
                           ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
                           : 'text-ink active:bg-surface-subtle')
                       }
                     >
-                      <span className="text-lg">{s.icon}</span>
-                      <span>{s.name}</span>
+                      <span className="text-lg">🏷️</span>
+                      <span>未選択</span>
                     </button>
-                  ))}
-                </div>
-              </>
-            )}
+                    {storeTypes.map((s) => (
+                      <button
+                        key={s.name}
+                        type="button"
+                        onClick={() => {
+                          setValue('storeType', s.name)
+                          setStoreTypeOpen(false)
+                        }}
+                        className={
+                          'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left ' +
+                          (values.storeType === s.name
+                            ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
+                            : 'text-ink active:bg-surface-subtle')
+                        }
+                      >
+                        <span className="text-lg">{s.icon}</span>
+                        <span>{s.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>,
+                document.body
+              )}
           </div>
         )}
 
