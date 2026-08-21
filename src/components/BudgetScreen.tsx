@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { EXPENSE_CATEGORIES } from '../constants'
 import {
   budgetService,
   oneTimeBudgetTotal,
@@ -10,6 +9,7 @@ import {
 import { useBudgetQuery, useBudgetMutation } from '../hooks/queries/useBudgetQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { calcBudgetProgress, formatYen, shiftMonth, todayStr } from '../utils'
+import { useAppContext } from '../contexts/AppContext'
 import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
 import Button from './ui/Button'
@@ -21,6 +21,8 @@ interface Props {
 
 export default function BudgetScreen({ userId }: Props) {
   const navigate = useNavigate()
+  const { categories } = useAppContext()
+  const expenseCategories = categories.expenseCategories
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])
@@ -142,11 +144,11 @@ export default function BudgetScreen({ userId }: Props) {
     setErrors([])
     let finalBudget = budget
     if (categoryMode === 'total') {
-      const n = EXPENSE_CATEGORIES.length
+      const n = expenseCategories.length
       const base = Math.floor(categoryTotal / n)
       const rem = categoryTotal - base * n
       const distributed = Object.fromEntries(
-        EXPENSE_CATEGORIES.map((cat, i) => [cat.name, base + (i === 0 ? rem : 0)])
+        expenseCategories.map((cat, i) => [cat.name, base + (i === 0 ? rem : 0)])
       )
       finalBudget = { ...budget, oneTimeByCategory: distributed }
     }
@@ -289,7 +291,7 @@ export default function BudgetScreen({ userId }: Props) {
               />
             ) : (
               <div className="space-y-3">
-                {EXPENSE_CATEGORIES.map((cat) => (
+                {expenseCategories.map((cat) => (
                   <BudgetField
                     key={cat.name}
                     label={`${cat.icon} ${cat.name}`}
