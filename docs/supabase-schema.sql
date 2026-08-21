@@ -274,3 +274,14 @@ alter table public.budgets add column if not exists savings numeric not null def
 
 -- shopping_items にメモカラムを追加（買い物メモの品目に任意メモを記録できるようにする）
 alter table public.shopping_items add column if not exists memo text;
+
+-- user_categories（カテゴリカスタマイズ設定。デバイス間で共有するためDBに保存）
+create table if not exists public.user_categories (
+  user_id uuid not null references auth.users on delete cascade,
+  type text not null check (type in ('expense', 'income', 'fixed')),
+  categories jsonb not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, type)
+);
+alter table public.user_categories enable row level security;
+create policy "own user_categories" on public.user_categories for all using (auth.uid() = user_id);

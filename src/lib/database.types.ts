@@ -225,6 +225,16 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['budgets']['Row'], 'created_at'>
         Update: Partial<Database['public']['Tables']['budgets']['Insert']>
       }
+      user_categories: {
+        Row: {
+          user_id: string
+          type: 'expense' | 'income' | 'fixed'
+          categories: Json
+          updated_at: string
+        }
+        Insert: Database['public']['Tables']['user_categories']['Row']
+        Update: Partial<Database['public']['Tables']['user_categories']['Row']>
+      }
     }
   }
 }

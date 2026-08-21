@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
   FIXED_EXPENSE_CATEGORIES,
   type CategoryInfo,
 } from '../constants'
+import { categoryService } from '../lib/services/categoryService'
 
 const STORAGE_KEYS = {
   expense: 'moneylog_expense_categories',
@@ -12,7 +13,7 @@ const STORAGE_KEYS = {
   fixed: 'moneylog_fixed_categories',
 } as const
 
-function load(key: string, fallback: CategoryInfo[]): CategoryInfo[] {
+function loadLocal(key: string, fallback: CategoryInfo[]): CategoryInfo[] {
   try {
     const raw = localStorage.getItem(key)
     return raw ? (JSON.parse(raw) as CategoryInfo[]) : fallback
@@ -21,35 +22,65 @@ function load(key: string, fallback: CategoryInfo[]): CategoryInfo[] {
   }
 }
 
-function save(key: string, categories: CategoryInfo[]) {
+function saveLocal(key: string, categories: CategoryInfo[]) {
   localStorage.setItem(key, JSON.stringify(categories))
 }
 
-export function useCategories() {
+export function useCategories(userId?: string | null) {
   const [expenseCategories, setExpenseCategories] = useState<CategoryInfo[]>(() =>
-    load(STORAGE_KEYS.expense, EXPENSE_CATEGORIES)
+    loadLocal(STORAGE_KEYS.expense, EXPENSE_CATEGORIES)
   )
   const [incomeCategories, setIncomeCategories] = useState<CategoryInfo[]>(() =>
-    load(STORAGE_KEYS.income, INCOME_CATEGORIES)
+    loadLocal(STORAGE_KEYS.income, INCOME_CATEGORIES)
   )
   const [fixedCategories, setFixedCategories] = useState<CategoryInfo[]>(() =>
-    load(STORAGE_KEYS.fixed, FIXED_EXPENSE_CATEGORIES)
+    loadLocal(STORAGE_KEYS.fixed, FIXED_EXPENSE_CATEGORIES)
   )
 
-  const updateExpenseCategories = useCallback((cats: CategoryInfo[]) => {
-    save(STORAGE_KEYS.expense, cats)
-    setExpenseCategories(cats)
-  }, [])
+  useEffect(() => {
+    if (!userId) return
+    categoryService.fetchAll(userId).then((remote) => {
+      if (remote.expense) {
+        saveLocal(STORAGE_KEYS.expense, remote.expense)
+        setExpenseCategories(remote.expense)
+      }
+      if (remote.income) {
+        saveLocal(STORAGE_KEYS.income, remote.income)
+        setIncomeCategories(remote.income)
+      }
+      if (remote.fixed) {
+        saveLocal(STORAGE_KEYS.fixed, remote.fixed)
+        setFixedCategories(remote.fixed)
+      }
+    })
+  }, [userId])
 
-  const updateIncomeCategories = useCallback((cats: CategoryInfo[]) => {
-    save(STORAGE_KEYS.income, cats)
-    setIncomeCategories(cats)
-  }, [])
+  const updateExpenseCategories = useCallback(
+    (cats: CategoryInfo[]) => {
+      saveLocal(STORAGE_KEYS.expense, cats)
+      setExpenseCategories(cats)
+      if (userId) categoryService.save(userId, 'expense', cats)
+    },
+    [userId]
+  )
 
-  const updateFixedCategories = useCallback((cats: CategoryInfo[]) => {
-    save(STORAGE_KEYS.fixed, cats)
-    setFixedCategories(cats)
-  }, [])
+  const updateIncomeCategories = useCallback(
+    (cats: CategoryInfo[]) => {
+      saveLocal(STORAGE_KEYS.income, cats)
+      setIncomeCategories(cats)
+      if (userId) categoryService.save(userId, 'income', cats)
+    },
+    [userId]
+  )
+
+  const updateFixedCategories = useCallback(
+    (cats: CategoryInfo[]) => {
+      saveLocal(STORAGE_KEYS.fixed, cats)
+      setFixedCategories(cats)
+      if (userId) categoryService.save(userId, 'fixed', cats)
+    },
+    [userId]
+  )
 
   return {
     expenseCategories,

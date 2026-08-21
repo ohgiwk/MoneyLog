@@ -39,7 +39,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const auth = useAuth()
-  const categories = useCategories()
+  const categories = useCategories(auth.user?.id)
   const theme = useTheme()
   const scrollToTopFn = useRef<() => void>(() => {})
   const [month, setMonth] = useState(todayStr().slice(0, 7))
