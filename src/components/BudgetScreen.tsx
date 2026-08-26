@@ -165,7 +165,10 @@ export default function BudgetScreen({ userId }: Props) {
   const remaining = budget.income - budgetTotal
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div
+      className="max-w-md mx-auto bg-surface-subtle flex flex-col overflow-hidden"
+      style={{ height: 'calc(100dvh - var(--keyboard-height, 0px))' }}
+    >
       {/* ヘッダー */}
       <div className="bg-surface border-b border-line-subtle">
         <ScreenHeader

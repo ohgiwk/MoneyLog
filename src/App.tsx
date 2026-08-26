@@ -38,6 +38,18 @@ function AppRoutes() {
     let hideHandle: { remove: () => void } | null = null
     void Keyboard.addListener('keyboardWillShow', (info) => {
       document.documentElement.style.setProperty('--keyboard-height', `${info.keyboardHeight}px`)
+      requestAnimationFrame(() => {
+        const activeEl = document.activeElement as HTMLElement | null
+        if (!activeEl) return
+        const scrollEl = activeEl.closest('.overflow-y-auto')
+        if (!scrollEl) return
+        const elRect = activeEl.getBoundingClientRect()
+        const containerRect = scrollEl.getBoundingClientRect()
+        const overshoot = elRect.bottom + 24 - containerRect.bottom
+        if (overshoot > 0) {
+          scrollEl.scrollBy({ top: overshoot, behavior: 'smooth' })
+        }
+      })
     }).then((h) => {
       showHandle = h
     })
