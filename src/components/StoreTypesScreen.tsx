@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ScreenHeader from './ui/ScreenHeader'
+import HeaderMenu from './ui/HeaderMenu'
 import BottomSheet from './ui/BottomSheet'
 import FabButton from './ui/FabButton'
 import Input from './ui/Input'
@@ -144,12 +145,13 @@ const emptyForm = (): FormState => ({ icon: '', name: '' })
 
 export default function StoreTypesScreen() {
   const navigate = useNavigate()
-  const { items, addItem, updateItem, removeItem, reorder } = useStoreTypes()
+  const { items, addItem, updateItem, removeItem, reorder, reset } = useStoreTypes()
 
   const [editing, setEditing] = useState<StoreTypeItem | 'new' | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm())
   const [formError, setFormError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<StoreTypeItem | null>(null)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -214,7 +216,17 @@ export default function StoreTypesScreen() {
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="店舗種別" onBack={() => navigate(-1)} />
+        <ScreenHeader
+          title="店舗種別"
+          onBack={() => navigate(-1)}
+          rightAction={
+            <HeaderMenu
+              items={[
+                { label: 'リセット', onClick: () => setResetConfirmOpen(true), danger: true },
+              ]}
+            />
+          }
+        />
       </div>
 
       <div className="flex-1 p-4 pb-24 overflow-y-auto space-y-3">
@@ -248,6 +260,18 @@ export default function StoreTypesScreen() {
           confirmLabel="削除する"
           onConfirm={handleDeleteConfirm}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {resetConfirmOpen && (
+        <ConfirmDialog
+          message="店舗種別を初期状態に戻しますか？追加・編集した内容はすべて失われます。"
+          confirmLabel="リセット"
+          onConfirm={() => {
+            reset()
+            setResetConfirmOpen(false)
+          }}
+          onCancel={() => setResetConfirmOpen(false)}
         />
       )}
 

@@ -82,5 +82,15 @@ export function useStoreTypes() {
     setItems(next)
   }, [])
 
-  return { items, addItem, updateItem, removeItem, reorder }
+  const reset = useCallback(() => {
+    const defaults = STORE_TYPES.map((st) => ({
+      id: crypto.randomUUID(),
+      name: st.name,
+      icon: st.icon,
+    }))
+    save(defaults)
+    setItems(defaults)
+  }, [])
+
+  return { items, addItem, updateItem, removeItem, reorder, reset }
 }

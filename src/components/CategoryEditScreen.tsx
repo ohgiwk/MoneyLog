@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import CategoryList, { type CategoryListHandle } from './CategoryList'
 import ScreenHeader from './ui/ScreenHeader'
+import ConfirmDialog from './ui/ConfirmDialog'
+import HeaderMenu from './ui/HeaderMenu'
 import { useAppContext } from '../contexts/AppContext'
 import FabButton from './ui/FabButton'
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, FIXED_EXPENSE_CATEGORIES } from '../constants'
 
 type TabKey = 'expense' | 'income' | 'fixed'
 
@@ -28,6 +31,7 @@ export default function CategoryEditScreen() {
     window.scrollTo(0, 0)
   }, [])
   const [activeTab, setActiveTab] = useState<TabKey>('expense')
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
   const expenseRef = useRef<CategoryListHandle>(null)
   const incomeRef = useRef<CategoryListHandle>(null)
   const fixedRef = useRef<CategoryListHandle>(null)
@@ -38,10 +42,29 @@ export default function CategoryEditScreen() {
     else fixedRef.current?.openAdd()
   }
 
+  function handleReset() {
+    if (activeTab === 'expense') updateExpenseCategories(EXPENSE_CATEGORIES)
+    else if (activeTab === 'income') updateIncomeCategories(INCOME_CATEGORIES)
+    else updateFixedCategories(FIXED_EXPENSE_CATEGORIES)
+    setResetConfirmOpen(false)
+  }
+
+  const tabLabel = activeTab === 'expense' ? '支出' : activeTab === 'income' ? '収入' : '固定費'
+
   return (
     <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
-        <ScreenHeader title="カテゴリ編集" onBack={() => navigate(-1)} />
+        <ScreenHeader
+          title="カテゴリ編集"
+          onBack={() => navigate(-1)}
+          rightAction={
+            <HeaderMenu
+              items={[
+                { label: 'リセット', onClick: () => setResetConfirmOpen(true), danger: true },
+              ]}
+            />
+          }
+        />
         <div className="flex px-4 gap-1 pb-0">
           {TABS.map((t) => (
             <button
@@ -87,6 +110,15 @@ export default function CategoryEditScreen() {
       <div className="fixed bottom-8 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
         <FabButton onClick={handleFab} ariaLabel="カテゴリを追加" />
       </div>
+
+      {resetConfirmOpen && (
+        <ConfirmDialog
+          message={`「${tabLabel}」カテゴリを初期状態に戻しますか？追加・編集した内容はすべて失われます。`}
+          confirmLabel="リセット"
+          onConfirm={handleReset}
+          onCancel={() => setResetConfirmOpen(false)}
+        />
+      )}
     </div>
   )
 }
