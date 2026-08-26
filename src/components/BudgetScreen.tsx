@@ -14,6 +14,7 @@ import MonthSwitcher from './ui/MonthSwitcher'
 import ScreenHeader from './ui/ScreenHeader'
 import Button from './ui/Button'
 import Input from './ui/Input'
+import Modal from './ui/Modal'
 
 interface Props {
   userId: string
@@ -28,7 +29,7 @@ export default function BudgetScreen({ userId }: Props) {
   }, [])
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [budget, setBudget] = useState<BudgetSettings>(EMPTY_BUDGET_SETTINGS)
-  const [saved, setSaved] = useState(false)
+  const [showSavedDialog, setShowSavedDialog] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [categoryMode, setCategoryMode] = useState<'total' | 'detail'>(
     () => (localStorage.getItem(`budgetCategoryMode_${userId}`) as 'total' | 'detail') ?? 'detail'
@@ -80,7 +81,6 @@ export default function BudgetScreen({ userId }: Props) {
     }
     setBudget(lastBudget)
     setCategoryTotal(oneTimeBudgetTotal(lastBudget))
-    setSaved(false)
     setCopyMsg('先月の予算をコピーしました')
     setTimeout(() => setCopyMsg(null), 3000)
   }
@@ -90,7 +90,6 @@ export default function BudgetScreen({ userId }: Props) {
     if (fetchedBudget) {
       setBudget(fetchedBudget)
       setCategoryTotal(oneTimeBudgetTotal(fetchedBudget))
-      setSaved(false)
     }
   }, [fetchedBudget])
 
@@ -103,7 +102,6 @@ export default function BudgetScreen({ userId }: Props) {
   function handleChange(field: 'income' | 'fixed' | 'consumable' | 'savings', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
     setBudget((prev) => ({ ...prev, [field]: isNaN(n) ? 0 : n }))
-    setSaved(false)
     setErrors([])
   }
 
@@ -113,7 +111,6 @@ export default function BudgetScreen({ userId }: Props) {
       ...prev,
       oneTimeByCategory: { ...prev.oneTimeByCategory, [category]: isNaN(n) ? 0 : n },
     }))
-    setSaved(false)
     setErrors([])
   }
 
@@ -122,14 +119,12 @@ export default function BudgetScreen({ userId }: Props) {
       setCategoryTotal(oneTimeBudgetTotal(budget))
     }
     setCategoryMode(mode)
-    setSaved(false)
     setErrors([])
   }
 
   function handleCategoryTotalChange(value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
     setCategoryTotal(isNaN(n) ? 0 : n)
-    setSaved(false)
     setErrors([])
   }
 
@@ -154,7 +149,7 @@ export default function BudgetScreen({ userId }: Props) {
     }
     await mutation.mutateAsync(finalBudget)
     localStorage.setItem(`budgetCategoryMode_${userId}`, categoryMode)
-    setSaved(true)
+    setShowSavedDialog(true)
   }
 
   const detailOneTimeTotal = oneTimeBudgetTotal(budget)
@@ -364,9 +359,51 @@ export default function BudgetScreen({ userId }: Props) {
           </div>
         )}
         <Button size="fab" onClick={handleSave} disabled={mutation.isPending} className="w-[60%]">
-          {saved ? '✓ 保存しました' : '保存する'}
+          {mutation.isPending ? '保存中...' : '保存する'}
         </Button>
       </div>
+
+      {/* 保存完了ダイアログ */}
+      {showSavedDialog && (
+        <Modal
+          isOpen
+          onClose={() => {
+            setShowSavedDialog(false)
+            navigate(-1)
+          }}
+        >
+          <div className="px-6 py-6 flex flex-col items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-income-100 dark:bg-income-900/40 flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-income-600 dark:text-income-400"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <p className="text-sm text-ink text-center">予算を保存しました</p>
+            <Button
+              size="sm"
+              variant="income"
+              onClick={() => {
+                setShowSavedDialog(false)
+                navigate(-1)
+              }}
+              className="w-full"
+            >
+              OK
+            </Button>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
