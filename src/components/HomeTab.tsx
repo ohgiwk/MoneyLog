@@ -26,15 +26,19 @@ interface Props {
   userId: string
 }
 
-const carryOverKey = (userId: string) => `pocketMoneyCarryOver_${userId}`
+const allowanceModeKey = (userId: string) => `allowanceMode_${userId}`
+
+type AllowanceMode = 'cumulative' | 'remaining'
 
 export default function HomeTab({ userId }: Props) {
   const navigate = useNavigate()
   const { setCalendarSelectedDate, setMonth, categories } = useAppContext()
   const { expenseCategories } = categories
-  const [carryOver, setCarryOver] = useState(() => {
-    const stored = localStorage.getItem(carryOverKey(userId))
-    return stored === null ? true : stored === 'true'
+  const [allowanceMode, setAllowanceMode] = useState<AllowanceMode>(() => {
+    const stored = localStorage.getItem(allowanceModeKey(userId))
+    if (stored === 'cumulative' || stored === 'remaining') return stored
+    // 旧設定（carryOver）からの移行: ON → cumulative
+    return 'cumulative'
   })
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [periodMode, setPeriodMode] = useState<PeriodMode>('month')
@@ -80,9 +84,9 @@ export default function HomeTab({ userId }: Props) {
       ? 'データの読み込みに失敗しました'
       : null
 
-  function handleCarryOverChange(next: boolean) {
-    setCarryOver(next)
-    localStorage.setItem(carryOverKey(userId), String(next))
+  function handleAllowanceModeChange(mode: AllowanceMode) {
+    setAllowanceMode(mode)
+    localStorage.setItem(allowanceModeKey(userId), mode)
   }
 
   const dailyBudgetTotal = oneTimeBudgetTotal(budget)
@@ -90,13 +94,6 @@ export default function HomeTab({ userId }: Props) {
   const daysInMonth = useMemo(() => periodDayCount(period, monthStartDay), [period, monthStartDay])
 
   const dailyAllowance = dailyBudgetTotal / daysInMonth
-
-  const oneTimeExpenseOn = (dateStr: string) =>
-    transactions
-      .filter((t) => t.date === dateStr && t.type === 'expense' && t.expense_kind === 'one_time')
-      .reduce((s, t) => s + t.amount, 0)
-
-  const todayExpense = oneTimeExpenseOn(today)
 
   const dayOfMonth = periodDayIndex(today, period, monthStartDay)
 
@@ -108,9 +105,13 @@ export default function HomeTab({ userId }: Props) {
     [transactions, today]
   )
 
-  const todayAllowance = carryOver
-    ? dailyAllowance * dayOfMonth - monthToDateExpense
-    : dailyAllowance - todayExpense
+  const remainingDays = daysInMonth - dayOfMonth + 1
+  const todayAllowance =
+    allowanceMode === 'cumulative'
+      ? dailyAllowance * dayOfMonth - monthToDateExpense
+      : remainingDays > 0
+        ? (dailyBudgetTotal - monthToDateExpense) / remainingDays
+        : dailyBudgetTotal - monthToDateExpense
 
   const {
     hasBudget,
@@ -246,23 +247,54 @@ export default function HomeTab({ userId }: Props) {
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setOptionsOpen(false)}
               />
-              <div className="absolute top-12 right-3 z-20 bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left">
-                <div className="flex items-center gap-3 whitespace-nowrap">
-                  <span className="text-sm text-ink">お小遣い繰り越し</span>
-                  <button
-                    role="switch"
-                    aria-checked={carryOver}
-                    onClick={() => handleCarryOverChange(!carryOver)}
-                    className={`w-11 h-6 rounded-full transition-colors relative ${
-                      carryOver ? 'bg-primary-500' : 'bg-surface-muted'
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-surface rounded-full shadow transition-transform ${
-                        carryOver ? 'translate-x-5' : ''
+              <div className="absolute top-12 right-3 z-20 bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left space-y-2">
+                <div className="text-xs text-ink-muted font-medium">計算方式</div>
+                <div className="flex flex-col gap-1.5">
+                  {(
+                    [
+                      {
+                        mode: 'cumulative',
+                        label: '日割り累計',
+                        formula: '日割り×経過日数－累計出費',
+                        desc: '計画ペースとのズレを把握できます。使いすぎるとマイナスになります。',
+                      },
+                      {
+                        mode: 'remaining',
+                        label: '残額割り',
+                        formula: '(予算－累計出費)÷残り日数',
+                        desc: '今日使える金額の目安がわかります。使いすぎた分が自動的に翌日以降に分散されます。',
+                      },
+                    ] as const
+                  ).map(({ mode, label, formula, desc }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => {
+                        handleAllowanceModeChange(mode)
+                        setOptionsOpen(false)
+                      }}
+                      className={`flex items-start gap-2 px-3 py-2 rounded-lg text-left text-sm transition-colors ${
+                        allowanceMode === mode
+                          ? 'bg-primary-50 dark:bg-primary-950/60 text-primary-700 dark:text-primary-400'
+                          : 'text-ink active:bg-surface-subtle'
                       }`}
-                    />
-                  </button>
+                    >
+                      <span
+                        className={`mt-0.5 w-3.5 h-3.5 rounded-full border-2 shrink-0 ${
+                          allowanceMode === mode
+                            ? 'border-primary-500 bg-primary-500'
+                            : 'border-line-subtle'
+                        }`}
+                      />
+                      <span>
+                        <span className="font-medium">{label}</span>
+                        <span className="block text-xs text-ink-muted font-normal">{formula}</span>
+                        <span className="block text-xs text-ink-muted font-normal mt-0.5">
+                          {desc}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </>
@@ -307,16 +339,18 @@ export default function HomeTab({ userId }: Props) {
                 <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-20 w-72 max-w-[85vw] bg-surface rounded-xl shadow-lg border border-line-subtle px-4 py-3 text-left space-y-2">
                   <div className="text-sm font-semibold text-ink">本日のお小遣いとは</div>
                   <p className="text-xs text-ink-muted leading-relaxed">
-                    予算に設定した金額を元に、月の日数で日割りした金額です。繰り越しをONにすると、日々のお小遣いが繰り越されて、本日のお小遣いとなります。
+                    {allowanceMode === 'cumulative'
+                      ? '予算の日割り額×経過日数から今月の累計出費を引いた金額です。'
+                      : '月の残り予算を今日を含む残り日数で割った金額です。'}
                   </p>
                   <table className="w-full text-xs text-ink-muted border-t border-line-subtle pt-2">
                     <tbody>
-                      <tr>
-                        <td className="text-left py-0.5">日割り予算</td>
-                        <td className="text-right py-0.5">{formatYen(dailyAllowance)}</td>
-                      </tr>
-                      {carryOver ? (
+                      {allowanceMode === 'cumulative' ? (
                         <>
+                          <tr>
+                            <td className="text-left py-0.5">日割り予算</td>
+                            <td className="text-right py-0.5">{formatYen(dailyAllowance)}</td>
+                          </tr>
                           <tr>
                             <td className="text-left py-0.5">経過日数（{dayOfMonth}日分）</td>
                             <td className="text-right py-0.5">
@@ -329,36 +363,47 @@ export default function HomeTab({ userId }: Props) {
                           </tr>
                         </>
                       ) : (
-                        <tr>
-                          <td className="text-left py-0.5">本日の出費</td>
-                          <td className="text-right py-0.5">− {formatYen(todayExpense)}</td>
-                        </tr>
+                        <>
+                          <tr>
+                            <td className="text-left py-0.5">月の予算</td>
+                            <td className="text-right py-0.5">{formatYen(dailyBudgetTotal)}</td>
+                          </tr>
+                          <tr>
+                            <td className="text-left py-0.5">今月の出費</td>
+                            <td className="text-right py-0.5">− {formatYen(monthToDateExpense)}</td>
+                          </tr>
+                          <tr>
+                            <td className="text-left py-0.5">残り日数（{remainingDays}日）</td>
+                            <td className="text-right py-0.5">÷ {remainingDays}</td>
+                          </tr>
+                        </>
                       )}
                     </tbody>
                   </table>
                   {(() => {
-                    const remaining = daysInMonth - dayOfMonth
-                    const count = Math.min(remaining, 5)
-                    if (count === 0) return null
+                    const futureCount = Math.min(daysInMonth - dayOfMonth, 5)
+                    if (futureCount === 0) return null
                     return (
                       <div className="text-xs text-ink-muted bg-surface-subtle rounded-lg px-3 py-2 space-y-1">
-                        {Array.from({ length: count }, (_, i) => {
+                        <div className="font-medium text-ink-muted mb-1">
+                          {allowanceMode === 'cumulative'
+                            ? '今後のお小遣い予測（出費なしの場合）'
+                            : '今後のお小遣い予測（追加出費なしの場合）'}
+                        </div>
+                        {Array.from({ length: futureCount }, (_, i) => {
                           const n = i + 1
-                          const future = carryOver
-                            ? Math.round(dailyAllowance * (dayOfMonth + n) - monthToDateExpense)
-                            : Math.round(dailyAllowance)
+                          const futureDays = remainingDays - n
+                          const future =
+                            allowanceMode === 'cumulative'
+                              ? Math.round(dailyAllowance * (dayOfMonth + n) - monthToDateExpense)
+                              : futureDays > 0
+                                ? Math.round((dailyBudgetTotal - monthToDateExpense) / futureDays)
+                                : dailyBudgetTotal - monthToDateExpense
                           return (
                             <div key={n} className="flex justify-between">
                               <span>{n}日後</span>
-                              <span className="flex items-center gap-1">
-                                <span
-                                  className={future >= 0 ? 'text-income-600' : 'text-danger-500'}
-                                >
-                                  {formatYen(future)}
-                                </span>
-                                <span className="text-[10px] text-income-600">
-                                  (+{formatYen(Math.round(dailyAllowance))})
-                                </span>
+                              <span className={future >= 0 ? 'text-income-600' : 'text-danger-500'}>
+                                {formatYen(future)}
                               </span>
                             </div>
                           )
