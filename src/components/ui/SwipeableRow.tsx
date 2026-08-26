@@ -22,6 +22,8 @@ export default function SwipeableRow({
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
   const btnRef = useRef<HTMLButtonElement>(null)
 
+  const MENU_HEIGHT = 148
+
   useEffect(() => {
     if (!menuOpen) return
     function handleClose() {
@@ -31,14 +33,17 @@ export default function SwipeableRow({
     return () => document.removeEventListener('pointerdown', handleClose)
   }, [menuOpen])
 
-  function handleMenuOpen(e: React.MouseEvent) {
-    e.stopPropagation()
+  function handleMenuToggle(e: React.PointerEvent) {
+    e.nativeEvent.stopPropagation()
+    if (menuOpen) {
+      setMenuOpen(false)
+      return
+    }
     if (!btnRef.current) return
     const rect = btnRef.current.getBoundingClientRect()
-    setMenuPos({
-      top: rect.bottom + 4,
-      right: window.innerWidth - rect.right,
-    })
+    const top =
+      rect.bottom + MENU_HEIGHT > window.innerHeight ? rect.top - MENU_HEIGHT - 4 : rect.bottom + 4
+    setMenuPos({ top, right: window.innerWidth - rect.right })
     setMenuOpen(true)
   }
 
@@ -48,8 +53,8 @@ export default function SwipeableRow({
         <div className="pr-10">{children}</div>
         <button
           ref={btnRef}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={handleMenuOpen}
+          onPointerDown={handleMenuToggle}
+          onClick={(e) => e.stopPropagation()}
           className="absolute right-0 top-0 bottom-0 w-10 flex items-center justify-center text-ink-muted active:bg-surface-subtle"
           aria-label="メニューを開く"
         >
