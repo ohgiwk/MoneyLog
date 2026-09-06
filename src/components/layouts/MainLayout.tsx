@@ -11,7 +11,7 @@ const TABS = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/fixed', label: '固定費', icon: '📋' },
   { path: '/record', label: '入力', icon: '✏️', special: true },
-  { path: '/shopping', label: 'メモ', icon: '🛒' },
+  { path: '/shopping', label: '目標', icon: '🎯' },
   { path: '/calendar', label: 'カレンダー', icon: '📅' },
 ]
 

@@ -11,9 +11,9 @@ import WishlistPanel from './WishlistPanel'
 type SubPage = 'consumables' | 'shopping' | 'wishlist'
 
 const SUB_TABS: { key: SubPage; label: string }[] = [
+  { key: 'wishlist', label: '目標' },
   { key: 'shopping', label: '買い物メモ' },
   { key: 'consumables', label: '定期購入' },
-  { key: 'wishlist', label: '目標' },
 ]
 
 interface Props {
@@ -24,14 +24,14 @@ export default function ShoppingTab({ userId }: Props) {
   const { shoppingTapKey: resetSignal, setHeaderBack: onHeaderChange, categories } = useAppContext()
   const expenseCategories = categories.expenseCategories
   const queryClient = useQueryClient()
-  const [sub, setSub] = useState<SubPage>('shopping')
+  const [sub, setSub] = useState<SubPage>('wishlist')
   const [consumableEditing, setConsumableEditing] = useState(false)
 
-  // 下部タブの「買い物メモ」を再タップしたら定期購入に戻す
+  // 下部タブの「目標」を再タップしたら目標サブタブに戻す
   const [prevSignal, setPrevSignal] = useState(resetSignal)
   if (resetSignal !== prevSignal) {
     setPrevSignal(resetSignal)
-    setSub('shopping')
+    setSub('wishlist')
   }
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)

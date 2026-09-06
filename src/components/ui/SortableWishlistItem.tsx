@@ -7,9 +7,16 @@ interface Props {
   onEdit: (item: WishlistItem) => void
   detail?: string
   showChevron?: boolean
+  allocation?: { amount: number; pct: number }
 }
 
-export default function SortableWishlistItem({ item, onEdit, detail, showChevron }: Props) {
+export default function SortableWishlistItem({
+  item,
+  onEdit,
+  detail,
+  showChevron,
+  allocation,
+}: Props) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -64,6 +71,19 @@ export default function SortableWishlistItem({ item, onEdit, detail, showChevron
         <div className="flex-1 min-w-0">
           <p className="text-ink-strong font-medium text-sm truncate">{item.name}</p>
           {detail && <p className="text-ink-muted text-xs truncate">{detail}</p>}
+          {allocation && allocation.amount > 0 && (
+            <div className="mt-1.5 space-y-0.5">
+              <div className="h-1.5 bg-surface-muted rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${allocation.pct >= 100 ? 'bg-income-500' : 'bg-primary-400'}`}
+                  style={{ width: `${Math.min(allocation.pct, 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-ink-muted">
+                ¥{allocation.amount.toLocaleString()} 配分済み ({Math.round(allocation.pct)}%)
+              </p>
+            </div>
+          )}
         </div>
         <span className="text-ink font-semibold text-sm flex-shrink-0">
           ¥{item.target_amount.toLocaleString()}
