@@ -51,6 +51,7 @@ export default function WishlistPanel({ userId }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [celebrationItem, setCelebrationItem] = useState<WishlistItem | null>(null)
   const [marking, setMarking] = useState(false)
+  const [allocationMode, setAllocationMode] = useState(false)
   const [showAllocation, setShowAllocation] = useState(false)
   const [showSavingsDetail, setShowSavingsDetail] = useState(false)
   const [localAllocations, setLocalAllocations] = useState<Record<string, number>>({})
@@ -121,7 +122,10 @@ export default function WishlistPanel({ userId }: Props) {
       }))
       await allocationSaveMutation.mutateAsync(payload)
       setAllocationSaveSuccess(true)
-      setTimeout(() => setAllocationSaveSuccess(false), 1500)
+      setTimeout(() => {
+        setAllocationSaveSuccess(false)
+        setAllocationMode(false)
+      }, 1000)
     } catch {
       setAllocationSaveError('保存に失敗しました')
     }
@@ -338,41 +342,60 @@ export default function WishlistPanel({ userId }: Props) {
                   </div>
                 </button>
 
-                {/* 未配分残高 + 保存 */}
+                {/* 配分モード切替 / 配分操作 */}
                 <div className="border-t border-line-subtle pt-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-ink-muted">
-                      未配分:{' '}
-                      <span
-                        className={`font-semibold ${poolRemaining < 0 ? 'text-danger-500' : 'text-ink'}`}
+                  {allocationMode ? (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-ink-muted">
+                          未配分:{' '}
+                          <span
+                            className={`font-semibold ${poolRemaining < 0 ? 'text-danger-500' : 'text-ink'}`}
+                          >
+                            {formatYen(poolRemaining)}
+                          </span>
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {isDirty && (
+                            <button
+                              onClick={handleSaveAllocations}
+                              disabled={allocationSaveMutation.isPending || allocationSaveSuccess}
+                              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary-500 text-white active:bg-primary-600 disabled:opacity-50"
+                            >
+                              {allocationSaveSuccess
+                                ? '保存しました ✓'
+                                : allocationSaveMutation.isPending
+                                  ? '保存中...'
+                                  : '保存する'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setAllocationMode(false)}
+                            className="text-xs font-medium px-3 py-1.5 rounded-full bg-surface-muted text-ink-muted active:opacity-70"
+                          >
+                            完了
+                          </button>
+                        </div>
+                      </div>
+                      {allocationSaveError && (
+                        <p className="text-xs text-danger-500">{allocationSaveError}</p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => setAllocationMode(true)}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary-500 text-white active:bg-primary-600"
                       >
-                        {formatYen(poolRemaining)}
-                      </span>
-                    </span>
-                    <div className="flex items-center gap-2">
+                        配分する
+                      </button>
                       <button
                         onClick={() => setShowAllocation(true)}
                         className="text-xs text-primary-500 font-medium active:opacity-70"
                       >
                         積み立て計画 ›
                       </button>
-                      {isDirty && (
-                        <button
-                          onClick={handleSaveAllocations}
-                          disabled={allocationSaveMutation.isPending || allocationSaveSuccess}
-                          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary-500 text-white active:bg-primary-600 disabled:opacity-50"
-                        >
-                          {allocationSaveSuccess
-                            ? '保存しました ✓'
-                            : allocationSaveMutation.isPending
-                              ? '保存中...'
-                              : '保存する'}
-                        </button>
-                      )}
                     </div>
-                  </div>
-                  {allocationSaveError && (
-                    <p className="text-xs text-danger-500">{allocationSaveError}</p>
                   )}
                 </div>
               </div>
@@ -402,16 +425,27 @@ export default function WishlistPanel({ userId }: Props) {
                               ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
                               : (item.notes ?? undefined)
                           }
-                          allocated={localAmount}
-                          remaining={poolRemaining}
-                          monthlyTarget={allocations[item.id]?.monthlyTarget ?? 0}
-                          onIncrease={() => handleIncrease(item.id)}
-                          onDecrease={() => handleDecrease(item.id)}
-                          onMarkAchieved={
-                            item.target_amount > 0 && localAmount >= item.target_amount
-                              ? () => setCelebrationItem(item)
-                              : undefined
-                          }
+                          {...(allocationMode
+                            ? {
+                                allocated: localAmount,
+                                remaining: poolRemaining,
+                                monthlyTarget: allocations[item.id]?.monthlyTarget ?? 0,
+                                onIncrease: () => handleIncrease(item.id),
+                                onDecrease: () => handleDecrease(item.id),
+                                onMarkAchieved:
+                                  item.target_amount > 0 && localAmount >= item.target_amount
+                                    ? () => setCelebrationItem(item)
+                                    : undefined,
+                              }
+                            : {
+                                allocation:
+                                  localAmount > 0
+                                    ? {
+                                        amount: localAmount,
+                                        pct: (localAmount / item.target_amount) * 100,
+                                      }
+                                    : undefined,
+                              })}
                         />
                       )
                     })}
