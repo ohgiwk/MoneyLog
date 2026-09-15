@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import FabButton from './ui/FabButton'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -10,7 +10,7 @@ import {
 import type { WishlistItem } from '../lib/services/wishlistService'
 import { useCumulativeSavings } from '../hooks/useCumulativeSavings'
 import SavingsAllocationPanel from './SavingsAllocationPanel'
-import { useSavingsGoalQuery } from '../hooks/queries/useSavingsGoalQuery'
+import { useSavingsGoalQuery, useSavingsGoalSave } from '../hooks/queries/useSavingsGoalQuery'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
@@ -53,12 +53,17 @@ export default function WishlistPanel({ userId }: Props) {
   const [marking, setMarking] = useState(false)
   const [showAllocation, setShowAllocation] = useState(false)
   const [showSavingsDetail, setShowSavingsDetail] = useState(false)
+  const [localAllocations, setLocalAllocations] = useState<Record<string, number>>({})
+  const [allocationSaveError, setAllocationSaveError] = useState<string | null>(null)
+  const [allocationSaveSuccess, setAllocationSaveSuccess] = useState(false)
+  const initialized = useRef(false)
 
   const queryClient = useQueryClient()
   const { data: items = [], isLoading: loading } = useWishlistQuery(userId)
   const insertMutation = useWishlistInsert(userId)
   const updateMutation = useWishlistUpdate(userId)
   const deleteMutation = useWishlistDelete(userId)
+  const allocationSaveMutation = useSavingsGoalSave(userId)
 
   const {
     total,
@@ -66,17 +71,61 @@ export default function WishlistPanel({ userId }: Props) {
     monthlyBreakdown,
     loading: savingsLoading,
   } = useCumulativeSavings(userId)
-  const { data: allocations = {} } = useSavingsGoalQuery(userId)
+  const { data: allocations = {}, isLoading: allocLoading } = useSavingsGoalQuery(userId)
 
   const allActiveItems = items.filter((i) => !i.purchased_at)
   const achievedItems = items.filter((i) => !!i.purchased_at)
-  const savingsReadyItems = allActiveItems.filter(
-    (i) => i.target_amount > 0 && (allocations[i.id]?.amount ?? 0) >= i.target_amount
-  )
-  const activeItems = allActiveItems.filter(
-    (i) => !(i.target_amount > 0 && (allocations[i.id]?.amount ?? 0) >= i.target_amount)
-  )
+  const activeItems = allActiveItems
   const saving = insertMutation.isPending || updateMutation.isPending || deleteMutation.isPending
+
+  // ローカル配分状態の初期化（DBデータが変わったとき一度だけ）
+  useEffect(() => {
+    if (allocLoading || initialized.current) return
+    initialized.current = true
+    const amounts: Record<string, number> = {}
+    for (const [id, entry] of Object.entries(allocations)) {
+      amounts[id] = entry.amount
+    }
+    setLocalAllocations(amounts)
+  }, [allocations, allocLoading])
+
+  const ALLOCATION_STEP = 1000
+  const totalPool = Math.max(0, total ?? 0)
+  const totalAllocated = Object.values(localAllocations).reduce((s, v) => s + v, 0)
+  const poolRemaining = totalPool - totalAllocated
+  const isDirty = allActiveItems.some(
+    (i) => (localAllocations[i.id] ?? 0) !== (allocations[i.id]?.amount ?? 0)
+  )
+
+  const handleIncrease = (itemId: string) => {
+    if (poolRemaining < ALLOCATION_STEP) return
+    setLocalAllocations((prev) => ({ ...prev, [itemId]: (prev[itemId] ?? 0) + ALLOCATION_STEP }))
+  }
+
+  const handleDecrease = (itemId: string) => {
+    const current = localAllocations[itemId] ?? 0
+    if (current <= 0) return
+    setLocalAllocations((prev) => ({
+      ...prev,
+      [itemId]: Math.max(0, current - ALLOCATION_STEP),
+    }))
+  }
+
+  const handleSaveAllocations = async () => {
+    setAllocationSaveError(null)
+    try {
+      const payload = allActiveItems.map((item) => ({
+        wishlistItemId: item.id,
+        amount: localAllocations[item.id] ?? 0,
+        monthlyTarget: allocations[item.id]?.monthlyTarget ?? 0,
+      }))
+      await allocationSaveMutation.mutateAsync(payload)
+      setAllocationSaveSuccess(true)
+      setTimeout(() => setAllocationSaveSuccess(false), 1500)
+    } catch {
+      setAllocationSaveError('保存に失敗しました')
+    }
+  }
 
   const renormalize = async (ordered: WishlistItem[]) => {
     await Promise.all(
@@ -97,10 +146,7 @@ export default function WishlistPanel({ userId }: Props) {
     const oldIndex = activeItems.findIndex((i) => i.id === active.id)
     const newIndex = activeItems.findIndex((i) => i.id === over.id)
     const reordered = arrayMove(activeItems, oldIndex, newIndex)
-    queryClient.setQueryData(
-      ['wishlist', userId],
-      [...reordered, ...savingsReadyItems, ...achievedItems]
-    )
+    queryClient.setQueryData(['wishlist', userId], [...reordered, ...achievedItems])
     try {
       await renormalize(reordered)
     } catch {
@@ -292,25 +338,43 @@ export default function WishlistPanel({ userId }: Props) {
                   </div>
                 </button>
 
-                {/* 配分ボタン */}
-                <button
-                  onClick={() => setShowAllocation(true)}
-                  className="w-full border-t border-line-subtle pt-3 flex items-center justify-between text-sm text-primary-700 active:text-primary-800"
-                >
-                  <span className="font-medium">各目標に貯蓄を配分する</span>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
+                {/* 未配分残高 + 保存 */}
+                <div className="border-t border-line-subtle pt-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-ink-muted">
+                      未配分:{' '}
+                      <span
+                        className={`font-semibold ${poolRemaining < 0 ? 'text-danger-500' : 'text-ink'}`}
+                      >
+                        {formatYen(poolRemaining)}
+                      </span>
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowAllocation(true)}
+                        className="text-xs text-primary-500 font-medium active:opacity-70"
+                      >
+                        積み立て計画 ›
+                      </button>
+                      {isDirty && (
+                        <button
+                          onClick={handleSaveAllocations}
+                          disabled={allocationSaveMutation.isPending || allocationSaveSuccess}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary-500 text-white active:bg-primary-600 disabled:opacity-50"
+                        >
+                          {allocationSaveSuccess
+                            ? '保存しました ✓'
+                            : allocationSaveMutation.isPending
+                              ? '保存中...'
+                              : '保存する'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {allocationSaveError && (
+                    <p className="text-xs text-danger-500">{allocationSaveError}</p>
+                  )}
+                </div>
               </div>
             )}
 
@@ -327,9 +391,7 @@ export default function WishlistPanel({ userId }: Props) {
                 >
                   <ul className="space-y-3">
                     {activeItems.map((item) => {
-                      const allocatedAmount = allocations[item.id]?.amount ?? 0
-                      const allocPct =
-                        item.target_amount > 0 ? (allocatedAmount / item.target_amount) * 100 : 0
+                      const localAmount = localAllocations[item.id] ?? 0
                       return (
                         <SortableWishlistItem
                           key={item.id}
@@ -340,9 +402,14 @@ export default function WishlistPanel({ userId }: Props) {
                               ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
                               : (item.notes ?? undefined)
                           }
-                          allocation={
-                            allocatedAmount > 0
-                              ? { amount: allocatedAmount, pct: allocPct }
+                          allocated={localAmount}
+                          remaining={poolRemaining}
+                          monthlyTarget={allocations[item.id]?.monthlyTarget ?? 0}
+                          onIncrease={() => handleIncrease(item.id)}
+                          onDecrease={() => handleDecrease(item.id)}
+                          onMarkAchieved={
+                            item.target_amount > 0 && localAmount >= item.target_amount
+                              ? () => setCelebrationItem(item)
                               : undefined
                           }
                         />
@@ -353,40 +420,7 @@ export default function WishlistPanel({ userId }: Props) {
               </DndContext>
             )}
 
-            {/* 貯蓄達成リスト（配分で目標額に到達） */}
-            {savingsReadyItems.length > 0 && (
-              <div className="mt-6">
-                <div className="text-xs text-ink-muted mb-2 px-1">貯蓄達成 — 購入可能</div>
-                <ul className="space-y-2">
-                  {savingsReadyItems.map((item) => (
-                    <li
-                      key={item.id}
-                      className="bg-surface rounded-xl px-4 py-3 flex items-center gap-3"
-                    >
-                      <span className="text-income-500 text-base flex-shrink-0">💰</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-ink-strong text-sm font-medium truncate">{item.name}</p>
-                        <p className="text-income-600 text-xs font-medium mt-0.5">
-                          ¥{(allocations[item.id]?.amount ?? 0).toLocaleString()} 配分済み ✓
-                        </p>
-                      </div>
-                      <span className="text-ink text-sm flex-shrink-0">
-                        ¥{item.target_amount.toLocaleString()}
-                      </span>
-                      <button
-                        onClick={() => setCelebrationItem(item)}
-                        disabled={saving}
-                        className="flex-shrink-0 text-xs font-semibold text-white bg-income-600 active:bg-income-700 rounded-full px-3 py-1.5 disabled:opacity-40"
-                      >
-                        購入済み
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* 達成済みリスト */}
+            {/* 購入済みリスト */}
             {achievedItems.length > 0 && (
               <div className="mt-6">
                 <div className="text-xs text-ink-muted mb-2 px-1">購入済み</div>
