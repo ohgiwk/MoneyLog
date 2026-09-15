@@ -581,7 +581,7 @@ export default function WishlistPanel({ userId }: Props) {
                 <select
                   value={form.targetYear}
                   onChange={(e) => setForm((f) => ({ ...f, targetYear: e.target.value }))}
-                  className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  className="flex-1 bg-surface text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 >
                   <option value="">年</option>
                   {Array.from({ length: 16 }, (_, i) => new Date().getFullYear() + i).map((y) => (
@@ -593,7 +593,7 @@ export default function WishlistPanel({ userId }: Props) {
                 <select
                   value={form.targetMonth}
                   onChange={(e) => setForm((f) => ({ ...f, targetMonth: e.target.value }))}
-                  className="flex-1 bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  className="flex-1 bg-surface text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400"
                 >
                   <option value="">月</option>
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
@@ -611,7 +611,7 @@ export default function WishlistPanel({ userId }: Props) {
                 onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                 placeholder="例：ボーナスで購入予定"
                 rows={3}
-                className="w-full bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
+                className="w-full bg-surface text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
               />
             </div>
           </div>

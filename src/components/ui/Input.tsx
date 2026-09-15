@@ -20,7 +20,7 @@ const Input = forwardRef<HTMLInputElement, Props>(function Input(
     <input
       ref={ref}
       className={[
-        'w-full border rounded-xl px-3 text-sm focus:outline-none',
+        'w-full bg-surface border rounded-xl px-3 text-sm focus:outline-none',
         error ? 'border-danger-400' : 'border-line',
         variantClasses[variant],
         className,
