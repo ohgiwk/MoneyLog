@@ -40,9 +40,16 @@ interface FormState {
   price: string
   targetYear: string
   targetMonth: string
+  notes: string
 }
 
-const emptyForm = (): FormState => ({ name: '', price: '', targetYear: '', targetMonth: '' })
+const emptyForm = (): FormState => ({
+  name: '',
+  price: '',
+  targetYear: '',
+  targetMonth: '',
+  notes: '',
+})
 
 export default function WishlistPanel({ userId }: Props) {
   const [editing, setEditing] = useState<WishlistItem | 'new' | null>(null)
@@ -173,7 +180,13 @@ export default function WishlistPanel({ userId }: Props) {
       targetYear = y
       targetMonth = String(Number(m))
     }
-    setForm({ name: item.name, price: String(item.target_amount), targetYear, targetMonth })
+    setForm({
+      name: item.name,
+      price: String(item.target_amount),
+      targetYear,
+      targetMonth,
+      notes: item.notes ?? '',
+    })
     setEditing(item)
     setError(null)
   }
@@ -209,7 +222,7 @@ export default function WishlistPanel({ userId }: Props) {
           priority: nextPriority,
           purchased_at: null,
           target_date: targetDate,
-          notes: null,
+          notes: form.notes.trim() || null,
         })
       } else if (editing) {
         const targetDate =
@@ -222,6 +235,7 @@ export default function WishlistPanel({ userId }: Props) {
             name: form.name.trim(),
             target_amount: Number(form.price),
             target_date: targetDate,
+            notes: form.notes.trim() || null,
           },
         })
       }
@@ -421,9 +435,14 @@ export default function WishlistPanel({ userId }: Props) {
                           item={item}
                           onEdit={openEdit}
                           detail={
-                            item.target_date
-                              ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
-                              : (item.notes ?? undefined)
+                            [
+                              item.target_date
+                                ? `${item.target_date.slice(0, 7).replace('-', '年').replace('-', '月')}頃`
+                                : null,
+                              item.notes || null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ') || undefined
                           }
                           {...(allocationMode
                             ? {
@@ -584,6 +603,16 @@ export default function WishlistPanel({ userId }: Props) {
                   ))}
                 </select>
               </div>
+            </div>
+            <div>
+              <FormLabel className="font-medium">メモ（任意）</FormLabel>
+              <textarea
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                placeholder="例：ボーナスで購入予定"
+                rows={3}
+                className="w-full bg-surface-muted text-ink rounded-lg px-3 py-2.5 text-sm border border-line-subtle focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none"
+              />
             </div>
           </div>
         </div>
