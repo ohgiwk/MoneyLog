@@ -18,7 +18,7 @@ function monthsUntilDate(dateStr: string): number {
 }
 
 export default function SavingsAllocationPanel({ userId, isOpen, onClose }: Props) {
-  const { total, loading: savingsLoading } = useCumulativeSavings(userId)
+  const { loading: savingsLoading } = useCumulativeSavings(userId)
   const { data: items = [], isLoading: itemsLoading } = useWishlistQuery(userId)
   const { data: existingGoals = {}, isLoading: allocLoading } = useSavingsGoalQuery(userId)
   const saveMutation = useSavingsGoalSave(userId)
