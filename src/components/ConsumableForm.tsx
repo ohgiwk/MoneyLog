@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { CONSUMABLE_CYCLE_PRESETS, type CategoryInfo, type DefaultConsumable } from '../constants'
 import { consumableService } from '../lib/services/consumableService'
 import type { Consumable } from '../lib/database.types'
-import { formatYen, effectiveCycleDays, todayStr } from '../utils'
+import { formatYen, effectiveCycleDays, getErrorMessage, todayStr } from '../utils'
 import { useForm, useIsDirty } from '../hooks/useForm'
 import { useFormClose } from '../hooks/useFormClose'
 import type { HeaderState } from '../types/layout'
@@ -134,7 +134,7 @@ export default function ConsumableForm({
       }
       closeAndNotify()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました')
+      setError(getErrorMessage(err, '保存に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }
@@ -147,7 +147,7 @@ export default function ConsumableForm({
       await consumableService.delete(consumable.id)
       closeAndNotify()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
+      setError(getErrorMessage(err, '削除に失敗しました'))
     }
   }
 

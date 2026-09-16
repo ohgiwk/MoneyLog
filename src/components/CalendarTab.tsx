@@ -14,7 +14,7 @@ import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
+import { formatDateWithWeekday, formatYen, getErrorMessage, todayStr } from '../utils'
 import { MEAL_TYPES, STORE_TYPES, FETCH_ERROR_MSG } from '../constants'
 
 interface Props {
@@ -90,7 +90,7 @@ export default function CalendarTab({ userId }: Props) {
       }
       void queryClient.invalidateQueries({ queryKey: ['workSchedule', userId, month] })
     } catch (err) {
-      setDayTypeError(err instanceof Error ? err.message : '保存に失敗しました')
+      setDayTypeError(getErrorMessage(err, '保存に失敗しました'))
     }
   }
 

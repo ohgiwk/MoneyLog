@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { savingsService } from '../lib/services/savingsService'
-import { shiftMonth, todayStr } from '../utils'
+import { fixedToMonthly, isActiveFixed, shiftMonth, todayStr } from '../utils'
 
 export interface MonthlySavingEntry {
   month: string
@@ -39,8 +39,8 @@ export function useCumulativeSavings(userId: string) {
       }
 
       const totalFixed = fixedExpenses
-        .filter((f) => f.status === 'active' || f.status === 'reviewing')
-        .reduce((s, f) => s + (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1), 0)
+        .filter(isActiveFixed)
+        .reduce((s, f) => s + fixedToMonthly(f), 0)
 
       let cumulative = 0
       const breakdown: MonthlySavingEntry[] = []

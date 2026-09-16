@@ -5,7 +5,7 @@ import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
 import { PAYMENT_TYPES, STORE_TYPES, type PaymentType } from '../constants'
 import type { CategoryInfo } from '../constants'
-import { todayStr } from '../utils'
+import { getErrorMessage, todayStr } from '../utils'
 import DatePicker from './ui/DatePicker'
 
 const DEFAULT_PAYMENT_KEY = 'moneylog_default_payment'
@@ -91,7 +91,7 @@ export default function PurchaseDialog({
     try {
       await onConfirm(category, parsed, memo, date, storeType || null, paymentType || null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '記録に失敗しました')
+      setError(getErrorMessage(err, '記録に失敗しました'))
       setSubmitting(false)
     }
   }

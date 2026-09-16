@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { shiftMonth, todayStr } from '../utils'
-import { formatYen } from '../utils'
+import { formatYen, shiftMonth, todayStr } from '../utils'
 import { type Period, useAnalyticsData } from '../hooks/useAnalyticsData'
 import MonthSwitcher from './ui/MonthSwitcher'
 import YearSwitcher from './ui/YearSwitcher'

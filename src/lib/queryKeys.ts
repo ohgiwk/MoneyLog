@@ -5,6 +5,9 @@ export const queryKeys = {
   consumables: (userId: string) => ['consumables', userId] as const,
   transactionsBase: (userId: string) => ['transactions', userId] as const,
   transactions: (userId: string, month: string) => ['transactions', userId, month] as const,
+  transactionsAll: (userId: string) => ['transactions', userId, 'all'] as const,
+  transactionsByYear: (userId: string, year: string) =>
+    ['transactions', userId, year, 'yearly'] as const,
   calendarEvents: (userId: string) => ['calendarEvents', userId] as const,
   workSchedule: (userId: string) => ['workSchedule', userId] as const,
   wishlist: (userId: string) => ['wishlist', userId] as const,

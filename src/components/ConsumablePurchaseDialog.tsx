@@ -5,7 +5,7 @@ import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
 import type { Consumable } from '../lib/database.types'
 import type { CategoryInfo } from '../constants'
-import { todayStr } from '../utils'
+import { getErrorMessage, todayStr } from '../utils'
 import DatePicker from './ui/DatePicker'
 
 interface Props {
@@ -73,7 +73,7 @@ export default function ConsumablePurchaseDialog({
     try {
       await onConfirm(date, category, parsed, memo)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '記録に失敗しました')
+      setError(getErrorMessage(err, '記録に失敗しました'))
       setSubmitting(false)
     }
   }

@@ -6,7 +6,8 @@ import { useBudgetQuery } from './queries/useBudgetQuery'
 import { useFixedExpensesQuery } from './queries/useFixedExpensesQuery'
 import { useConsumablesQuery } from './queries/useConsumablesQuery'
 import { useTransactionsQuery } from './queries/useTransactionsQuery'
-import { MEAL_TYPES, FETCH_ERROR_MSG } from '../constants'
+import { FETCH_ERROR_MSG, FOOD_MEAL_NAMES } from '../constants'
+import { queryKeys } from '../lib/queryKeys'
 import { useStoreTypes } from './useStoreTypes'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from './useSummaryCalculations'
@@ -27,7 +28,7 @@ export function useAnalyticsData({
   const { items: storeTypes } = useStoreTypes()
 
   const { data: allTransactions = [] } = useQuery({
-    queryKey: ['transactions', userId, 'all'],
+    queryKey: queryKeys.transactionsAll(userId),
     queryFn: () => transactionService.fetchAllSummary(userId),
     enabled: !!userId,
   })
@@ -37,7 +38,7 @@ export function useAnalyticsData({
 
   const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
   const { data: yearTransactions = [], isError: yearTxError } = useQuery({
-    queryKey: ['transactions', userId, year, 'yearly'],
+    queryKey: queryKeys.transactionsByYear(userId, year),
     queryFn: () => transactionService.fetchByYear(userId, year),
     enabled: !!userId,
   })
@@ -53,7 +54,7 @@ export function useAnalyticsData({
       ? FETCH_ERROR_MSG
       : null
 
-  const FOOD_MEAL_COLS = MEAL_TYPES.map((m) => m.name)
+  const FOOD_MEAL_COLS = FOOD_MEAL_NAMES
 
   const periodSource =
     period === 'monthly' ? transactions : period === 'yearly' ? yearTransactions : allTransactions

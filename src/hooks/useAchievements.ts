@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { achievementService } from '../lib/services/achievementService'
+import { MS_PER_DAY } from '../utils'
 
 export interface Achievement {
   id: string
@@ -40,7 +41,7 @@ function longestStreak(dates: string[]): number {
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1])
     const curr = new Date(sorted[i])
-    const diff = (curr.getTime() - prev.getTime()) / 86400000
+    const diff = (curr.getTime() - prev.getTime()) / MS_PER_DAY
     if (diff === 1) {
       current++
       if (current > best) best = current

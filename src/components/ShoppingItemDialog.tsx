@@ -4,6 +4,7 @@ import Input from './ui/Input'
 import FormLabel from './ui/FormLabel'
 import ErrorText from './ui/ErrorText'
 import { useStoreTypes } from '../hooks/useStoreTypes'
+import { getErrorMessage } from '../utils'
 import type { ShoppingItem } from '../lib/database.types'
 
 interface Props {
@@ -71,7 +72,7 @@ export default function ShoppingItemDialog({
     try {
       await onConfirm(trimmedName, memo.trim() || null, parsedBudget, resolvedGroup)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました')
+      setError(getErrorMessage(err, '保存に失敗しました'))
       setSubmitting(false)
     }
   }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getErrorMessage } from '../utils'
 import type { CalendarEvent } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import BottomSheet from './ui/BottomSheet'
@@ -79,7 +80,7 @@ export default function CalendarEventForm({
       }
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました')
+      setError(getErrorMessage(err, '保存に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }
@@ -92,7 +93,7 @@ export default function CalendarEventForm({
       await calendarEventService.delete(event.id)
       onSaved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
+      setError(getErrorMessage(err, '削除に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }

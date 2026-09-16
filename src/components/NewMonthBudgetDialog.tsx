@@ -8,7 +8,14 @@ import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import { budgetService } from '../lib/services/budgetService'
 import { queryKeys } from '../lib/queryKeys'
-import { formatYen, monthLabel, shiftMonth, todayStr } from '../utils'
+import {
+  fixedToMonthly,
+  formatYen,
+  isActiveFixed,
+  monthLabel,
+  shiftMonth,
+  todayStr,
+} from '../utils'
 import Button from './ui/Button'
 
 interface Props {
@@ -43,10 +50,7 @@ export default function NewMonthBudgetDialog({ userId }: Props) {
     [lastMonthTx]
   )
   const totalFixed = useMemo(
-    () =>
-      fixedExpenses
-        .filter((f) => f.status === 'active' || f.status === 'reviewing')
-        .reduce((s, f) => s + (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1), 0),
+    () => fixedExpenses.filter(isActiveFixed).reduce((s, f) => s + fixedToMonthly(f), 0),
     [fixedExpenses]
   )
   const lastMonthBalance = lastMonthIncome - Math.round(totalFixed) - lastMonthOneTime

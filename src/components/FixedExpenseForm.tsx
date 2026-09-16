@@ -11,7 +11,7 @@ import {
   setExpenseCurrencyMeta,
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
-import { todayStr } from '../utils'
+import { getErrorMessage, todayStr } from '../utils'
 import CategoryGrid from './ui/CategoryGrid'
 import ConfirmDialog from './ui/ConfirmDialog'
 import CelebrationDialog from './ui/CelebrationDialog'
@@ -194,7 +194,7 @@ export default function FixedExpenseForm({
         closeAndNotify()
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました')
+      setError(getErrorMessage(err, '保存に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }
@@ -208,7 +208,7 @@ export default function FixedExpenseForm({
       removeExpenseCurrencyMeta(expense.id)
       closeAndNotify()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
+      setError(getErrorMessage(err, '削除に失敗しました'))
     }
   }
 

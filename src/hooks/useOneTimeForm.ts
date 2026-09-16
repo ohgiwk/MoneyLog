@@ -3,7 +3,7 @@ import type { CategoryInfo, PaymentType } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
 import { getDefaultPayment } from './usePaymentMethods'
-import { todayStr } from '../utils'
+import { getErrorMessage, todayStr } from '../utils'
 import { useForm, useIsDirty } from './useForm'
 
 interface OneTimeFormValues {
@@ -161,7 +161,7 @@ export function useOneTimeForm({
       await transactionService.delete(editingTx.id)
       onBack?.()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '削除に失敗しました')
+      setError(getErrorMessage(err, '削除に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }
@@ -207,7 +207,7 @@ export function useOneTimeForm({
       }
       resetForm()
     } catch (err) {
-      setError(err instanceof Error ? err.message : '記録に失敗しました')
+      setError(getErrorMessage(err, '記録に失敗しました'))
     } finally {
       setIsSubmitting(false)
     }

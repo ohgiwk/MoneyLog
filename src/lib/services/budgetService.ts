@@ -10,14 +10,6 @@ export interface BudgetSettings {
   oneTimeByCategory: Record<string, number>
 }
 
-const empty = (): BudgetSettings => ({
-  income: 0,
-  fixed: 0,
-  consumable: 0,
-  savings: 0,
-  oneTimeByCategory: {},
-})
-
 export const EMPTY_BUDGET_SETTINGS: BudgetSettings = {
   income: 0,
   fixed: 0,
@@ -35,7 +27,7 @@ export const budgetService = {
       .eq('month', month)
       .maybeSingle()
     if (error) throw new Error(error.message)
-    if (!data) return empty()
+    if (!data) return { ...EMPTY_BUDGET_SETTINGS }
     return {
       income: data.income ?? 0,
       fixed: data.fixed,

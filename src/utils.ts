@@ -1,8 +1,11 @@
 import { ALL_CATEGORIES, type CategoryInfo } from './constants'
 import type { Consumable } from './lib/database.types'
 
+export const MS_PER_DAY = 86_400_000
+const JST_OFFSET_MS = 9 * 60 * 60 * 1000
+
 export function todayStr(): string {
-  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  return new Date(Date.now() + JST_OFFSET_MS).toISOString().slice(0, 10)
 }
 
 export function monthKey(dateStr: string): string {
@@ -28,7 +31,7 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
 export function formatDateWithWeekday(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
   const today = todayStr()
-  const yesterday = new Date(Date.now() + 9 * 60 * 60 * 1000 - 86400000).toISOString().slice(0, 10)
+  const yesterday = new Date(Date.now() + JST_OFFSET_MS - MS_PER_DAY).toISOString().slice(0, 10)
   const base = `${d.getMonth() + 1}月${d.getDate()}日（${DAY_LABELS[d.getDay()]}）`
   if (dateStr === today) return `今日（${DAY_LABELS[d.getDay()]}）`
   if (dateStr === yesterday) return `昨日（${DAY_LABELS[d.getDay()]}）`
@@ -82,14 +85,14 @@ export function periodRange(periodYm: string, startDay: number): { from: string;
 // 集計期間の初日から数えた経過日数（1始まり）
 export function periodDayIndex(dateStr: string, periodYm: string, startDay: number): number {
   const { from } = periodRange(periodYm, startDay)
-  const diff = (new Date(dateStr).getTime() - new Date(from).getTime()) / 86400000
+  const diff = (new Date(dateStr).getTime() - new Date(from).getTime()) / MS_PER_DAY
   return Math.round(diff) + 1
 }
 
 // 集計期間の総日数
 export function periodDayCount(periodYm: string, startDay: number): number {
   const { from, to } = periodRange(periodYm, startDay)
-  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1
+  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / MS_PER_DAY) + 1
 }
 
 export function categoryInfo(name: string): CategoryInfo {
@@ -114,5 +117,21 @@ export function monthlyConsumableCost(c: Consumable, householdMembers: number): 
 export function daysUntil(date: Date): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  return Math.round((date.getTime() - today.getTime()) / 86400000)
+  return Math.round((date.getTime() - today.getTime()) / MS_PER_DAY)
+}
+
+export function fixedToMonthly(f: { amount: number | null; cycle: string }): number {
+  return (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+}
+
+export function fixedBaselineToMonthly(f: { baseline_amount: number; cycle: string }): number {
+  return f.baseline_amount / (f.cycle === 'yearly' ? 12 : 1)
+}
+
+export function isActiveFixed(f: { status: string }): boolean {
+  return f.status === 'active' || f.status === 'reviewing'
+}
+
+export function getErrorMessage(err: unknown, fallback = '操作に失敗しました'): string {
+  return err instanceof Error ? err.message : fallback
 }

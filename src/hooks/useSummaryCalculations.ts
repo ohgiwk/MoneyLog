@@ -1,6 +1,15 @@
 import { useMemo } from 'react'
 import type { Consumable, FixedExpense, Transaction } from '../lib/database.types'
-import { categoryInfo, mondayFirstDow, monthKey, monthlyConsumableCost, todayStr } from '../utils'
+import {
+  categoryInfo,
+  fixedBaselineToMonthly,
+  fixedToMonthly,
+  isActiveFixed,
+  mondayFirstDow,
+  monthKey,
+  monthlyConsumableCost,
+  todayStr,
+} from '../utils'
 import { WEEKS_PER_MONTH } from '../constants'
 import type { BudgetSettings } from '../lib/services/budgetService'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
@@ -53,20 +62,15 @@ export function useSummaryCalculations({
     [monthTx]
   )
 
-  const activeFixed = useMemo(
-    () => fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing'),
-    [fixedExpenses]
+  const activeFixed = useMemo(() => fixedExpenses.filter(isActiveFixed), [fixedExpenses])
+
+  const totalFixed = useMemo(
+    () => activeFixed.reduce((s, f) => s + fixedToMonthly(f), 0),
+    [activeFixed]
   )
 
-  const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
-
-  const totalFixed = useMemo(() => activeFixed.reduce((s, f) => s + toMonthly(f), 0), [activeFixed])
-
   const totalSaved = useMemo(() => {
-    const totalBaseline = activeFixed.reduce(
-      (s, f) => s + f.baseline_amount / (f.cycle === 'yearly' ? 12 : 1),
-      0
-    )
+    const totalBaseline = activeFixed.reduce((s, f) => s + fixedBaselineToMonthly(f), 0)
     return totalBaseline - totalFixed
   }, [activeFixed, totalFixed])
 
@@ -144,7 +148,7 @@ export function useSummaryCalculations({
   const fixedByCat = useMemo(() => {
     const map = new Map<string, number>()
     for (const f of activeFixed) {
-      const amt = toMonthly(f)
+      const amt = fixedToMonthly(f)
       map.set(f.category, (map.get(f.category) ?? 0) + amt)
     }
     return [...map.entries()].sort(([, a], [, b]) => b - a)

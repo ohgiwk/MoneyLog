@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
-import { formatYen } from '../utils'
+import { fixedBaselineToMonthly, fixedToMonthly, formatYen, isActiveFixed } from '../utils'
 import { getAllCurrencyMeta } from '../lib/exchangeRate'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
@@ -100,19 +100,13 @@ export default function FixedExpenseList({
         : sortByCategory(fixedExpenses.filter((f) => f.status === filter)),
     [fixedExpenses, filter, categoryOrderMap]
   )
-  const activeExpenses = useMemo(
-    () => fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing'),
-    [fixedExpenses]
-  )
-  const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
-  const toMonthlyBaseline = (f: FixedExpense) =>
-    (f.baseline_amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
-  const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
+  const activeExpenses = useMemo(() => fixedExpenses.filter(isActiveFixed), [fixedExpenses])
+  const totalAmount = activeExpenses.reduce((s, f) => s + fixedToMonthly(f), 0)
   const cancelledExpenses = useMemo(
     () => fixedExpenses.filter((f) => f.status === 'cancelled' && f.baseline_amount > 0),
     [fixedExpenses]
   )
-  const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
+  const totalSaved = cancelledExpenses.reduce((s, f) => s + fixedBaselineToMonthly(f), 0)
 
   function renderRows(list: FixedExpense[]): ReactNode[] {
     const rows: ReactNode[] = []

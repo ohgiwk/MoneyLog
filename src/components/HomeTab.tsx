@@ -146,7 +146,9 @@ export default function HomeTab({ userId }: Props) {
     [oneTimeCategoryRows, catOrder]
   )
 
-  const categoryMode = localStorage.getItem(`budgetCategoryMode_${userId}`) ?? 'detail'
+  const [categoryMode] = useState(
+    () => localStorage.getItem(`budgetCategoryMode_${userId}`) ?? 'detail'
+  )
   const displayCategoryRows =
     categoryMode === 'total' && sortedCategoryRows.length > 0
       ? [
