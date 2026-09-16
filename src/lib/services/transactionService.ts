@@ -77,4 +77,17 @@ export const transactionService = {
     if (error) throw new Error(error.message)
     return data ?? []
   },
+
+  fetchAllSummary: async (
+    userId: string
+  ): Promise<
+    Pick<Transaction, 'date' | 'type' | 'amount' | 'category' | 'store_type' | 'payment_type'>[]
+  > => {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('date, type, amount, category, store_type, payment_type')
+      .eq('user_id', userId)
+    if (error) throw new Error(error.message)
+    return data ?? []
+  },
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { savingsService } from '../lib/services/savingsService'
 import { shiftMonth, todayStr } from '../utils'
 
 export interface MonthlySavingEntry {
@@ -22,27 +22,12 @@ export function useCumulativeSavings(userId: string) {
 
     async function calculate() {
       const lastMonth = shiftMonth(todayStr().slice(0, 7), -1)
-      const lastMonthEnd = `${lastMonth}-31`
-
-      const [budgetsRes, txRes, fixedRes] = await Promise.all([
-        supabase
-          .from('budgets')
-          .select('month, savings, income')
-          .eq('user_id', userId)
-          .lte('month', lastMonth),
-        supabase
-          .from('transactions')
-          .select('date, amount, type, expense_kind')
-          .eq('user_id', userId)
-          .lte('date', lastMonthEnd),
-        supabase.from('fixed_expenses').select('amount, cycle, status').eq('user_id', userId),
-      ])
+      const { budgets, transactions, fixedExpenses } = await savingsService.fetchData(
+        userId,
+        lastMonth
+      )
 
       if (cancelled) return
-
-      const budgets = budgetsRes.data ?? []
-      const transactions = txRes.data ?? []
-      const fixedExpenses = fixedRes.data ?? []
 
       const oneTimeByMonth = new Map<string, number>()
 

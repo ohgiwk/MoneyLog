@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { transactionService } from '../lib/services/transactionService'
-import { supabase } from '../lib/supabase'
 import { useProfileQuery } from './queries/useProfileQuery'
 import { useBudgetQuery } from './queries/useBudgetQuery'
 import { useFixedExpensesQuery } from './queries/useFixedExpensesQuery'
@@ -29,13 +28,7 @@ export function useAnalyticsData({
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['transactions', userId, 'all'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('transactions')
-        .select('date, type, amount, category, store_type, payment_type')
-        .eq('user_id', userId)
-      return data ?? []
-    },
+    queryFn: () => transactionService.fetchAllSummary(userId),
     enabled: !!userId,
   })
 

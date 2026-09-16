@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { achievementService } from '../lib/services/achievementService'
 
 export interface Achievement {
   id: string
@@ -202,37 +202,17 @@ export function useAchievements(userId: string) {
     let cancelled = false
 
     async function evaluate() {
-      const [fixedRes, unsubRes, txRes, shoppingAllRes, shoppingBoughtRes, shoppingPlanRes] =
-        await Promise.all([
-          supabase.from('fixed_expenses').select('id', { count: 'exact' }).eq('user_id', userId),
-          supabase
-            .from('fixed_expenses')
-            .select('id', { count: 'exact' })
-            .eq('user_id', userId)
-            .in('status', ['unsubscribed', 'cancelled']),
-          supabase.from('transactions').select('date').eq('user_id', userId).eq('type', 'expense'),
-          supabase.from('shopping_items').select('id', { count: 'exact' }).eq('user_id', userId),
-          supabase
-            .from('shopping_items')
-            .select('id', { count: 'exact' })
-            .eq('user_id', userId)
-            .eq('status', 'bought'),
-          supabase
-            .from('shopping_items')
-            .select('id', { count: 'exact' })
-            .eq('user_id', userId)
-            .eq('status', 'bought')
-            .gt('budget_amount', 0),
-        ])
+      const {
+        fixedCount,
+        unsubCount,
+        txDates,
+        shoppingAllCount,
+        shoppingBoughtCount,
+        shoppingPlanCount,
+      } = await achievementService.fetchData(userId)
 
       if (cancelled) return
 
-      const fixedCount = fixedRes.count ?? 0
-      const unsubCount = unsubRes.count ?? 0
-      const shoppingAllCount = shoppingAllRes.count ?? 0
-      const shoppingBoughtCount = shoppingBoughtRes.count ?? 0
-      const shoppingPlanCount = shoppingPlanRes.count ?? 0
-      const txDates: string[] = (txRes.data ?? []).map((r) => r.date)
       const txCount = txDates.length
       const streak = longestStreak(txDates)
 
