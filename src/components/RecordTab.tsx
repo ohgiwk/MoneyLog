@@ -13,6 +13,8 @@ import { periodKey, todayStr } from '../utils'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import BottomSheet from './ui/BottomSheet'
+import ErrorBanner from './ui/ErrorBanner'
+import { FETCH_ERROR_MSG } from '../constants'
 
 interface Props {
   userId: string
@@ -72,9 +74,7 @@ export default function RecordTab({ userId }: Props) {
   })
 
   const fetchError =
-    profileError || txError || budgetError || availableMonthsError
-      ? 'データの読み込みに失敗しました'
-      : null
+    profileError || txError || budgetError || availableMonthsError ? FETCH_ERROR_MSG : null
 
   const loading = txLoading && transactions.length === 0
 
@@ -151,11 +151,7 @@ export default function RecordTab({ userId }: Props) {
 
   return (
     <div>
-      {fetchError && (
-        <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {fetchError}
-        </div>
-      )}
+      <ErrorBanner message={fetchError} className="mx-4 mt-3" />
 
       <OneTimeTransactionList
         transactions={rangeTransactions ?? transactions}

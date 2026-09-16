@@ -454,3 +454,5 @@ export const MONTH_START_DAY_MAX = 28
 export const CONSUMABLE_URGENT_THRESHOLD_DAYS = 7
 export const SAVE_SUCCESS_DISPLAY_MS = 1500
 export const WEEKS_PER_MONTH = 4.33
+
+export const FETCH_ERROR_MSG = 'データの読み込みに失敗しました'

@@ -18,7 +18,7 @@ export function useTransactionInsert(userId: string) {
   return useMutation({
     mutationFn: (data: TransactionInsert) => transactionService.insert(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.transactions(userId, '').slice(0, 2) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactionsBase(userId) })
     },
   })
 }
@@ -29,7 +29,7 @@ export function useTransactionUpdate(userId: string) {
     mutationFn: ({ id, data }: { id: string; data: Partial<TransactionInsert> }) =>
       transactionService.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactionsBase(userId) })
     },
   })
 }
@@ -39,7 +39,7 @@ export function useTransactionDelete(userId: string) {
   return useMutation({
     mutationFn: (id: string) => transactionService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transactions', userId] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactionsBase(userId) })
     },
   })
 }

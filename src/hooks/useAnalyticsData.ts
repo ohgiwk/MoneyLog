@@ -6,7 +6,7 @@ import { useBudgetQuery } from './queries/useBudgetQuery'
 import { useFixedExpensesQuery } from './queries/useFixedExpensesQuery'
 import { useConsumablesQuery } from './queries/useConsumablesQuery'
 import { useTransactionsQuery } from './queries/useTransactionsQuery'
-import { MEAL_TYPES } from '../constants'
+import { MEAL_TYPES, FETCH_ERROR_MSG } from '../constants'
 import { useStoreTypes } from './useStoreTypes'
 import { EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from './useSummaryCalculations'
@@ -50,7 +50,7 @@ export function useAnalyticsData({
 
   const fetchError =
     profileError || txError || yearTxError || fixedError || consumablesError || budgetError
-      ? 'データの読み込みに失敗しました'
+      ? FETCH_ERROR_MSG
       : null
 
   const FOOD_MEAL_COLS = MEAL_TYPES.map((m) => m.name)

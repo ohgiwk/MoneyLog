@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { CategoryInfo } from '../constants'
-import { STORE_TYPES } from '../constants'
+import { STORE_TYPES, FETCH_ERROR_MSG } from '../constants'
 import type { ShoppingItem } from '../lib/database.types'
 import { transactionService } from '../lib/services/transactionService'
 import {
@@ -13,6 +13,7 @@ import PurchaseDialog from './PurchaseDialog'
 import ShoppingItemDialog from './ShoppingItemDialog'
 import ConfirmDialog from './ui/ConfirmDialog'
 import FabButton from './ui/FabButton'
+import ErrorBanner from './ui/ErrorBanner'
 
 interface Props {
   userId: string
@@ -52,7 +53,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const error = queryError
     ? queryError instanceof Error
       ? queryError.message
-      : 'データの読み込みに失敗しました'
+      : FETCH_ERROR_MSG
     : null
 
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -164,11 +165,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
 
   return (
     <div className="p-4 pb-24 space-y-4">
-      {error && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {error}
-        </div>
-      )}
+      <ErrorBanner message={error} />
 
       {loading ? (
         <div className="text-center py-8 text-ink-muted text-sm">読み込み中...</div>

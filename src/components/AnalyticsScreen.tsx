@@ -7,6 +7,7 @@ import MonthSwitcher from './ui/MonthSwitcher'
 import YearSwitcher from './ui/YearSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import ScreenHeader from './ui/ScreenHeader'
+import ErrorBanner from './ui/ErrorBanner'
 import { CollapsiblePanel } from './analytics/CollapsiblePanel'
 import { ExpenseBarChart } from './analytics/ExpenseBarChart'
 import { BreakdownBars } from './analytics/BreakdownBars'
@@ -99,11 +100,7 @@ export default function AnalyticsScreen({ userId }: Props) {
         />
       )}
 
-      {fetchError && (
-        <div className="mx-4 mt-3 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {fetchError}
-        </div>
-      )}
+      <ErrorBanner message={fetchError} className="mx-4 mt-3" />
 
       <div className="flex-1 p-4 space-y-4 overflow-y-auto pb-8">
         {/* 累計記録 */}

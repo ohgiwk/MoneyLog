@@ -15,6 +15,8 @@ import ScreenHeader from './ui/ScreenHeader'
 import Button from './ui/Button'
 import Input from './ui/Input'
 import Modal from './ui/Modal'
+import ErrorBanner from './ui/ErrorBanner'
+import { FETCH_ERROR_MSG } from '../constants'
 
 interface Props {
   userId: string
@@ -71,8 +73,7 @@ export default function BudgetScreen({ userId }: Props) {
 
   async function handleCopyLastMonth() {
     setMenuOpen(false)
-    const [year, mon] = month.split('-').map(Number)
-    const prev = mon === 1 ? `${year - 1}-12` : `${year}-${String(mon - 1).padStart(2, '0')}`
+    const prev = shiftMonth(month, -1)
     const lastBudget = await budgetService.fetchByMonth(userId, prev)
     if (!lastBudget || lastBudget.income === 0) {
       setCopyMsg('先月の予算データがありません')
@@ -93,11 +94,7 @@ export default function BudgetScreen({ userId }: Props) {
     }
   }, [fetchedBudget])
 
-  const fetchError = isError
-    ? 'データの読み込みに失敗しました'
-    : mutation.isError
-      ? '保存に失敗しました'
-      : null
+  const fetchError = isError ? FETCH_ERROR_MSG : mutation.isError ? '保存に失敗しました' : null
 
   function handleChange(field: 'income' | 'fixed' | 'consumable' | 'savings', value: string) {
     const n = parseInt(value.replace(/[^0-9]/g, ''), 10)
@@ -211,11 +208,7 @@ export default function BudgetScreen({ userId }: Props) {
             {copyMsg}
           </div>
         )}
-        {fetchError && (
-          <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-            {fetchError}
-          </div>
-        )}
+        <ErrorBanner message={fetchError} />
 
         {/* 収入 */}
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-3">

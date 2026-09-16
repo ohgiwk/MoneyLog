@@ -11,6 +11,7 @@ import DatePicker from './ui/DatePicker'
 import ConfirmDialog from './ui/ConfirmDialog'
 import Input from './ui/Input'
 import Textarea from './ui/Textarea'
+import ErrorBanner from './ui/ErrorBanner'
 import ErrorText from './ui/ErrorText'
 
 interface FormValues {
@@ -154,11 +155,7 @@ export default function ConsumableForm({
 
   return (
     <div className="space-y-4">
-      {error && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {error}
-        </div>
-      )}
+      <ErrorBanner message={error} />
 
       <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
         <div>

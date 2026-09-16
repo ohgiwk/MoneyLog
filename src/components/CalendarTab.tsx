@@ -3,6 +3,7 @@ import FabButton from './ui/FabButton'
 import CalendarEventForm from './CalendarEventForm'
 import ErrorText from './ui/ErrorText'
 import BottomSheet from './ui/BottomSheet'
+import ErrorBanner from './ui/ErrorBanner'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
@@ -14,7 +15,7 @@ import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
-import { MEAL_TYPES, STORE_TYPES } from '../constants'
+import { MEAL_TYPES, STORE_TYPES, FETCH_ERROR_MSG } from '../constants'
 
 interface Props {
   userId: string
@@ -71,8 +72,7 @@ export default function CalendarTab({ userId }: Props) {
   const { data: workSchedule = [], isError: scheduleError } = useWorkScheduleQuery(userId, month)
   const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
 
-  const fetchError =
-    eventsError || scheduleError || txError ? 'データの読み込みに失敗しました' : null
+  const fetchError = eventsError || scheduleError || txError ? FETCH_ERROR_MSG : null
 
   const dayTypeByDate = useMemo(() => {
     const map = new Map<string, WorkSchedule['day_type']>()
@@ -168,11 +168,7 @@ export default function CalendarTab({ userId }: Props) {
 
   return (
     <div className="p-4 pb-24 space-y-4">
-      {fetchError && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {fetchError}
-        </div>
-      )}
+      <ErrorBanner message={fetchError} />
 
       {/* カレンダーグリッド */}
       <Card>

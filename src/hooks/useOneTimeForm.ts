@@ -27,6 +27,19 @@ interface Options {
   onBack?: () => void
 }
 
+function buildPayloadFields(values: OneTimeFormValues) {
+  return {
+    store_type: values.type === 'expense' ? values.storeType || null : null,
+    meal_type:
+      values.type === 'expense' && values.category === '食費' ? values.mealType || null : null,
+    payment_type: values.type === 'expense' ? values.paymentType || null : null,
+    payment_method:
+      values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
+        ? values.paymentMethod || null
+        : null,
+  }
+}
+
 export function useOneTimeForm({
   userId,
   expenseCategories,
@@ -173,16 +186,7 @@ export function useOneTimeForm({
           category: values.category,
           amount: amt,
           memo: values.memo.trim() || null,
-          store_type: values.type === 'expense' ? values.storeType || null : null,
-          meal_type:
-            values.type === 'expense' && values.category === '食費'
-              ? values.mealType || null
-              : null,
-          payment_type: values.type === 'expense' ? values.paymentType || null : null,
-          payment_method:
-            values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
-              ? values.paymentMethod || null
-              : null,
+          ...buildPayloadFields(values),
         })
         onBack?.()
       } else {
@@ -194,16 +198,7 @@ export function useOneTimeForm({
           category: values.category,
           amount: amt,
           memo: values.memo.trim() || null,
-          store_type: values.type === 'expense' ? values.storeType || null : null,
-          meal_type:
-            values.type === 'expense' && values.category === '食費'
-              ? values.mealType || null
-              : null,
-          payment_type: values.type === 'expense' ? values.paymentType || null : null,
-          payment_method:
-            values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
-              ? values.paymentMethod || null
-              : null,
+          ...buildPayloadFields(values),
           recurring_rule_id: null,
         })
         resetForm()

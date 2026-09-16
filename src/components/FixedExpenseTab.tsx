@@ -10,6 +10,8 @@ import { todayStr } from '../utils'
 import FixedExpenseList from './FixedExpenseList'
 import ConsumablesList from './ConsumablesList'
 import { TabGroup } from './ui/TabGroup'
+import ErrorBanner from './ui/ErrorBanner'
+import { FETCH_ERROR_MSG } from '../constants'
 import type { HeaderState } from '../types/layout'
 
 type SubPage = 'fixed' | 'consumables'
@@ -52,7 +54,7 @@ export default function FixedExpenseTab({ userId }: Props) {
   const { data: budget, isError: budgetError } = useBudgetQuery(userId, calendarMonth)
   const fixedBudget = budget?.fixed ?? 0
   const loading = fixedFetching && fixedExpenses.length === 0
-  const fetchError = fixedError || budgetError ? 'データの読み込みに失敗しました' : null
+  const fetchError = fixedError || budgetError ? FETCH_ERROR_MSG : null
 
   const { data: profile, isError: profileError } = useProfileQuery(userId)
   const householdMembers = profile?.household_members ?? 1
@@ -62,8 +64,7 @@ export default function FixedExpenseTab({ userId }: Props) {
     isFetching: consumablesFetching,
   } = useConsumablesQuery(userId)
   const consumablesLoading = consumablesFetching && consumables.length === 0
-  const consumablesFetchError =
-    profileError || consumablesError ? 'データの読み込みに失敗しました' : null
+  const consumablesFetchError = profileError || consumablesError ? FETCH_ERROR_MSG : null
 
   function reload() {
     void queryClient.invalidateQueries({ queryKey: ['fixedExpenses', userId] })
@@ -90,11 +91,7 @@ export default function FixedExpenseTab({ userId }: Props) {
 
       {sub === 'fixed' && (
         <div className="p-4 space-y-4">
-          {fetchError && (
-            <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-              {fetchError}
-            </div>
-          )}
+          <ErrorBanner message={fetchError} />
           <FixedExpenseList
             userId={userId}
             fixedExpenses={fixedExpenses}
@@ -113,11 +110,7 @@ export default function FixedExpenseTab({ userId }: Props) {
 
       {sub === 'consumables' && (
         <div className="p-4 space-y-4">
-          {consumablesFetchError && (
-            <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-              {consumablesFetchError}
-            </div>
-          )}
+          <ErrorBanner message={consumablesFetchError} />
           <ConsumablesList
             userId={userId}
             consumables={consumables}

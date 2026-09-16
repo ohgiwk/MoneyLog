@@ -21,6 +21,8 @@ import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 import { Row } from './ui/Row'
 import Button from './ui/Button'
+import ErrorBanner from './ui/ErrorBanner'
+import { FETCH_ERROR_MSG } from '../constants'
 
 interface Props {
   userId: string
@@ -81,7 +83,7 @@ export default function HomeTab({ userId }: Props) {
     consumablesError ||
     budgetError ||
     upcomingError
-      ? 'データの読み込みに失敗しました'
+      ? FETCH_ERROR_MSG
       : null
 
   function handleAllowanceModeChange(mode: AllowanceMode) {
@@ -163,11 +165,7 @@ export default function HomeTab({ userId }: Props) {
 
   return (
     <div className="p-4 space-y-4">
-      {fetchError && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
-          {fetchError}
-        </div>
-      )}
+      <ErrorBanner message={fetchError} />
 
       <div className="relative bg-surface rounded-2xl shadow-sm overflow-hidden">
         {/* 上部：お小遣い表示 */}
