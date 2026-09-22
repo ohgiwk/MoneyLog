@@ -41,11 +41,13 @@
 
 body {
   font-family: 'Hiragino Sans', 'Yu Gothic', 'Helvetica Neue', Arial, sans-serif;
-  background: #c8b070; /* アプリ外領域：金茶色（ライト） */
+  background: rgb(
+    var(--color-surface-subtle)
+  ); /* #fcfaf4 - iOS PWAオーバースクロール・ステータスバー対策 */
 }
 
 .dark body {
-  background: #06060d; /* アプリ外領域：ほぼ黒（ダーク） */
+  background: rgb(var(--color-surface-subtle)); /* #12121e */
 }
 
 * {
