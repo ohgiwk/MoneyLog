@@ -37,6 +37,10 @@ function makeFixed(overrides: Partial<FixedExpense> = {}): FixedExpense {
     status: 'active',
     start_date: '2026-01-01',
     notes: null,
+    currency: null,
+    usd_amount: null,
+    loan_start_month: null,
+    loan_end_month: null,
     created_at: '2026-01-01T00:00:00Z',
     ...overrides,
   }

@@ -180,6 +180,10 @@ export default function FixedExpenseTutorial({
             start_date: today,
             billing_day: null,
             notes: null,
+            currency: null,
+            usd_amount: null,
+            loan_start_month: null,
+            loan_end_month: null,
           })
         }
       })
@@ -215,6 +219,10 @@ export default function FixedExpenseTutorial({
           start_date: today,
           billing_day: null,
           notes: null,
+          currency: null,
+          usd_amount: null,
+          loan_start_month: null,
+          loan_end_month: null,
         })
       } else {
         const amount = cycle === 'yearly' ? (p.yearlyAmount ?? p.amount) : p.amount
@@ -229,6 +237,10 @@ export default function FixedExpenseTutorial({
           start_date: today,
           billing_day: null,
           notes: null,
+          currency: null,
+          usd_amount: null,
+          loan_start_month: null,
+          loan_end_month: null,
         })
       }
     })

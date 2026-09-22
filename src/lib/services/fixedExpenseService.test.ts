@@ -70,6 +70,10 @@ describe('fixedExpenseService.insert', () => {
       start_date: '2024-01-01',
       billing_day: null,
       notes: null,
+      currency: null,
+      usd_amount: null,
+      loan_start_month: null,
+      loan_end_month: null,
     }
     const result = await fixedExpenseService.insert(data)
 
@@ -103,6 +107,10 @@ describe('fixedExpenseService.insertMany', () => {
         start_date: '2024-01-01',
         billing_day: null,
         notes: null,
+        currency: null,
+        usd_amount: null,
+        loan_start_month: null,
+        loan_end_month: null,
       },
       {
         user_id: 'u1',
@@ -115,6 +123,10 @@ describe('fixedExpenseService.insertMany', () => {
         start_date: '2024-01-01',
         billing_day: null,
         notes: null,
+        currency: null,
+        usd_amount: null,
+        loan_start_month: null,
+        loan_end_month: null,
       },
     ]
     await fixedExpenseService.insertMany(rows)

@@ -1,7 +1,7 @@
 import { supabase } from '../supabase'
-import type { FixedExpense } from '../database.types'
+import type { FixedExpense, Database } from '../database.types'
 
-type FixedExpenseInsert = Omit<FixedExpense, 'id' | 'created_at'>
+type FixedExpenseInsert = Database['public']['Tables']['fixed_expenses']['Insert']
 type FixedExpenseUpdate = Partial<FixedExpenseInsert>
 
 const TABLE = 'fixed_expenses'

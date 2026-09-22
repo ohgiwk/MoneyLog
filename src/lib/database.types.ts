@@ -47,9 +47,21 @@ export interface Database {
           status: 'active' | 'reviewing' | 'cancelled' | 'unsubscribed'
           start_date: string
           notes: string | null
+          currency: string | null
+          usd_amount: number | null
+          loan_start_month: string | null
+          loan_end_month: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['fixed_expenses']['Row'], 'id' | 'created_at'>
+        Insert: Omit<
+          Database['public']['Tables']['fixed_expenses']['Row'],
+          'id' | 'created_at' | 'currency' | 'usd_amount' | 'loan_start_month' | 'loan_end_month'
+        > & {
+          currency?: string | null
+          usd_amount?: number | null
+          loan_start_month?: string | null
+          loan_end_month?: string | null
+        }
         Update: Partial<Database['public']['Tables']['fixed_expenses']['Insert']>
       }
       recurring_rules: {

@@ -8,10 +8,9 @@ import type { HeaderState } from '../types/layout'
 import {
   getUsdJpyRate,
   getExpenseCurrencyMeta,
-  setExpenseCurrencyMeta,
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
-import { getLoanMeta, setLoanMeta, removeLoanMeta } from '../lib/loanMeta'
+import { getLoanMeta, removeLoanMeta } from '../lib/loanMeta'
 import { todayStr } from '../utils'
 import CategoryGrid from './ui/CategoryGrid'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -61,18 +60,19 @@ export default function FixedExpenseForm({
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
   const [celebration, setCelebration] = useState<{ monthly: number; yearly: number } | null>(null)
   const [currency, setCurrency] = useState<'JPY' | 'USD'>(() => {
-    if (expense?.id) {
-      const meta = getExpenseCurrencyMeta(expense.id)
-      if (meta?.currency === 'USD') return 'USD'
-    }
+    if (expense?.currency === 'USD') return 'USD'
+    // localStorageからのマイグレーション用フォールバック
+    if (expense?.id && getExpenseCurrencyMeta(expense.id)?.currency === 'USD') return 'USD'
     return 'JPY'
   })
   const [usdRate, setUsdRate] = useState(getUsdJpyRate())
   const [loanStartMonth, setLoanStartMonth] = useState<string>(() => {
+    if (expense?.loan_start_month) return expense.loan_start_month
     if (expense?.id) return getLoanMeta(expense.id)?.startMonth ?? ''
     return ''
   })
   const [loanEndMonth, setLoanEndMonth] = useState<string>(() => {
+    if (expense?.loan_end_month) return expense.loan_end_month
     if (expense?.id) return getLoanMeta(expense.id)?.endMonth ?? ''
     return ''
   })
@@ -82,6 +82,8 @@ export default function FixedExpenseForm({
     category: expense?.category ?? fixedCategories[0]?.name ?? '',
     subSubcategory: '',
     amount: (() => {
+      if (expense?.usd_amount != null) return expense.usd_amount.toString()
+      // localStorageからのマイグレーション用フォールバック
       if (expense?.id) {
         const meta = getExpenseCurrencyMeta(expense.id)
         if (meta?.currency === 'USD') return meta.usdAmount.toString()
@@ -161,6 +163,14 @@ export default function FixedExpenseForm({
     setError(null)
     try {
       const isLoan = values.category === 'ローン'
+      const currencyFields = {
+        currency: currency === 'USD' ? 'USD' : null,
+        usd_amount: currency === 'USD' ? inputAmt : null,
+      }
+      const loanFields = {
+        loan_start_month: isLoan && loanStartMonth ? loanStartMonth : null,
+        loan_end_month: isLoan && loanEndMonth ? loanEndMonth : null,
+      }
       if (expense) {
         await fixedExpenseService.update(expense.id, {
           name: values.name,
@@ -169,17 +179,12 @@ export default function FixedExpenseForm({
           cycle: values.cycle,
           status: values.status,
           notes: values.notes || null,
+          ...currencyFields,
+          ...loanFields,
         })
-        if (currency === 'USD') {
-          setExpenseCurrencyMeta(expense.id, { currency: 'USD', usdAmount: inputAmt })
-        } else {
-          removeExpenseCurrencyMeta(expense.id)
-        }
-        if (isLoan && (loanStartMonth || loanEndMonth)) {
-          setLoanMeta(expense.id, { startMonth: loanStartMonth, endMonth: loanEndMonth })
-        } else {
-          removeLoanMeta(expense.id)
-        }
+        // localStorageの旧データを削除（マイグレーション完了）
+        removeExpenseCurrencyMeta(expense.id)
+        removeLoanMeta(expense.id)
       } else {
         const inserted = await fixedExpenseService.insert({
           user_id: userId!,
@@ -192,12 +197,13 @@ export default function FixedExpenseForm({
           notes: values.notes || null,
           start_date: todayStr(),
           billing_day: null,
+          ...currencyFields,
+          ...loanFields,
         })
-        if (currency === 'USD' && inserted?.id) {
-          setExpenseCurrencyMeta(inserted.id, { currency: 'USD', usdAmount: inputAmt })
-        }
-        if (isLoan && inserted?.id && (loanStartMonth || loanEndMonth)) {
-          setLoanMeta(inserted.id, { startMonth: loanStartMonth, endMonth: loanEndMonth })
+        // 新規作成時もlocalStorageは使わない（inserted.idが返った場合は念のため削除）
+        if (inserted?.id) {
+          removeExpenseCurrencyMeta(inserted.id)
+          removeLoanMeta(inserted.id)
         }
       }
       // 契約中・見直し中 → 解約済み への変更時はお祝いダイアログを表示
