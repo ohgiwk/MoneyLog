@@ -52,10 +52,9 @@ const ICON_SUGGESTIONS = [
 interface SortableItemProps {
   item: StoreTypeItem
   onEdit: (item: StoreTypeItem) => void
-  onDelete: (item: StoreTypeItem) => void
 }
 
-function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
+function SortableItem({ item, onEdit }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id,
   })
@@ -68,7 +67,7 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
     <li
       ref={setNodeRef}
       style={style}
-      className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden"
+      className="bg-surface rounded-xl shadow-sm flex items-center gap-2 overflow-hidden transition-colors has-[:active]:bg-surface-subtle"
     >
       <button
         {...attributes}
@@ -90,48 +89,13 @@ function SortableItem({ item, onEdit, onDelete }: SortableItemProps) {
           <line x1="4" y1="16" x2="20" y2="16" />
         </svg>
       </button>
-      <span className="text-xl flex-shrink-0 w-8 text-center">{item.icon}</span>
-      <span className="flex-1 text-sm text-ink font-medium min-w-0 truncate">{item.name}</span>
       <button
         onClick={() => onEdit(item)}
-        className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:text-primary-500 rounded-lg"
-        aria-label="編集"
+        className="flex items-center gap-2 flex-1 min-w-0 py-3 pr-3 text-left"
+        aria-label={`${item.name}を編集`}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
-      </button>
-      <button
-        onClick={() => onDelete(item)}
-        className="w-8 h-8 mr-1 flex items-center justify-center text-ink-subtle active:text-danger-400 rounded-lg"
-        aria-label="削除"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="3 6 5 6 21 6" />
-          <path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6" />
-          <path d="M10 11v6" />
-          <path d="M14 11v6" />
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-        </svg>
+        <span className="text-xl flex-shrink-0 w-8 text-center">{item.icon}</span>
+        <span className="flex-1 text-sm text-ink font-medium min-w-0 truncate">{item.name}</span>
       </button>
     </li>
   )
@@ -238,12 +202,7 @@ export default function StoreTypesScreen() {
           <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
             <ul className="space-y-2">
               {items.map((item) => (
-                <SortableItem
-                  key={item.id}
-                  item={item}
-                  onEdit={openEdit}
-                  onDelete={(it) => setDeleteTarget(it)}
-                />
+                <SortableItem key={item.id} item={item} onEdit={openEdit} />
               ))}
             </ul>
           </SortableContext>
@@ -275,7 +234,17 @@ export default function StoreTypesScreen() {
         />
       )}
 
-      <BottomSheet isOpen={editing !== null} onClose={closeForm} title={sheetTitle} footer={footer}>
+      <BottomSheet
+        isOpen={editing !== null}
+        onClose={closeForm}
+        title={sheetTitle}
+        footer={footer}
+        rightAction={
+          editing !== null && editing !== 'new'
+            ? { onClick: () => setDeleteTarget(editing), tone: 'danger' }
+            : undefined
+        }
+      >
         <div className="space-y-4">
           <div>
             <FormLabel>アイコン（絵文字）</FormLabel>

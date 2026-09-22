@@ -52,13 +52,13 @@ function SortableItem({ id, category: c, index: i, onEdit, onToggle }: SortableI
     <li
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 px-4 py-3 ${enabled ? 'bg-surface' : 'bg-surface-hover opacity-70'}`}
+      className={`flex items-center gap-3 px-4 transition-colors has-[:active]:bg-surface-subtle ${enabled ? 'bg-surface' : 'bg-surface-hover opacity-70'}`}
     >
       {/* ドラッグハンドル */}
       <button
         {...attributes}
         {...listeners}
-        className="p-1 text-ink-subtle touch-none cursor-grab active:cursor-grabbing"
+        className="py-3 px-1 text-ink-subtle touch-none cursor-grab active:cursor-grabbing"
         aria-label="並び替え"
       >
         <svg
@@ -78,7 +78,7 @@ function SortableItem({ id, category: c, index: i, onEdit, onToggle }: SortableI
 
       <button
         onClick={() => onEdit(i)}
-        className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70"
+        className="flex items-center gap-3 flex-1 min-w-0 text-left self-stretch py-3"
         aria-label={`${c.name}を編集`}
       >
         <span
@@ -95,7 +95,7 @@ function SortableItem({ id, category: c, index: i, onEdit, onToggle }: SortableI
       {/* 有効/無効トグル */}
       <button
         onClick={() => onToggle(i)}
-        className="p-1.5 rounded-lg"
+        className="py-3 px-1.5 rounded-lg"
         aria-label={enabled ? '無効にする' : '有効にする'}
       >
         <div
