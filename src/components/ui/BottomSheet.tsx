@@ -1,6 +1,11 @@
 import { createPortal } from 'react-dom'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { AnimatePresence, motion, useDragControls } from 'motion/react'
+
+function setThemeColor(color: string) {
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+  if (meta) meta.content = color
+}
 
 interface RightAction {
   label?: string
@@ -29,6 +34,12 @@ export default function BottomSheet({
   height = '92dvh',
 }: Props) {
   const dragControls = useDragControls()
+
+  useEffect(() => {
+    // bg-black/40 を白背景に重ねた近似色 (#999999)
+    setThemeColor(isOpen ? '#999999' : '#ffffff')
+    return () => setThemeColor('#ffffff')
+  }, [isOpen])
 
   return createPortal(
     <AnimatePresence>
