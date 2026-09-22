@@ -18,7 +18,7 @@ interface Props {
 
 export default function ShoppingTab({ userId }: Props) {
   const { shoppingTapKey: resetSignal, categories } = useAppContext()
-  const expenseCategories = categories.expenseCategories
+  const expenseCategories = categories.activeExpenseCategories
   const queryClient = useQueryClient()
   const [sub, setSub] = useState<SubPage>('wishlist')
 

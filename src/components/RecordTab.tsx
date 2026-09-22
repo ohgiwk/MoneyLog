@@ -28,8 +28,8 @@ export default function RecordTab({ userId }: Props) {
     recordTapKey: resetSignal,
     categories,
   } = useAppContext()
-  const expenseCategories = categories.expenseCategories
-  const incomeCategories = categories.incomeCategories
+  const expenseCategories = categories.activeExpenseCategories
+  const incomeCategories = categories.activeIncomeCategories
   const queryClient = useQueryClient()
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [formDuplicateTx, setFormDuplicateTx] = useState<Transaction | null>(null)

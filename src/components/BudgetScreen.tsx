@@ -23,7 +23,7 @@ interface Props {
 export default function BudgetScreen({ userId }: Props) {
   const navigate = useNavigate()
   const { categories } = useAppContext()
-  const expenseCategories = categories.expenseCategories
+  const expenseCategories = categories.activeExpenseCategories
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])

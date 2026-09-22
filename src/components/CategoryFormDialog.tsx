@@ -60,9 +60,10 @@ interface Props {
   initial: CategoryInfo
   onSave: (cat: CategoryInfo) => void
   onClose: () => void
+  onDelete?: () => void
 }
 
-export default function CategoryFormDialog({ isOpen, initial, onSave, onClose }: Props) {
+export default function CategoryFormDialog({ isOpen, initial, onSave, onClose, onDelete }: Props) {
   const [draft, setDraft] = useState<CategoryInfo>(initial)
 
   useEffect(() => {
@@ -82,8 +83,21 @@ export default function CategoryFormDialog({ isOpen, initial, onSave, onClose }:
     </Button>
   )
 
+  const rightAction = onDelete
+    ? {
+        onClick: onDelete,
+        tone: 'danger' as const,
+      }
+    : undefined
+
   return (
-    <BottomSheet isOpen={isOpen} onClose={onClose} title={title} footer={footer}>
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      footer={footer}
+      rightAction={rightAction}
+    >
       <div className="space-y-5">
         <div>
           <label className="text-xs font-medium text-ink-muted">カテゴリ名</label>

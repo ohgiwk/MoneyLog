@@ -48,8 +48,8 @@ const DAY_TYPE_LABELS: Record<
 
 export default function CalendarTab({ userId }: Props) {
   const { month, calendarSelectedDate, categories } = useAppContext()
-  const expenseCategories = categories.expenseCategories
-  const incomeCategories = categories.incomeCategories
+  const expenseCategories = categories.activeExpenseCategories
+  const incomeCategories = categories.activeIncomeCategories
   const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState<string>(calendarSelectedDate ?? todayStr())
   const [showForm, setShowForm] = useState(false)

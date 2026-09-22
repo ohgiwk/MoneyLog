@@ -27,8 +27,8 @@ export default function FixedExpenseTab({ userId }: Props) {
   const navigate = useNavigate()
   const location = useLocation()
   const { setHeaderBack: onHeaderChange, categories } = useAppContext()
-  const fixedCategories = categories.fixedCategories
-  const expenseCategories = categories.expenseCategories
+  const fixedCategories = categories.activeFixedCategories
+  const expenseCategories = categories.activeExpenseCategories
   const fromOnboarding =
     (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding ?? false
 

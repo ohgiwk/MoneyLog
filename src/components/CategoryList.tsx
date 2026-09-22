@@ -33,14 +33,15 @@ interface SortableItemProps {
   category: CategoryInfo
   index: number
   onEdit: (i: number) => void
-  onRemove: (i: number) => void
+  onToggle: (i: number) => void
 }
 
-function SortableItem({ id, category: c, index: i, onEdit, onRemove }: SortableItemProps) {
+function SortableItem({ id, category: c, index: i, onEdit, onToggle }: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   })
 
+  const enabled = c.enabled !== false
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -48,7 +49,11 @@ function SortableItem({ id, category: c, index: i, onEdit, onRemove }: SortableI
   }
 
   return (
-    <li ref={setNodeRef} style={style} className="flex items-center gap-3 px-4 py-3 bg-surface">
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-3 px-4 py-3 ${enabled ? 'bg-surface' : 'bg-surface-hover opacity-70'}`}
+    >
       {/* ドラッグハンドル */}
       <button
         {...attributes}
@@ -71,52 +76,35 @@ function SortableItem({ id, category: c, index: i, onEdit, onRemove }: SortableI
         </svg>
       </button>
 
-      <span
-        className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
-        style={{ backgroundColor: c.color + '22' }}
-      >
-        {c.icon}
-      </span>
-      <span className="flex-1 text-sm text-ink">{c.name}</span>
       <button
         onClick={() => onEdit(i)}
-        className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
-        aria-label="編集"
+        className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70"
+        aria-label={`${c.name}を編集`}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <span
+          className="w-8 h-8 rounded-full flex items-center justify-center text-base flex-shrink-0"
+          style={{ backgroundColor: c.color + '22' }}
         >
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-        </svg>
+          {c.icon}
+        </span>
+        <span className={`flex-1 text-sm ${enabled ? 'text-ink' : 'text-ink-muted'}`}>
+          {c.name}
+        </span>
       </button>
+
+      {/* 有効/無効トグル */}
       <button
-        onClick={() => onRemove(i)}
-        className="p-1.5 text-ink-subtle active:text-danger-400 rounded-lg"
-        aria-label="削除"
+        onClick={() => onToggle(i)}
+        className="p-1.5 rounded-lg"
+        aria-label={enabled ? '無効にする' : '有効にする'}
       >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <div
+          className={`w-10 h-6 rounded-full relative transition-colors ${enabled ? 'bg-primary-500' : 'bg-line-strong'}`}
         >
-          <polyline points="3 6 5 6 21 6" />
-          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-          <path d="M10 11v6M14 11v6" />
-          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-        </svg>
+          <div
+            className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+          />
+        </div>
       </button>
     </li>
   )
@@ -135,15 +123,19 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
   )
 
-  // カテゴリ名をIDとして使用（ユニーク前提）
-  const ids = categories.map((c) => c.name)
+  const enabledItems = categories.map((c, i) => ({ c, i })).filter(({ c }) => c.enabled !== false)
+  const disabledItems = categories.map((c, i) => ({ c, i })).filter(({ c }) => c.enabled === false)
+
+  const enabledIds = enabledItems.map(({ c }) => c.name)
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
-    const oldIndex = ids.indexOf(active.id as string)
-    const newIndex = ids.indexOf(over.id as string)
-    onChange(arrayMove(categories, oldIndex, newIndex))
+    const oldIdx = enabledItems.findIndex(({ c }) => c.name === active.id)
+    const newIdx = enabledItems.findIndex(({ c }) => c.name === over.id)
+    if (oldIdx === -1 || newIdx === -1) return
+    const newEnabled = arrayMove(enabledItems, oldIdx, newIdx).map(({ c }) => c)
+    onChange([...newEnabled, ...disabledItems.map(({ c }) => c)])
   }
 
   function openEdit(i: number) {
@@ -164,6 +156,22 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
 
   function remove(i: number) {
     onChange(categories.filter((_, idx) => idx !== i))
+    setDialog(null)
+  }
+
+  function toggle(i: number) {
+    const next = [...categories]
+    const nowEnabled = next[i].enabled === false
+    next[i] = { ...next[i], enabled: nowEnabled }
+    // 有効化→有効リストの末尾へ、無効化→無効リストの末尾へ並び替え
+    const item = next.splice(i, 1)[0]
+    if (nowEnabled) {
+      const lastEnabledIdx = next.filter((c) => c.enabled !== false).length
+      next.splice(lastEnabledIdx, 0, item)
+    } else {
+      next.push(item)
+    }
+    onChange(next)
   }
 
   const dialogInitial: CategoryInfo =
@@ -175,16 +183,16 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
     <>
       <Card>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          <SortableContext items={enabledIds} strategy={verticalListSortingStrategy}>
             <ul className="divide-y divide-line-subtle">
-              {categories.map((c, i) => (
+              {enabledItems.map(({ c, i }) => (
                 <SortableItem
                   key={c.name}
                   id={c.name}
                   category={c}
                   index={i}
                   onEdit={openEdit}
-                  onRemove={remove}
+                  onToggle={toggle}
                 />
               ))}
             </ul>
@@ -192,11 +200,36 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
         </DndContext>
       </Card>
 
+      {disabledItems.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs font-medium text-ink-muted px-1 mb-2">無効</p>
+          <Card>
+            <ul className="divide-y divide-line-subtle">
+              {disabledItems.map(({ c, i }) => (
+                <SortableItem
+                  key={c.name}
+                  id={c.name}
+                  category={c}
+                  index={i}
+                  onEdit={openEdit}
+                  onToggle={toggle}
+                />
+              ))}
+            </ul>
+          </Card>
+        </div>
+      )}
+
       <CategoryFormDialog
         isOpen={dialog !== null}
         initial={dialogInitial}
         onSave={handleSave}
         onClose={() => setDialog(null)}
+        onDelete={
+          dialog?.index !== null && dialog?.index !== undefined
+            ? () => remove(dialog.index!)
+            : undefined
+        }
       />
     </>
   )

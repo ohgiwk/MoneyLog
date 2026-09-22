@@ -2,6 +2,7 @@ export interface CategoryInfo {
   name: string
   icon: string
   color: string
+  enabled?: boolean
 }
 
 export const EXPENSE_CATEGORIES: CategoryInfo[] = [
