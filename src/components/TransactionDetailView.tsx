@@ -427,35 +427,35 @@ export default function TransactionDetailView({
                       onDelete={() => onDeleteTx?.(t.id)}
                       onDuplicate={() => onDuplicateTx?.(t)}
                     >
-                      <div className="px-4 flex justify-between items-center py-3 active:bg-surface-subtle">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-lg">{info.icon}</span>
-                          <div>
+                      <div className="px-4 flex justify-between items-center gap-2 py-3 active:bg-surface-subtle">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span className="text-lg shrink-0">{info.icon}</span>
+                          <div className="min-w-0">
                             <div className="text-sm text-ink">{t.category}</div>
                             {(meal || store || t.memo) && (
-                              <div className="text-xs text-ink-muted flex items-center gap-1">
+                              <div className="text-xs text-ink-muted flex items-center gap-1 overflow-hidden">
                                 {meal && (
-                                  <span className="flex items-center gap-0.5">
+                                  <span className="flex items-center gap-0.5 shrink-0">
                                     <span>{meal.icon}</span>
                                     <span>{meal.name}</span>
                                   </span>
                                 )}
-                                {meal && (store || t.memo) && <span>/</span>}
+                                {meal && (store || t.memo) && <span className="shrink-0">/</span>}
                                 {store && (
-                                  <span className="flex items-center gap-0.5">
+                                  <span className="flex items-center gap-0.5 shrink-0">
                                     <span>{store.icon}</span>
                                     <span>{store.name}</span>
                                   </span>
                                 )}
-                                {store && t.memo && <span>/</span>}
-                                {t.memo && <span>{t.memo}</span>}
+                                {store && t.memo && <span className="shrink-0">/</span>}
+                                {t.memo && <span className="truncate">{t.memo}</span>}
                               </div>
                             )}
                           </div>
                         </div>
                         <span
                           className={
-                            'text-sm font-semibold ' +
+                            'text-sm font-semibold shrink-0 ' +
                             (t.type === 'income' ? 'text-income-600' : 'text-danger-500')
                           }
                         >
