@@ -131,7 +131,7 @@ export default function App() {
     <AppProvider>
       {/* iOS PWA: viewport-fit=cover でページ内容がステータスバー領域に透けるため固定divで覆う */}
       <div
-        className="fixed inset-x-0 top-0 z-[9999] bg-surface-subtle pointer-events-none"
+        className="fixed inset-x-0 top-0 z-[9999] bg-surface pointer-events-none"
         style={{ height: 'env(safe-area-inset-top)' }}
       />
       <AppRoutes />
