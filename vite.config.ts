@@ -35,7 +35,7 @@ export default defineConfig({
       name: 'キンカク手帖',
       short_name: 'キンカク手帖',
       description: '家計管理アプリ',
-      theme_color: '#10b981',
+      theme_color: '#ffffff',
       background_color: '#ffffff',
       display: 'standalone',
       start_url: '/MoneyLog/',
