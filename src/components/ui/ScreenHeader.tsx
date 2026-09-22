@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 
 interface Props {
   title: string
@@ -6,18 +6,7 @@ interface Props {
   rightAction?: ReactNode
 }
 
-// surface-subtle (#fcfaf4) をステータスバーに合わせる
-function setThemeColor(color: string) {
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-  if (meta) meta.content = color
-}
-
 export default function ScreenHeader({ title, onBack, rightAction }: Props) {
-  useEffect(() => {
-    setThemeColor('#fcfaf4')
-    return () => setThemeColor('#ffffff')
-  }, [])
-
   return (
     <div className="px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))] grid grid-cols-[2.5rem_1fr_2.5rem] items-center bg-surface-subtle border-b-2 border-primary-500">
       <button

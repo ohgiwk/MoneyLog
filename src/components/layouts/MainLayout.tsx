@@ -40,14 +40,6 @@ export default function MainLayout() {
   }, [registerScrollToTop])
 
   useEffect(() => {
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
-    if (meta) meta.content = '#fcfaf4'
-    return () => {
-      if (meta) meta.content = '#ffffff'
-    }
-  }, [])
-
-  useEffect(() => {
     if (prevPath.current !== location.pathname) {
       prevPath.current = location.pathname
       setHeaderBack(null)
