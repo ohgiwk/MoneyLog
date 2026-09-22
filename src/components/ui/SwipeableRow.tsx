@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { AnimatePresence, motion } from 'motion/react'
 import ConfirmDialog from './ConfirmDialog'
 
 interface Props {
@@ -65,87 +66,100 @@ export default function SwipeableRow({
           </svg>
         </button>
 
-        {menuOpen &&
-          createPortal(
-            <div
-              style={{ position: 'fixed', top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
-              className="bg-surface rounded-xl shadow-xl overflow-hidden border border-border min-w-[120px]"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="w-full px-4 py-3 text-left text-sm text-ink flex items-center gap-2.5 active:bg-surface-subtle"
-                onClick={() => {
-                  setMenuOpen(false)
-                  onEdit()
+        {createPortal(
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92, y: -6 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -6 }}
+                transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
+                style={{
+                  position: 'fixed',
+                  top: menuPos.top,
+                  right: menuPos.right,
+                  zIndex: 9999,
+                  transformOrigin: 'top right',
                 }}
+                className="bg-surface rounded-xl shadow-xl overflow-hidden border border-border min-w-[120px]"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <button
+                  className="w-full px-4 py-3 text-left text-sm text-ink flex items-center gap-2.5 active:bg-surface-subtle"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onEdit()
+                  }}
                 >
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                </svg>
-                編集
-              </button>
-              <div className="border-t border-border" />
-              <button
-                className="w-full px-4 py-3 text-left text-sm text-ink flex items-center gap-2.5 active:bg-surface-subtle"
-                onClick={() => {
-                  setMenuOpen(false)
-                  onDuplicate()
-                }}
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  編集
+                </button>
+                <div className="border-t border-border" />
+                <button
+                  className="w-full px-4 py-3 text-left text-sm text-ink flex items-center gap-2.5 active:bg-surface-subtle"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    onDuplicate()
+                  }}
                 >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                複製
-              </button>
-              <div className="border-t border-border" />
-              <button
-                className="w-full px-4 py-3 text-left text-sm text-danger-500 flex items-center gap-2.5 active:bg-surface-subtle"
-                onClick={() => {
-                  setMenuOpen(false)
-                  setConfirmOpen(true)
-                }}
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                  複製
+                </button>
+                <div className="border-t border-border" />
+                <button
+                  className="w-full px-4 py-3 text-left text-sm text-danger-500 flex items-center gap-2.5 active:bg-surface-subtle"
+                  onClick={() => {
+                    setMenuOpen(false)
+                    setConfirmOpen(true)
+                  }}
                 >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14H6L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4h6v2" />
-                </svg>
-                削除
-              </button>
-            </div>,
-            document.body
-          )}
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v6M14 11v6" />
+                    <path d="M9 6V4h6v2" />
+                  </svg>
+                  削除
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
       </div>
       {confirmOpen && (
         <ConfirmDialog
