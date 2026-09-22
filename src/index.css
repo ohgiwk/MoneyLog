@@ -42,12 +42,12 @@
 body {
   font-family: 'Hiragino Sans', 'Yu Gothic', 'Helvetica Neue', Arial, sans-serif;
   background: rgb(
-    var(--color-surface-subtle)
-  ); /* #fcfaf4 - iOS PWAオーバースクロール・ステータスバー対策 */
+    var(--color-surface)
+  ); /* #fffffd - iOS PWAオーバースクロール・ステータスバー対策 */
 }
 
 .dark body {
-  background: rgb(var(--color-surface-subtle)); /* #12121e */
+  background: rgb(var(--color-surface)); /* #1e2130 */
 }
 
 * {
