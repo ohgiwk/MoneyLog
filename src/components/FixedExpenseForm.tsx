@@ -11,6 +11,7 @@ import {
   setExpenseCurrencyMeta,
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
+import { getLoanMeta, setLoanMeta, removeLoanMeta } from '../lib/loanMeta'
 import { todayStr } from '../utils'
 import CategoryGrid from './ui/CategoryGrid'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -67,6 +68,14 @@ export default function FixedExpenseForm({
     return 'JPY'
   })
   const [usdRate, setUsdRate] = useState(getUsdJpyRate())
+  const [loanStartMonth, setLoanStartMonth] = useState<string>(() => {
+    if (expense?.id) return getLoanMeta(expense.id)?.startMonth ?? ''
+    return ''
+  })
+  const [loanEndMonth, setLoanEndMonth] = useState<string>(() => {
+    if (expense?.id) return getLoanMeta(expense.id)?.endMonth ?? ''
+    return ''
+  })
 
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: expense?.name ?? '',
@@ -151,6 +160,7 @@ export default function FixedExpenseForm({
     setIsSubmitting(true)
     setError(null)
     try {
+      const isLoan = values.category === 'ローン'
       if (expense) {
         await fixedExpenseService.update(expense.id, {
           name: values.name,
@@ -164,6 +174,11 @@ export default function FixedExpenseForm({
           setExpenseCurrencyMeta(expense.id, { currency: 'USD', usdAmount: inputAmt })
         } else {
           removeExpenseCurrencyMeta(expense.id)
+        }
+        if (isLoan && (loanStartMonth || loanEndMonth)) {
+          setLoanMeta(expense.id, { startMonth: loanStartMonth, endMonth: loanEndMonth })
+        } else {
+          removeLoanMeta(expense.id)
         }
       } else {
         const inserted = await fixedExpenseService.insert({
@@ -180,6 +195,9 @@ export default function FixedExpenseForm({
         })
         if (currency === 'USD' && inserted?.id) {
           setExpenseCurrencyMeta(inserted.id, { currency: 'USD', usdAmount: inputAmt })
+        }
+        if (isLoan && inserted?.id && (loanStartMonth || loanEndMonth)) {
+          setLoanMeta(inserted.id, { startMonth: loanStartMonth, endMonth: loanEndMonth })
         }
       }
       // 契約中・見直し中 → 解約済み への変更時はお祝いダイアログを表示
@@ -205,6 +223,7 @@ export default function FixedExpenseForm({
     try {
       await fixedExpenseService.delete(expense.id)
       removeExpenseCurrencyMeta(expense.id)
+      removeLoanMeta(expense.id)
       closeAndNotify()
     } catch (err) {
       setError(err instanceof Error ? err.message : '削除に失敗しました')
@@ -254,6 +273,30 @@ export default function FixedExpenseForm({
           >
             サブスク一覧から選択する →
           </button>
+        )}
+
+        {values.category === 'ローン' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-ink-muted">開始月</label>
+              <input
+                type="month"
+                value={loanStartMonth}
+                onChange={(e) => setLoanStartMonth(e.target.value)}
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-ink-muted">終了月</label>
+              <input
+                type="month"
+                value={loanEndMonth}
+                onChange={(e) => setLoanEndMonth(e.target.value)}
+                min={loanStartMonth || undefined}
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+              />
+            </div>
+          </div>
         )}
 
         <div className="grid grid-cols-2 gap-3">
