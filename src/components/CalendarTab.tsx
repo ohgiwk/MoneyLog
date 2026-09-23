@@ -115,14 +115,6 @@ export default function CalendarTab({ userId }: Props) {
     return map
   }, [transactions])
 
-  const plannedByDate = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const ev of events) {
-      if (ev.planned_expense > 0) map.set(ev.date, (map.get(ev.date) ?? 0) + ev.planned_expense)
-    }
-    return map
-  }, [events])
-
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>()
     for (const e of events) {
@@ -207,7 +199,7 @@ export default function CalendarTab({ userId }: Props) {
             const dayType = dayTypeByDate.get(date)
             const cellBg = dayType ? DAY_TYPE_LABELS[dayType].cellBg : ''
             const expense = expenseByDate.get(date) ?? 0
-            const planned = plannedByDate.get(date) ?? 0
+            const hasEvent = eventsByDate.has(date)
             return (
               <button
                 key={date}
@@ -237,7 +229,7 @@ export default function CalendarTab({ userId }: Props) {
                 >
                   {dayNum}
                 </span>
-                {(expense > 0 || planned > 0) && (
+                {(expense > 0 || hasEvent) && (
                   <div className="flex flex-row items-center gap-0.5 mt-0.5">
                     {expense > 0 && (
                       <span
@@ -253,7 +245,7 @@ export default function CalendarTab({ userId }: Props) {
                         }
                       />
                     )}
-                    {planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
+                    {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
                   </div>
                 )}
               </button>
