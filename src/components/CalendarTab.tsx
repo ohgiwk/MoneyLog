@@ -46,6 +46,11 @@ const DAY_TYPE_LABELS: Record<
   },
 }
 
+// expense_items カラム追加前のデータでも落ちないようにする
+function expenseItemsOf(ev: CalendarEvent): CalendarEvent['expense_items'] {
+  return ev.expense_items ?? []
+}
+
 function formatEventPoint(date: string, time: string | null): string {
   const label = `${parseInt(date.slice(5, 7))}/${parseInt(date.slice(8))}`
   return time ? `${label} ${time.slice(0, 5)}` : label
@@ -350,6 +355,15 @@ export default function CalendarTab({ userId }: Props) {
                         {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
                       </div>
                     )
+                  )}
+                  {(expenseItemsOf(ev).length > 1 || expenseItemsOf(ev).some((i) => i.label)) && (
+                    <div className="text-xs text-ink-muted mt-0.5 flex flex-wrap gap-x-2">
+                      {expenseItemsOf(ev).map((item, i) => (
+                        <span key={i}>
+                          {item.label || '出費'} {formatYen(item.amount)}
+                        </span>
+                      ))}
+                    </div>
                   )}
                   {ev.memo && (
                     <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>

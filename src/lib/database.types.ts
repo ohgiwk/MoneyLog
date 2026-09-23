@@ -188,13 +188,14 @@ export interface Database {
           start_time: string | null
           end_time: string | null
           planned_expense: number
+          expense_items: CalendarEventExpenseItem[]
           memo: string | null
           created_at: string
         }
         Insert: Omit<
           Database['public']['Tables']['calendar_events']['Row'],
-          'id' | 'created_at' | 'end_date'
-        > & { end_date?: string | null }
+          'id' | 'created_at' | 'end_date' | 'expense_items'
+        > & { end_date?: string | null; expense_items?: CalendarEventExpenseItem[] }
         Update: Partial<Database['public']['Tables']['calendar_events']['Insert']>
       }
       work_schedule: {
@@ -265,6 +266,7 @@ export type ShoppingItem = Database['public']['Tables']['shopping_items']['Row']
 export type WishlistItem = Database['public']['Tables']['wishlist_items']['Row']
 export type SavingsGoal = Database['public']['Tables']['savings_goals']['Row']
 export type WorkSchedule = Database['public']['Tables']['work_schedule']['Row']
+export type CalendarEventExpenseItem = { label: string; amount: number }
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
 export type IncomeRecord = Database['public']['Tables']['income_records']['Row']
 export type Consumable = Database['public']['Tables']['consumables']['Row']

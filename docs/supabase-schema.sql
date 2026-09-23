@@ -189,6 +189,10 @@ alter table public.calendar_events drop column if exists day_type;
 -- calendar_events に終了日を追加（日を跨ぐ予定用。null なら date の1日のみ）
 alter table public.calendar_events add column if not exists end_date date;
 
+-- calendar_events に予定出費の明細を追加（[{ "label": string, "amount": number }]）
+-- planned_expense は明細の合計として引き続き保持する
+alter table public.calendar_events add column if not exists expense_items jsonb not null default '[]'::jsonb;
+
 -- consumables（消耗品費）
 create table public.consumables (
   id uuid primary key default gen_random_uuid(),

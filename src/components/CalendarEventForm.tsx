@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { CalendarEvent } from '../lib/database.types'
 import { calendarEventService } from '../lib/services/calendarEventService'
 import BottomSheet from './ui/BottomSheet'
@@ -7,6 +7,7 @@ import DatePicker from './ui/DatePicker'
 import ErrorText from './ui/ErrorText'
 import Input from './ui/Input'
 import Textarea from './ui/Textarea'
+import { formatYen } from '../utils'
 
 interface Props {
   isOpen: boolean
@@ -15,6 +16,26 @@ interface Props {
   event: CalendarEvent | null
   onClose: () => void
   onSaved: () => void
+}
+
+interface ExpenseRow {
+  id: number
+  label: string
+  amount: string
+}
+
+// 明細導入前に登録された予定は planned_expense しか持たないため、ラベルなしの1行として扱う
+function initialExpenseRows(event: CalendarEvent | null): ExpenseRow[] {
+  const items = event?.expense_items?.length
+    ? event.expense_items
+    : event?.planned_expense
+      ? [{ label: '', amount: event.planned_expense }]
+      : [{ label: '', amount: 0 }]
+  return items.map((item, i) => ({
+    id: i,
+    label: item.label,
+    amount: item.amount ? String(item.amount) : '',
+  }))
 }
 
 export default function CalendarEventForm({
@@ -31,9 +52,8 @@ export default function CalendarEventForm({
   const [title, setTitle] = useState(event?.title ?? '')
   const [startTime, setStartTime] = useState(event?.start_time?.slice(0, 5) ?? '')
   const [endTime, setEndTime] = useState(event?.end_time?.slice(0, 5) ?? '')
-  const [plannedExpense, setPlannedExpense] = useState(
-    event?.planned_expense ? String(event.planned_expense) : ''
-  )
+  const [expenseRows, setExpenseRows] = useState<ExpenseRow[]>(() => initialExpenseRows(event))
+  const nextRowId = useRef(expenseRows.length)
   const [memo, setMemo] = useState(event?.memo ?? '')
   const [titleError, setTitleError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,7 +68,9 @@ export default function CalendarEventForm({
     setTitle(event?.title ?? '')
     setStartTime(event?.start_time?.slice(0, 5) ?? '')
     setEndTime(event?.end_time?.slice(0, 5) ?? '')
-    setPlannedExpense(event?.planned_expense ? String(event.planned_expense) : '')
+    const rows = initialExpenseRows(event)
+    setExpenseRows(rows)
+    nextRowId.current = rows.length
     setMemo(event?.memo ?? '')
     setTitleError(null)
     setIsSubmitting(false)
@@ -63,6 +85,9 @@ export default function CalendarEventForm({
     setTitleError(null)
     setError(null)
     setIsSubmitting(true)
+    const expenseItems = expenseRows
+      .map((row) => ({ label: row.label.trim(), amount: parseInt(row.amount) || 0 }))
+      .filter((item) => item.amount > 0)
     try {
       const payload = {
         user_id: userId,
@@ -71,7 +96,8 @@ export default function CalendarEventForm({
         title: title.trim(),
         start_time: allDay ? null : startTime || null,
         end_time: allDay ? null : endTime || null,
-        planned_expense: parseInt(plannedExpense) || 0,
+        planned_expense: expenseItems.reduce((sum, item) => sum + item.amount, 0),
+        expense_items: expenseItems,
         memo: memo.trim() || null,
       }
       if (event) {
@@ -86,6 +112,20 @@ export default function CalendarEventForm({
       setIsSubmitting(false)
     }
   }
+
+  function updateExpenseRow(id: number, patch: Partial<Omit<ExpenseRow, 'id'>>) {
+    setExpenseRows((rows) => rows.map((row) => (row.id === id ? { ...row, ...patch } : row)))
+  }
+
+  function addExpenseRow() {
+    setExpenseRows((rows) => [...rows, { id: nextRowId.current++, label: '', amount: '' }])
+  }
+
+  function removeExpenseRow(id: number) {
+    setExpenseRows((rows) => rows.filter((row) => row.id !== id))
+  }
+
+  const expenseTotal = expenseRows.reduce((sum, row) => sum + (parseInt(row.amount) || 0), 0)
 
   async function handleDelete() {
     if (!event) return
@@ -187,18 +227,55 @@ export default function CalendarEventForm({
             </label>
 
             <div>
-              <label className="text-xs text-ink-muted">予定出費</label>
-              <div className="flex items-center gap-2 mt-1">
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={plannedExpense}
-                  onChange={(e) => setPlannedExpense(e.target.value)}
-                  className="flex-1 w-auto"
-                />
-                <span className="text-sm text-ink-muted">円</span>
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-ink-muted">予定出費</label>
+                {expenseRows.length > 1 && (
+                  <span className="text-xs text-ink-muted">
+                    合計 <span className="font-semibold text-ink">{formatYen(expenseTotal)}</span>
+                  </span>
+                )}
               </div>
+              <div className="space-y-2 mt-1">
+                {expenseRows.map((row) => (
+                  <div key={row.id} className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <Input
+                        value={row.label}
+                        onChange={(e) => updateExpenseRow(row.id, { label: e.target.value })}
+                        placeholder="ラベル（例: 交通費）"
+                      />
+                    </div>
+                    <div className="w-24 flex-shrink-0">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={row.amount}
+                        onChange={(e) => updateExpenseRow(row.id, { amount: e.target.value })}
+                        className="text-right"
+                      />
+                    </div>
+                    <span className="text-sm text-ink-muted">円</span>
+                    {expenseRows.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeExpenseRow(row.id)}
+                        aria-label="この出費を削除"
+                        className="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={addExpenseRow}
+                className="mt-2 w-full py-2 rounded-xl border border-dashed border-line text-sm text-primary-600 dark:text-primary-400 active:bg-surface-hover"
+              >
+                ＋ 出費を追加
+              </button>
             </div>
 
             <div>
