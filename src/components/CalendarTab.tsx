@@ -80,6 +80,16 @@ export default function CalendarTab({ userId }: Props) {
     return map
   }, [workSchedule])
 
+  const dayTypeCounts = useMemo(() => {
+    let work = 0
+    let off = 0
+    for (const type of dayTypeByDate.values()) {
+      if (type === 'work') work++
+      else if (type === 'off') off++
+    }
+    return { work, off }
+  }, [dayTypeByDate])
+
   async function handleDayTypeChange(next: WorkSchedule['day_type'] | null) {
     setDayTypeError(null)
     try {
@@ -251,6 +261,23 @@ export default function CalendarTab({ userId }: Props) {
               </button>
             )
           })}
+        </div>
+        {/* 月の出勤・休日数 */}
+        <div className="flex justify-end gap-3 px-3 py-1.5 text-[11px] text-ink-muted">
+          <span>
+            出勤{' '}
+            <span className="font-semibold text-primary-600 dark:text-primary-400">
+              {dayTypeCounts.work}
+            </span>
+            日
+          </span>
+          <span>
+            休日{' '}
+            <span className="font-semibold text-sky-600 dark:text-sky-400">
+              {dayTypeCounts.off}
+            </span>
+            日
+          </span>
         </div>
       </Card>
 
