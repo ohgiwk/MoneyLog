@@ -133,20 +133,6 @@ export default function CalendarEventForm({
             </div>
           )}
           <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-            <DatePicker
-              label="開始日"
-              value={eventDate}
-              onChange={(v) => {
-                setEventDate(v)
-                if (endDate < v) setEndDate(v)
-              }}
-            />
-            <DatePicker
-              label="終了日"
-              value={endDate}
-              onChange={(v) => setEndDate(v < eventDate ? eventDate : v)}
-            />
-
             <div>
               <label className="text-xs text-ink-muted">予定名</label>
               <Input
@@ -162,28 +148,29 @@ export default function CalendarEventForm({
               <ErrorText>{titleError}</ErrorText>
             </div>
 
-            <div
-              className={`space-y-2 transition-opacity duration-200 ${allDay ? 'opacity-35 pointer-events-none' : 'opacity-100'}`}
-            >
+            <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <label className="text-xs text-ink-muted w-14 flex-shrink-0">開始時間</label>
-                <Input
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  disabled={allDay}
-                  className="flex-1 min-w-0 bg-white dark:bg-surface"
-                />
+                <label className="text-xs text-ink-muted w-8 flex-shrink-0">開始</label>
+                <div className="flex-1 min-w-0">
+                  <DatePicker
+                    value={eventDate}
+                    onChange={(v) => {
+                      setEventDate(v)
+                      if (endDate < v) setEndDate(v)
+                    }}
+                    {...(allDay ? {} : { time: startTime, onTimeChange: setStartTime })}
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-xs text-ink-muted w-14 flex-shrink-0">終了時間</label>
-                <Input
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  disabled={allDay}
-                  className="flex-1 min-w-0 bg-white dark:bg-surface"
-                />
+                <label className="text-xs text-ink-muted w-8 flex-shrink-0">終了</label>
+                <div className="flex-1 min-w-0">
+                  <DatePicker
+                    value={endDate}
+                    onChange={(v) => setEndDate(v < eventDate ? eventDate : v)}
+                    {...(allDay ? {} : { time: endTime, onTimeChange: setEndTime })}
+                  />
+                </div>
               </div>
             </div>
 
