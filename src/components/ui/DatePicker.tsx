@@ -286,7 +286,30 @@ export default function DatePicker({ value, onChange, label, time, onTimeChange 
         createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-            <div className="relative bg-surface rounded-3xl w-full max-w-sm mx-4 px-4 pt-5 pb-6">
+            <div className="relative bg-surface rounded-3xl w-full max-w-sm mx-4 px-4 pt-3 pb-6">
+              <div className="flex justify-end mb-1">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover"
+                  aria-label="閉じる"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
               {withTime && (
                 <div className="flex gap-2 mb-4">
                   {(
