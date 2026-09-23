@@ -5,7 +5,9 @@ import { useAppContext } from '../../contexts/AppContext'
 import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
 import NewMonthBudgetDialog from '../NewMonthBudgetDialog'
+import QuickRecordSheet from '../QuickRecordSheet'
 import { shiftMonth, monthLabel } from '../../utils'
+import type { Transaction } from '../../lib/database.types'
 
 const TABS = [
   { path: '/', label: 'ホーム', icon: '🏠' },
@@ -29,11 +31,67 @@ export default function MainLayout() {
     bumpRecordTap,
     bumpShoppingTap,
     registerScrollToTop,
+    setQuickRecordTx,
   } = useAppContext()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [quickSheetOpen, setQuickSheetOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const rafRef = useRef<number | null>(null)
+  const pressStartRef = useRef<number>(0)
+  const isLongPress = useRef(false)
+  // フィルオーバーレイ div の DOM ref（RAF から直接 height を更新）
+  const fillOverlayRef = useRef<HTMLSpanElement | null>(null)
   const isCalendar = !!useMatch('/calendar')
   const prevPath = useRef(location.pathname)
+
+  const LONG_PRESS_MS = 500
+
+  function startLongPress() {
+    isLongPress.current = false
+    pressStartRef.current = performance.now()
+
+    function animate(now: number) {
+      const progress = Math.min((now - pressStartRef.current) / LONG_PRESS_MS, 1)
+
+      // グラデーションの「境界位置」を下(-50%)→上(100%)にスライド
+      // progress=1 のとき境界がボタン外に出て完全に赤一色になる
+      if (fillOverlayRef.current) {
+        const mid = progress * 150 - 50 // -50% → 100%
+        const top = mid + 35 // グラデーション幅 35%
+        fillOverlayRef.current.style.background = `linear-gradient(to top, #cc8500 ${mid}%, transparent ${top}%)`
+      }
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(animate)
+      } else {
+        isLongPress.current = true
+        setQuickSheetOpen(true)
+      }
+    }
+    rafRef.current = requestAnimationFrame(animate)
+  }
+
+  function cancelLongPress() {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
+    }
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    // overlay をリセット（透明に戻す）
+    if (fillOverlayRef.current) fillOverlayRef.current.style.background = 'transparent'
+    // isLongPress は click ハンドラが参照するためここではリセットしない
+  }
+
+  function handleQuickRecordSelect(tx: Transaction) {
+    setQuickRecordTx(tx)
+    if (location.pathname !== '/record') {
+      navigate('/record')
+    }
+  }
 
   useLayoutEffect(() => {
     registerScrollToTop(() => scrollRef.current?.scrollTo(0, 0))
@@ -190,24 +248,41 @@ export default function MainLayout() {
               <motion.button
                 key={t.path}
                 onClick={() => {
+                  if (isLongPress.current) {
+                    isLongPress.current = false
+                    return
+                  }
                   if (location.pathname === '/record') {
                     bumpRecordTap()
                   } else {
                     navigate(t.path)
                   }
                 }}
+                onTouchStart={startLongPress}
+                onTouchEnd={cancelLongPress}
+                onTouchMove={cancelLongPress}
+                onMouseDown={startLongPress}
+                onMouseUp={cancelLongPress}
+                onMouseLeave={cancelLongPress}
                 className="flex flex-col items-center gap-0.5 px-4 py-1 -mt-6"
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               >
+                {/* 長押し中に下から色が塗り上がるボタン */}
                 <span
                   className={
-                    'w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-md transition-colors ' +
+                    'relative w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-md overflow-hidden ' +
                     (isActive ? 'bg-blue-500' : 'bg-primary-500')
                   }
                 >
-                  <span className="text-2xl leading-none">{t.icon}</span>
-                  <span className={'text-xs font-bold leading-none mt-1.5 text-white'}>
+                  {/* フィルオーバーレイ：グラデーション境界を下→上にスライド */}
+                  <span
+                    ref={fillOverlayRef}
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: 'transparent' }}
+                  />
+                  <span className="text-2xl leading-none relative z-10">{t.icon}</span>
+                  <span className="text-xs font-bold leading-none mt-1.5 text-white relative z-10">
                     {isActive ? '入力' : '記録'}
                   </span>
                 </span>
@@ -238,6 +313,15 @@ export default function MainLayout() {
           )
         })}
       </div>
+
+      {user && (
+        <QuickRecordSheet
+          userId={user.id}
+          isOpen={quickSheetOpen}
+          onClose={() => setQuickSheetOpen(false)}
+          onSelect={handleQuickRecordSelect}
+        />
+      )}
     </div>
   )
 }

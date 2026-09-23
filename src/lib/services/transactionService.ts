@@ -77,4 +77,43 @@ export const transactionService = {
     if (error) throw new Error(error.message)
     return data ?? []
   },
+
+  fetchFrequentExpenses: async (
+    userId: string,
+    limit = 15
+  ): Promise<{ count: number; tx: Transaction }[]> => {
+    const to = new Date()
+    const from = new Date()
+    from.setDate(from.getDate() - 90)
+    const fromStr = from.toISOString().slice(0, 10)
+    const toStr = to.toISOString().slice(0, 10)
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'expense')
+      .gte('date', fromStr)
+      .lte('date', toStr)
+      .order('date', { ascending: false })
+    if (error) throw new Error(error.message)
+
+    const transactions: Transaction[] = data ?? []
+    // category + amount + memo のみで重複判定（支払方法・店舗種別の違いは同一出費とみなす）
+    const keyMap = new Map<string, { count: number; tx: Transaction }>()
+    for (const tx of transactions) {
+      const key = `${tx.category}|${tx.amount}|${tx.memo ?? ''}`
+      const existing = keyMap.get(key)
+      if (existing) {
+        existing.count++
+      } else {
+        keyMap.set(key, { count: 1, tx })
+      }
+    }
+
+    return [...keyMap.values()]
+      .filter((item) => item.count >= 2)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit)
+  },
 }

@@ -25,6 +25,8 @@ export default function RecordTab({ userId }: Props) {
     setMonth,
     editingTx,
     setEditingTx,
+    quickRecordTx,
+    setQuickRecordTx,
     recordTapKey: resetSignal,
     categories,
   } = useAppContext()
@@ -96,6 +98,17 @@ export default function RecordTab({ userId }: Props) {
       setModalOpen(true)
     }
   }
+
+  // クイック記録（長押しメニューから選んだ出費を複製して入力）
+  useEffect(() => {
+    if (!quickRecordTx) return
+    setFormEditingTx(null)
+    setFormDuplicateTx(quickRecordTx)
+    setFormType(quickRecordTx.type as 'expense' | 'income')
+    setModalOpen(true)
+    setQuickRecordTx(null)
+  }, [quickRecordTx]) // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (editingTx) {
       /* scroll reset handled by route transition */

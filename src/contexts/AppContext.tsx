@@ -23,6 +23,8 @@ interface AppContextValue {
   setCalendarSelectedDate: (d: string | undefined) => void
   editingTx: Transaction | null
   setEditingTx: (tx: Transaction | null) => void
+  quickRecordTx: Transaction | null
+  setQuickRecordTx: (tx: Transaction | null) => void
   headerBack: HeaderBack
   setHeaderBack: (state: HeaderBack) => void
   recordTapKey: number
@@ -45,6 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [month, setMonth] = useState(todayStr().slice(0, 7))
   const [calendarSelectedDate, setCalendarSelectedDate] = useState<string | undefined>(undefined)
   const [editingTx, setEditingTx] = useState<Transaction | null>(null)
+  const [quickRecordTx, setQuickRecordTx] = useState<Transaction | null>(null)
   const [headerBack, setHeaderBack] = useState<HeaderBack>(null)
   const [recordTapKey, setRecordTapKey] = useState(0)
   const [shoppingTapKey, setShoppingTapKey] = useState(0)
@@ -61,6 +64,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCalendarSelectedDate,
         editingTx,
         setEditingTx,
+        quickRecordTx,
+        setQuickRecordTx,
         headerBack,
         setHeaderBack,
         recordTapKey,
