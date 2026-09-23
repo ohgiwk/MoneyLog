@@ -186,6 +186,9 @@ create policy "own calendar_events" on public.calendar_events for all using (aut
 -- 既存のcalendar_eventsにday_typeカラムがある場合は削除（区分はwork_scheduleへ移行）
 alter table public.calendar_events drop column if exists day_type;
 
+-- calendar_events に終了日を追加（日を跨ぐ予定用。null なら date の1日のみ）
+alter table public.calendar_events add column if not exists end_date date;
+
 -- consumables（消耗品費）
 create table public.consumables (
   id uuid primary key default gen_random_uuid(),

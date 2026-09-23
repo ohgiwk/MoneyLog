@@ -183,6 +183,7 @@ export interface Database {
           id: string
           user_id: string
           date: string
+          end_date: string | null
           title: string
           start_time: string | null
           end_time: string | null
@@ -190,7 +191,10 @@ export interface Database {
           memo: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['calendar_events']['Row'], 'id' | 'created_at'>
+        Insert: Omit<
+          Database['public']['Tables']['calendar_events']['Row'],
+          'id' | 'created_at' | 'end_date'
+        > & { end_date?: string | null }
         Update: Partial<Database['public']['Tables']['calendar_events']['Insert']>
       }
       work_schedule: {

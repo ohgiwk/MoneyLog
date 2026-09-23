@@ -26,6 +26,7 @@ export default function CalendarEventForm({
   onSaved,
 }: Props) {
   const [eventDate, setEventDate] = useState(event?.date ?? date)
+  const [endDate, setEndDate] = useState(event?.end_date ?? event?.date ?? date)
   const [allDay, setAllDay] = useState(event ? !event.start_time : false)
   const [title, setTitle] = useState(event?.title ?? '')
   const [startTime, setStartTime] = useState(event?.start_time?.slice(0, 5) ?? '')
@@ -42,6 +43,7 @@ export default function CalendarEventForm({
   useEffect(() => {
     if (!isOpen) return
     setEventDate(event?.date ?? date)
+    setEndDate(event?.end_date ?? event?.date ?? date)
     setAllDay(event ? !event.start_time : false)
     setTitle(event?.title ?? '')
     setStartTime(event?.start_time?.slice(0, 5) ?? '')
@@ -65,6 +67,7 @@ export default function CalendarEventForm({
       const payload = {
         user_id: userId,
         date: eventDate,
+        end_date: endDate > eventDate ? endDate : null,
         title: title.trim(),
         start_time: allDay ? null : startTime || null,
         end_time: allDay ? null : endTime || null,
@@ -130,7 +133,19 @@ export default function CalendarEventForm({
             </div>
           )}
           <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-4">
-            <DatePicker label="予定日" value={eventDate} onChange={setEventDate} />
+            <DatePicker
+              label="開始日"
+              value={eventDate}
+              onChange={(v) => {
+                setEventDate(v)
+                if (endDate < v) setEndDate(v)
+              }}
+            />
+            <DatePicker
+              label="終了日"
+              value={endDate}
+              onChange={(v) => setEndDate(v < eventDate ? eventDate : v)}
+            />
 
             <div>
               <label className="text-xs text-ink-muted">予定名</label>

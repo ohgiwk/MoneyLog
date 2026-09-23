@@ -46,6 +46,11 @@ const DAY_TYPE_LABELS: Record<
   },
 }
 
+function formatEventPoint(date: string, time: string | null): string {
+  const label = `${parseInt(date.slice(5, 7))}/${parseInt(date.slice(8))}`
+  return time ? `${label} ${time.slice(0, 5)}` : label
+}
+
 export default function CalendarTab({ userId }: Props) {
   const { month, calendarSelectedDate, categories } = useAppContext()
   const expenseCategories = categories.activeExpenseCategories
@@ -127,13 +132,13 @@ export default function CalendarTab({ userId }: Props) {
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>()
-    for (const e of events) {
-      const arr = map.get(e.date) ?? []
-      arr.push(e)
-      map.set(e.date, arr)
+    for (const date of calendarDays) {
+      if (!date) continue
+      const dayEvents = events.filter((e) => e.date <= date && date <= (e.end_date ?? e.date))
+      if (dayEvents.length > 0) map.set(date, dayEvents)
     }
     return map
-  }, [events])
+  }, [events, calendarDays])
 
   const selectedEvents = eventsByDate.get(selectedDate) ?? []
   const selectedTransactions = useMemo(
@@ -333,11 +338,18 @@ export default function CalendarTab({ userId }: Props) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-ink truncate">{ev.title}</span>
                   </div>
-                  {(ev.start_time || ev.end_time) && (
+                  {ev.end_date ? (
                     <div className="text-xs text-ink-muted mt-0.5">
-                      {ev.start_time ? ev.start_time.slice(0, 5) : ''}
-                      {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
+                      {formatEventPoint(ev.date, ev.start_time)} 〜{' '}
+                      {formatEventPoint(ev.end_date, ev.end_time)}
                     </div>
+                  ) : (
+                    (ev.start_time || ev.end_time) && (
+                      <div className="text-xs text-ink-muted mt-0.5">
+                        {ev.start_time ? ev.start_time.slice(0, 5) : ''}
+                        {ev.end_time ? ` 〜 ${ev.end_time.slice(0, 5)}` : ''}
+                      </div>
+                    )
                   )}
                   {ev.memo && (
                     <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>
