@@ -4,6 +4,7 @@ import { categoryInfo, mondayFirstDow, monthKey, monthlyConsumableCost, todayStr
 import { WEEKS_PER_MONTH } from '../constants'
 import type { BudgetSettings } from '../lib/services/budgetService'
 import { oneTimeBudgetTotal } from '../lib/services/budgetService'
+import { isActiveFixedExpense, toMonthlyAmount } from '../lib/loan'
 
 // 出費取引をカテゴリ別に合計する（当日/週/月の各集計で共通利用）
 function aggregateOneTimeByCategory(txs: Transaction[]): Map<string, number> {
@@ -54,19 +55,16 @@ export function useSummaryCalculations({
   )
 
   const activeFixed = useMemo(
-    () => fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing'),
+    () => fixedExpenses.filter((f) => isActiveFixedExpense(f)),
     [fixedExpenses]
   )
 
-  const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+  const toMonthly = (f: FixedExpense) => toMonthlyAmount(f, f.amount)
 
   const totalFixed = useMemo(() => activeFixed.reduce((s, f) => s + toMonthly(f), 0), [activeFixed])
 
   const totalSaved = useMemo(() => {
-    const totalBaseline = activeFixed.reduce(
-      (s, f) => s + f.baseline_amount / (f.cycle === 'yearly' ? 12 : 1),
-      0
-    )
+    const totalBaseline = activeFixed.reduce((s, f) => s + toMonthlyAmount(f, f.baseline_amount), 0)
     return totalBaseline - totalFixed
   }, [activeFixed, totalFixed])
 

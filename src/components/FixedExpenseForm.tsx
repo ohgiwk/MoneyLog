@@ -11,7 +11,14 @@ import {
   removeExpenseCurrencyMeta,
 } from '../lib/exchangeRate'
 import { getLoanMeta, removeLoanMeta } from '../lib/loanMeta'
-import { todayStr } from '../utils'
+import {
+  LOAN_CATEGORY,
+  currentMonthStr,
+  loanEndMonth,
+  loanInstallments,
+  loanProgress,
+} from '../lib/loan'
+import { formatYen, monthLabel, todayStr } from '../utils'
 import CategoryGrid from './ui/CategoryGrid'
 import ConfirmDialog from './ui/ConfirmDialog'
 import CelebrationDialog from './ui/CelebrationDialog'
@@ -71,11 +78,14 @@ export default function FixedExpenseForm({
     if (expense?.id) return getLoanMeta(expense.id)?.startMonth ?? ''
     return ''
   })
-  const [loanEndMonth, setLoanEndMonth] = useState<string>(() => {
-    if (expense?.loan_end_month) return expense.loan_end_month
-    if (expense?.id) return getLoanMeta(expense.id)?.endMonth ?? ''
-    return ''
+  const [loanInstallmentsInput, setLoanInstallmentsInput] = useState<string>(() => {
+    const start = expense?.loan_start_month ?? (expense?.id && getLoanMeta(expense.id)?.startMonth)
+    const end = expense?.loan_end_month ?? (expense?.id && getLoanMeta(expense.id)?.endMonth)
+    if (!start || !end) return ''
+    const n = loanInstallments(start, end)
+    return n > 0 ? n.toString() : ''
   })
+  const [loanError, setLoanError] = useState<string | null>(null)
 
   const { values, setValue, isSubmitting, setIsSubmitting, error, setError } = useForm<FormValues>({
     name: expense?.name ?? '',
@@ -95,7 +105,14 @@ export default function FixedExpenseForm({
     notes: expense?.notes ?? '',
   })
 
-  const { isDirty } = useIsDirty({ ...values, currency })
+  const { isDirty } = useIsDirty({ ...values, currency, loanStartMonth, loanInstallmentsInput })
+
+  const isLoan = values.category === LOAN_CATEGORY
+  const parsedInstallments = parseInt(loanInstallmentsInput, 10)
+  const validInstallments =
+    Number.isInteger(parsedInstallments) && parsedInstallments >= 1 ? parsedInstallments : null
+  const computedEndMonth =
+    loanStartMonth && validInstallments ? loanEndMonth(loanStartMonth, validInstallments) : null
 
   const { closedRef, closeAndNotify } = useFormClose(onClose)
 
@@ -155,6 +172,14 @@ export default function FixedExpenseForm({
     } else {
       setAmountError(null)
     }
+    if (isLoan && (loanStartMonth || loanInstallmentsInput)) {
+      if (!loanStartMonth || !validInstallments) {
+        setLoanError('開始月と分割回数（1以上）を入力してください')
+        hasError = true
+      } else {
+        setLoanError(null)
+      }
+    }
     if (hasError) return
 
     const jpyAmount = currency === 'USD' ? Math.round(inputAmt * usdRate) : inputAmt
@@ -162,21 +187,21 @@ export default function FixedExpenseForm({
     setIsSubmitting(true)
     setError(null)
     try {
-      const isLoan = values.category === 'ローン'
+      const cycle = isLoan ? 'monthly' : values.cycle
       const currencyFields = {
         currency: currency === 'USD' ? 'USD' : null,
         usd_amount: currency === 'USD' ? inputAmt : null,
       }
       const loanFields = {
-        loan_start_month: isLoan && loanStartMonth ? loanStartMonth : null,
-        loan_end_month: isLoan && loanEndMonth ? loanEndMonth : null,
+        loan_start_month: isLoan && computedEndMonth ? loanStartMonth : null,
+        loan_end_month: isLoan && computedEndMonth ? computedEndMonth : null,
       }
       if (expense) {
         await fixedExpenseService.update(expense.id, {
           name: values.name,
           category: values.category,
           amount: jpyAmount,
-          cycle: values.cycle,
+          cycle,
           status: values.status,
           notes: values.notes || null,
           ...currencyFields,
@@ -192,7 +217,7 @@ export default function FixedExpenseForm({
           category: values.category,
           amount: jpyAmount,
           baseline_amount: jpyAmount,
-          cycle: values.cycle,
+          cycle,
           status: values.status,
           notes: values.notes || null,
           start_date: todayStr(),
@@ -210,8 +235,14 @@ export default function FixedExpenseForm({
       const wasActive = expense && ['active', 'reviewing'].includes(expense.status)
       const nowCancelled = ['cancelled', 'unsubscribed'].includes(values.status)
       if (wasActive && nowCancelled) {
-        const monthly = expense!.cycle === 'yearly' ? Math.round(jpyAmount / 12) : jpyAmount
-        const yearly = expense!.cycle === 'yearly' ? jpyAmount : jpyAmount * 12
+        const monthly = Math.round(
+          isLoan && validInstallments
+            ? jpyAmount / validInstallments
+            : cycle === 'yearly'
+              ? jpyAmount / 12
+              : jpyAmount
+        )
+        const yearly = monthly * 12
         setCelebration({ monthly, yearly })
       } else {
         closeAndNotify()
@@ -281,34 +312,63 @@ export default function FixedExpenseForm({
           </button>
         )}
 
-        {values.category === 'ローン' && (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-ink-muted">開始月</label>
-              <input
-                type="month"
-                value={loanStartMonth}
-                onChange={(e) => setLoanStartMonth(e.target.value)}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
-              />
+        {isLoan && (
+          <div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-ink-muted">開始月</label>
+                <input
+                  type="month"
+                  value={loanStartMonth}
+                  onChange={(e) => {
+                    setLoanStartMonth(e.target.value)
+                    if (loanError) setLoanError(null)
+                  }}
+                  className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-ink-muted">分割回数</label>
+                <div className="relative mt-1">
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    value={loanInstallmentsInput}
+                    onChange={(e) => {
+                      setLoanInstallmentsInput(e.target.value)
+                      if (loanError) setLoanError(null)
+                    }}
+                    placeholder="例: 36"
+                    error={!!loanError}
+                    className="pl-3 pr-8"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-ink-muted pointer-events-none select-none">
+                    回
+                  </span>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-xs text-ink-muted">終了月</label>
-              <input
-                type="month"
-                value={loanEndMonth}
-                onChange={(e) => setLoanEndMonth(e.target.value)}
-                min={loanStartMonth || undefined}
-                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 bg-white"
+            <ErrorText>{loanError}</ErrorText>
+            {computedEndMonth && validInstallments && (
+              <LoanSummary
+                startMonth={loanStartMonth}
+                endMonth={computedEndMonth}
+                installments={validInstallments}
+                totalAmount={
+                  currency === 'USD'
+                    ? Math.round((parseFloat(values.amount) || 0) * usdRate)
+                    : parseFloat(values.amount) || 0
+                }
               />
-            </div>
+            )}
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs text-ink-muted">金額</label>
+              <label className="text-xs text-ink-muted">{isLoan ? '総額' : '金額'}</label>
               <div className="flex rounded-lg overflow-hidden border border-line text-xs">
                 {(['JPY', 'USD'] as const).map((c) => (
                   <button
@@ -353,14 +413,20 @@ export default function FixedExpenseForm({
           </div>
           <div>
             <label className="text-xs text-ink-muted">サイクル</label>
-            <select
-              value={values.cycle}
-              onChange={(e) => setValue('cycle', e.target.value as FixedExpense['cycle'])}
-              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
-            >
-              <option value="monthly">毎月</option>
-              <option value="yearly">毎年</option>
-            </select>
+            {isLoan ? (
+              <div className="w-full mt-1 border border-line-subtle rounded-xl px-3 py-2 text-sm text-ink-muted bg-surface-subtle">
+                毎月
+              </div>
+            ) : (
+              <select
+                value={values.cycle}
+                onChange={(e) => setValue('cycle', e.target.value as FixedExpense['cycle'])}
+                className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+              >
+                <option value="monthly">毎月</option>
+                <option value="yearly">毎年</option>
+              </select>
+            )}
           </div>
         </div>
 
@@ -424,6 +490,46 @@ export default function FixedExpenseForm({
           onCancel={() => setConfirmDelete(false)}
         />
       )}
+    </div>
+  )
+}
+
+function LoanSummary({
+  startMonth,
+  endMonth,
+  installments,
+  totalAmount,
+}: {
+  startMonth: string
+  endMonth: string
+  installments: number
+  totalAmount: number
+}) {
+  const { remainingCount, remainingAmount } = loanProgress(
+    { startMonth, endMonth, installments },
+    totalAmount
+  )
+  const finished = endMonth < currentMonthStr()
+  return (
+    <div className="mt-2 rounded-xl bg-surface-subtle px-3 py-2 text-xs text-ink-muted space-y-0.5">
+      <div className="flex justify-between">
+        <span>月々の返済額</span>
+        <span className="font-semibold text-ink">{formatYen(totalAmount / installments)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>終了月</span>
+        <span className="font-semibold text-ink">{monthLabel(endMonth)}</span>
+      </div>
+      <div className="flex justify-between">
+        <span>残り回数</span>
+        <span className="font-semibold text-ink">
+          {finished ? '完済' : `${remainingCount} / ${installments}回`}
+        </span>
+      </div>
+      <div className="flex justify-between">
+        <span>残額</span>
+        <span className="font-semibold text-ink">{formatYen(remainingAmount)}</span>
+      </div>
     </div>
   )
 }

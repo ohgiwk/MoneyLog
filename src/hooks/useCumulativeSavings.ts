@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { isActiveFixedExpense, toMonthlyAmount } from '../lib/loan'
 import { shiftMonth, todayStr } from '../utils'
 
 export interface MonthlySavingEntry {
@@ -35,7 +36,10 @@ export function useCumulativeSavings(userId: string) {
           .select('date, amount, type, expense_kind')
           .eq('user_id', userId)
           .lte('date', lastMonthEnd),
-        supabase.from('fixed_expenses').select('amount, cycle, status').eq('user_id', userId),
+        supabase
+          .from('fixed_expenses')
+          .select('id, category, amount, cycle, status, loan_start_month, loan_end_month')
+          .eq('user_id', userId),
       ])
 
       if (cancelled) return
@@ -54,8 +58,8 @@ export function useCumulativeSavings(userId: string) {
       }
 
       const totalFixed = fixedExpenses
-        .filter((f) => f.status === 'active' || f.status === 'reviewing')
-        .reduce((s, f) => s + (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1), 0)
+        .filter((f) => isActiveFixedExpense(f))
+        .reduce((s, f) => s + toMonthlyAmount(f, f.amount), 0)
 
       let cumulative = 0
       const breakdown: MonthlySavingEntry[] = []

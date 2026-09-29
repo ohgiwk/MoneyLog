@@ -4,8 +4,15 @@ import { createPortal } from 'react-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
-import { formatYen } from '../utils'
+import { formatYen, monthLabel } from '../utils'
 import { getAllCurrencyMeta } from '../lib/exchangeRate'
+import {
+  getLoanPeriod,
+  isActiveFixedExpense,
+  isLoanFinished,
+  loanProgress,
+  toMonthlyAmount,
+} from '../lib/loan'
 import { TabGroup } from './ui/TabGroup'
 import FixedExpenseForm from './FixedExpenseForm'
 import FixedExpenseTutorial from './FixedExpenseTutorial'
@@ -101,18 +108,36 @@ export default function FixedExpenseList({
     [fixedExpenses, filter, categoryOrderMap]
   )
   const activeExpenses = useMemo(
-    () => fixedExpenses.filter((f) => f.status === 'active' || f.status === 'reviewing'),
+    () => fixedExpenses.filter((f) => isActiveFixedExpense(f)),
     [fixedExpenses]
   )
-  const toMonthly = (f: FixedExpense) => (f.amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
-  const toMonthlyBaseline = (f: FixedExpense) =>
-    (f.baseline_amount ?? 0) / (f.cycle === 'yearly' ? 12 : 1)
+  const toMonthly = (f: FixedExpense) => toMonthlyAmount(f, f.amount)
+  const toMonthlyBaseline = (f: FixedExpense) => toMonthlyAmount(f, f.baseline_amount)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
   const cancelledExpenses = useMemo(
     () => fixedExpenses.filter((f) => f.status === 'cancelled' && f.baseline_amount > 0),
     [fixedExpenses]
   )
   const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
+
+  function renderLoanInfo(f: FixedExpense): ReactNode {
+    const period = getLoanPeriod(f)
+    if (!period) return null
+    if (isLoanFinished(f)) {
+      return (
+        <div className="text-xs text-ink-muted font-medium">
+          {monthLabel(period.endMonth)}に完済（全{period.installments}回）
+        </div>
+      )
+    }
+    const { remainingCount, remainingAmount } = loanProgress(period, f.amount ?? 0)
+    return (
+      <div className="text-xs text-indigo-400 font-medium">
+        残り{remainingCount}回・残額 {formatYen(remainingAmount)}（{monthLabel(period.endMonth)}
+        まで）
+      </div>
+    )
+  }
 
   function renderRows(list: FixedExpense[]): ReactNode[] {
     const rows: ReactNode[] = []
@@ -132,6 +157,10 @@ export default function FixedExpenseList({
         prevCategory = f.category
       }
       const meta = currencyMeta[f.id]
+      const isLoan = getLoanPeriod(f) != null
+      // 年払い・ローン（総額）は月換算額を併記する
+      const showMonthly = f.cycle === 'yearly' || isLoan
+      const amountSuffix = isLoan ? '（総額）' : f.cycle === 'yearly' ? '/年' : ''
       rows.push(
         <div
           key={f.id}
@@ -143,9 +172,10 @@ export default function FixedExpenseList({
             {f.cycle === 'yearly' && (
               <div className="text-xs text-indigo-400 font-medium">年払い</div>
             )}
+            {renderLoanInfo(f)}
             {f.status === 'reviewing' && f.amount != null && f.amount > 0 && (
               <div className="text-xs text-warning-600 font-medium">
-                解約すれば年間 {formatYen(f.cycle === 'yearly' ? f.amount : f.amount * 12)} 削減
+                解約すれば年間 {formatYen(toMonthly(f) * 12)} 削減
               </div>
             )}
           </div>
@@ -154,12 +184,10 @@ export default function FixedExpenseList({
               <>
                 <div className="text-sm font-semibold text-ink">
                   ${meta.usdAmount.toLocaleString()}
-                  {f.cycle === 'yearly' ? '/年' : ''}
+                  {amountSuffix}
                 </div>
                 <div className="text-xs text-ink-muted">
-                  {f.cycle === 'yearly'
-                    ? `月換算 ${formatYen(Math.round((f.amount ?? 0) / 12))}`
-                    : formatYen(f.amount ?? 0)}
+                  {showMonthly ? `月換算 ${formatYen(toMonthly(f))}` : formatYen(f.amount ?? 0)}
                 </div>
               </>
             ) : (
@@ -167,25 +195,25 @@ export default function FixedExpenseList({
                 <div
                   className={`text-sm font-semibold ${f.amount == null ? 'text-ink-subtle' : 'text-ink'}`}
                 >
-                  {f.amount == null
-                    ? '未入力'
-                    : f.cycle === 'yearly'
-                      ? `${formatYen(f.amount)}/年`
-                      : formatYen(f.amount)}
+                  {f.amount == null ? '未入力' : `${formatYen(f.amount)}${amountSuffix}`}
                 </div>
-                {f.cycle === 'yearly' && f.amount != null && (
-                  <div className="text-xs text-ink-muted">
-                    月換算 {formatYen(Math.round(f.amount / 12))}
-                  </div>
+                {showMonthly && f.amount != null && (
+                  <div className="text-xs text-ink-muted">月換算 {formatYen(toMonthly(f))}</div>
                 )}
               </>
             )}
           </div>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
-          >
-            {STATUS_LABELS[f.status].label}
-          </span>
+          {isLoanFinished(f) ? (
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0 bg-surface-subtle text-ink-muted">
+              完済
+            </span>
+          ) : (
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${STATUS_LABELS[f.status].color}`}
+            >
+              {STATUS_LABELS[f.status].label}
+            </span>
+          )}
         </div>
       )
     })
@@ -262,8 +290,11 @@ export default function FixedExpenseList({
         </Card>
       ) : filter === 'active' ? (
         (() => {
-          const reviewingList = filtered.filter((f) => f.status === 'reviewing')
-          const activeList = filtered.filter((f) => f.status === 'active')
+          const reviewingList = filtered.filter(
+            (f) => f.status === 'reviewing' && !isLoanFinished(f)
+          )
+          const activeList = filtered.filter((f) => f.status === 'active' && !isLoanFinished(f))
+          const finishedList = filtered.filter((f) => isLoanFinished(f))
           return (
             <div className="space-y-3">
               {reviewingList.length > 0 && (
@@ -276,6 +307,14 @@ export default function FixedExpenseList({
                 <div>
                   <div className="text-xs font-semibold text-ink-muted px-1 pb-1">契約中</div>
                   <Card>{renderRows(activeList)}</Card>
+                </div>
+              )}
+              {finishedList.length > 0 && (
+                <div>
+                  <div className="text-xs font-semibold text-ink-muted px-1 pb-1">
+                    完済（固定費合計に含みません）
+                  </div>
+                  <Card className="opacity-60">{renderRows(finishedList)}</Card>
                 </div>
               )}
             </div>
