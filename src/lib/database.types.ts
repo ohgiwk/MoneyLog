@@ -40,7 +40,8 @@ export interface Database {
           user_id: string
           name: string
           category: string
-          amount: number
+          // null は未入力（チュートリアルで金額を入れずに登録した場合など）
+          amount: number | null
           baseline_amount: number
           cycle: 'daily' | 'weekly' | 'monthly' | 'yearly'
           billing_day: number | null
@@ -203,7 +204,8 @@ export interface Database {
           id: string
           user_id: string
           date: string
-          day_type: 'work' | 'off' | 'holiday' | null
+          // 旧区分（shift_types 導入前のデータのみ）
+          day_type: 'work' | 'am_off' | 'pm_off' | 'off' | 'holiday' | null
           shift_type_id: string | null
           hours_worked: number | null
           hourly_wage: number | null

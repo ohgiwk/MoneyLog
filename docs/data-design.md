@@ -16,7 +16,10 @@
 ├── shopping_lists .......... 買い物リスト（セッション単位）
 ├── shopping_items .......... 買い物リストのアイテム
 ├── calendar_events ......... カレンダー予定
-├── work_schedule ........... 勤務カレンダー（収入計算・勤怠実績）
+├── work_schedule ........... 勤務カレンダー（日ごとの区分・収入計算・勤怠実績）
+├── workplaces .............. 勤務先（開始日付き）
+├── shift_types ............. 勤務先ごとのカレンダー区分・勤務時間
+├── user_categories ......... カテゴリのカスタマイズ設定
 ├── income_records .......... 月次収入サマリー（予測vs実績）
 ├── wishlist_items .......... 欲しいものリスト
 ├── savings_goals ........... 貯金目標
@@ -56,6 +59,10 @@ erDiagram
         text status
         date start_date
         text notes
+        text currency
+        numeric usd_amount
+        text loan_start_month
+        text loan_end_month
         timestamptz created_at
     }
 
@@ -111,6 +118,7 @@ erDiagram
         numeric fixed
         numeric consumable
         numeric income
+        numeric savings
         jsonb one_time_by_category
         timestamptz created_at
     }
@@ -145,10 +153,12 @@ erDiagram
         uuid id PK
         uuid user_id FK
         date date
+        date end_date
         text title
         time start_time
         time end_time
-        numeric planned_expense
+        int planned_expense
+        jsonb expense_items
         text memo
         timestamptz created_at
     }
@@ -157,12 +167,41 @@ erDiagram
         uuid id PK
         uuid user_id FK
         date date
+        uuid shift_type_id FK
         text day_type
         numeric hours_worked
         numeric hourly_wage
         numeric daily_income
         text memo
         timestamptz created_at
+    }
+
+    workplaces {
+        uuid id PK
+        uuid user_id FK
+        text name
+        date start_date
+        timestamptz created_at
+    }
+
+    shift_types {
+        uuid id PK
+        uuid user_id FK
+        uuid workplace_id FK
+        text name
+        text kind
+        jsonb time_ranges
+        text color
+        int sort_order
+        boolean archived
+        timestamptz created_at
+    }
+
+    user_categories {
+        uuid user_id PK
+        text type PK
+        jsonb categories
+        timestamptz updated_at
     }
 
     income_records {
@@ -184,6 +223,7 @@ erDiagram
         numeric target_amount
         int priority
         date purchased_at
+        date target_date
         text notes
         timestamptz created_at
     }
@@ -217,6 +257,8 @@ erDiagram
     auth_users ||--o{ shopping_lists : "1:N"
     auth_users ||--o{ calendar_events : "1:N"
     auth_users ||--o{ work_schedule : "1:N"
+    auth_users ||--o{ workplaces : "1:N"
+    auth_users ||--o{ user_categories : "1:N"
     auth_users ||--o{ income_records : "1:N"
     auth_users ||--o{ wishlist_items : "1:N"
     auth_users ||--o{ savings_goals : "1:N"
@@ -224,6 +266,8 @@ erDiagram
     shopping_lists ||--o{ shopping_items : "1:N"
     wishlist_items ||--o| savings_goals : "1:1"
     savings_goals ||--o{ monthly_adjustments : "1:N"
+    workplaces ||--o{ shift_types : "1:N"
+    shift_types ||--o{ work_schedule : "区分"
 ```
 
 ---
@@ -256,6 +300,12 @@ auth.users
     ├── calendar_events（1対多）
     │
     ├── work_schedule（1対多）← カレンダー表示・収入実績
+    │
+    ├── workplaces（1対多）
+    │       │
+    │       └── shift_types（1対多）→ work_schedule.shift_type_id から参照
+    │
+    ├── user_categories（1対多、user_id + type で複合主キー）
     │
     ├── income_records（1対多）← 月次収入の予測vs実績
     │
@@ -301,13 +351,17 @@ auth.users
 | user_id | uuid | どのユーザーの固定費か |
 | name | text | 名前（例：Netflix、家賃） |
 | category | text | カテゴリ（通信費・住居費など） |
-| amount | numeric | 現在の金額（円） |
+| amount | numeric | 現在の金額（円。null は未入力。ローンは総額） |
 | baseline_amount | numeric | **最初に登録した金額**（節約額計算の基準） |
 | cycle | text | 支払いサイクル `daily` / `weekly` / `monthly` / `yearly` |
 | billing_day | int | 引き落とし日（例：25 → 毎月25日） |
-| status | text | `active`（契約中）/ `reviewing`（見直し中）/ `cancelled`（解約済み） |
+| status | text | `active`（契約中）/ `reviewing`（見直し中）/ `unsubscribed`（未契約）/ `cancelled`（解約済み） |
 | start_date | date | 登録開始日 |
 | notes | text | メモ |
+| currency | text | `USD` のとき入力額はドル（null は円） |
+| usd_amount | numeric | ドル入力時の入力額（`amount` は保存時のレートで円換算した値） |
+| loan_start_month | text | ローンの開始月（`YYYY-MM`） |
+| loan_end_month | text | ローンの終了月（`YYYY-MM`。分割回数は開始月〜終了月の月数） |
 | created_at | timestamptz | 作成日時 |
 
 **節約額の計算イメージ**
@@ -412,6 +466,7 @@ yearly   毎年
 | fixed | numeric | 固定費予算（円） |
 | consumable | numeric | 消耗品費予算（円） |
 | income | numeric | その月の収入（予算使用率の計算基準） |
+| savings | numeric | その月の貯蓄額 |
 | one_time_by_category | jsonb | カテゴリ別の臨時出費予算（例：`{"食費": 30000}`） |
 | created_at | timestamptz | 作成日時 |
 
@@ -473,11 +528,13 @@ shopping_listsに紐づく個々のアイテム。
 |---|---|---|
 | id | uuid | イベントID |
 | user_id | uuid | ユーザーID |
-| date | date | 対象日 |
+| date | date | 対象日（日を跨ぐ予定は開始日） |
+| end_date | date | 終了日（null なら `date` の1日のみ） |
 | title | text | イベントタイトル |
 | start_time | time | 開始時刻（任意） |
 | end_time | time | 終了時刻（任意） |
-| planned_expense | numeric | 予定出費（デフォルト0） |
+| planned_expense | int | 予定出費の合計（`expense_items` の合計、デフォルト0） |
+| expense_items | jsonb | 予定出費の明細（`[{ label, amount }]`） |
 | memo | text | メモ |
 | created_at | timestamptz | 作成日時 |
 
@@ -513,6 +570,7 @@ shopping_listsに紐づく個々のアイテム。
 | user_id | uuid | - |
 | name | text | 勤務先名 |
 | start_date | date | この日以降に適用（null は「はじめから」） |
+| created_at | timestamptz | 作成日時 |
 
 #### shift_types（カレンダー区分）
 
@@ -529,6 +587,7 @@ shopping_listsに紐づく個々のアイテム。
 | color | text | 表示色のキー |
 | sort_order | int | 並び順 |
 | archived | boolean | 削除済み（選択肢に出さない） |
+| created_at | timestamptz | 作成日時 |
 
 ### 11. income_records（月次収入サマリー）
 
@@ -559,6 +618,7 @@ shopping_listsに紐づく個々のアイテム。
 | target_amount | numeric | 目標金額 |
 | priority | int | 優先順位（1が最高） |
 | purchased_at | date | 購入日（nullなら未購入） |
+| target_date | date | 購入目標日 |
 | notes | text | メモ |
 | created_at | timestamptz | 作成日時 |
 
@@ -593,6 +653,19 @@ shopping_listsに紐づく個々のアイテム。
 | amount | numeric | 調整額（正＝追加、負＝減額） |
 | memo | text | 理由（例：「先月分の未入力分を補正」） |
 | created_at | timestamptz | - |
+
+---
+
+### 15. user_categories（カテゴリのカスタマイズ設定）
+
+支出・収入・固定費のカテゴリ一覧をユーザーごとに保存する。デバイス間で共有するためDBに保存し、`(user_id, type)` が複合主キー。
+
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| user_id | uuid | ユーザーID（複合PK） |
+| type | text | `expense` / `income` / `fixed`（複合PK） |
+| categories | jsonb | カテゴリの配列（`[{ name, icon, color, enabled }]`） |
+| updated_at | timestamptz | 更新日時 |
 
 ---
 

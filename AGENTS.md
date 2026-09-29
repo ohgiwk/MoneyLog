@@ -82,7 +82,7 @@ UI・DB に関わる変更前に必ず参照する:
 ### ファイル変更の方針
 - 既存ファイルの編集を優先し、不要な新規ファイルを作らない。
 - リファクタリングや抽象化はタスクが明示的に要求している場合のみ行う。
-- 自動生成ファイル (`src/lib/database.types.ts`) は手動編集しない。
+- `src/lib/database.types.ts` は自動生成ではなく手動で管理する。DB スキーマを変更したら、このファイルも実際のカラム・NULL 可否・取りうる値に合わせて更新する。
 
 ### コードスタイル
 - **TypeScript strict モード**を前提とする。`any` は原則禁止。
@@ -114,7 +114,8 @@ UI・DB に関わる変更前に必ず参照する:
 
 - DB アクセスは `src/lib/supabase.ts` のクライアント経由でのみ行う。
 - RLS (Row Level Security) が有効なので、認証状態を考慮した実装をする。
-- スキーマ変更が必要な場合は `docs/supabase-schema.sql` を更新し、ユーザーに手動適用を促す。
+- スキーマ変更が必要な場合は、既存DB向けの ALTER 文をユーザーに提示して手動適用を促し、`docs/supabase-schema.sql` を「変更後の状態」に書き換える（ALTER 文を末尾に追記しない）。
+- `docs/supabase-schema.sql` と本番DBの差分は `supabase db dump --linked --schema public` の出力と比較して確認できる（Supabase CLI でプロジェクトにリンク済み）。
 - 環境変数は `.env.local` に設定し、コードにハードコードしない:
   ```
   VITE_SUPABASE_URL=...

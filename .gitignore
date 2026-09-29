@@ -16,3 +16,6 @@ vite.config.d.ts
 
 *storybook.log
 storybook-static
+
+# Supabase CLI のリンク情報（supabase link で生成）
+supabase/.temp
