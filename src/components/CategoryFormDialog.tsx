@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import BottomSheet from './ui/BottomSheet'
 import Button from './ui/Button'
 import Input from './ui/Input'
+import ErrorText from './ui/ErrorText'
 import type { CategoryInfo } from '../constants'
 
 const EMOJI_SUGGESTIONS = [
@@ -61,9 +62,19 @@ interface Props {
   onSave: (cat: CategoryInfo) => void
   onClose: () => void
   onDelete?: () => void
+  error?: string | null
+  saving?: boolean
 }
 
-export default function CategoryFormDialog({ isOpen, initial, onSave, onClose, onDelete }: Props) {
+export default function CategoryFormDialog({
+  isOpen,
+  initial,
+  onSave,
+  onClose,
+  onDelete,
+  error,
+  saving,
+}: Props) {
   const [draft, setDraft] = useState<CategoryInfo>(initial)
 
   useEffect(() => {
@@ -78,7 +89,7 @@ export default function CategoryFormDialog({ isOpen, initial, onSave, onClose, o
   const title = initial.name ? 'カテゴリを編集' : 'カテゴリを追加'
 
   const footer = (
-    <Button fullWidth size="lg" onClick={handleSave} disabled={!draft.name.trim()}>
+    <Button fullWidth size="lg" onClick={handleSave} disabled={!draft.name.trim() || saving}>
       保存する
     </Button>
   )
@@ -108,6 +119,12 @@ export default function CategoryFormDialog({ isOpen, initial, onSave, onClose, o
             placeholder="例: 食費"
             className="mt-1.5"
           />
+          {initial.name && draft.name.trim() && draft.name.trim() !== initial.name && (
+            <p className="text-xs text-ink-muted mt-1">
+              「{initial.name}」で記録済みの取引なども新しい名前に変更されます
+            </p>
+          )}
+          <ErrorText>{error}</ErrorText>
         </div>
 
         <div>

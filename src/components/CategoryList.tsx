@@ -22,6 +22,8 @@ import CategoryFormDialog from './CategoryFormDialog'
 interface Props {
   categories: CategoryInfo[]
   onChange: (cats: CategoryInfo[]) => void
+  // 既存カテゴリの名前を変えたとき、一覧を保存する前に過去の記録を書き換える
+  onRename?: (oldName: string, newName: string) => Promise<void>
 }
 
 export interface CategoryListHandle {
@@ -111,10 +113,17 @@ function SortableItem({ id, category: c, index: i, onEdit, onToggle }: SortableI
 }
 
 const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList(
-  { categories, onChange },
+  { categories, onChange, onRename },
   ref
 ) {
-  const [dialog, setDialog] = useState<{ index: number | null } | null>(null)
+  const [dialog, setDialogState] = useState<{ index: number | null } | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  function setDialog(next: { index: number | null } | null) {
+    setError(null)
+    setDialogState(next)
+  }
 
   useImperativeHandle(ref, () => ({ openAdd: () => setDialog({ index: null }) }))
 
@@ -142,8 +151,26 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
     setDialog({ index: i })
   }
 
-  function handleSave(cat: CategoryInfo) {
+  async function handleSave(cat: CategoryInfo) {
     if (dialog === null) return
+    // 同名にすると別カテゴリの記録が混ざってしまうため許可しない
+    if (categories.some((c, idx) => idx !== dialog.index && c.name === cat.name)) {
+      setError('同じ名前のカテゴリがすでにあります')
+      return
+    }
+    const prev = dialog.index !== null ? categories[dialog.index] : null
+    if (prev && prev.name !== cat.name && onRename) {
+      setSaving(true)
+      setError(null)
+      try {
+        await onRename(prev.name, cat.name)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '名前の変更に失敗しました')
+        return
+      } finally {
+        setSaving(false)
+      }
+    }
     const next = [...categories]
     if (dialog.index !== null) {
       next[dialog.index] = cat
@@ -225,6 +252,8 @@ const CategoryList = forwardRef<CategoryListHandle, Props>(function CategoryList
         initial={dialogInitial}
         onSave={handleSave}
         onClose={() => setDialog(null)}
+        error={error}
+        saving={saving}
         onDelete={
           dialog?.index !== null && dialog?.index !== undefined
             ? () => remove(dialog.index!)

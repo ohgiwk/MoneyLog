@@ -116,3 +116,14 @@ export function daysUntil(date: Date): number {
   today.setHours(0, 0, 0, 0)
   return Math.round((date.getTime() - today.getTime()) / 86400000)
 }
+
+// カテゴリ名をキーにしたマップのキーを付け替える（新しい名前のキーが既にあれば金額を合算する）
+export function renameCategoryKey(
+  map: Record<string, number>,
+  oldName: string,
+  newName: string
+): Record<string, number> {
+  if (!(oldName in map) || oldName === newName) return map
+  const { [oldName]: amount, ...rest } = map
+  return { ...rest, [newName]: (rest[newName] ?? 0) + amount }
+}

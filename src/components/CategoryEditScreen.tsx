@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import CategoryList, { type CategoryListHandle } from './CategoryList'
 import ScreenHeader from './ui/ScreenHeader'
 import ConfirmDialog from './ui/ConfirmDialog'
@@ -7,6 +8,8 @@ import HeaderMenu from './ui/HeaderMenu'
 import { useAppContext } from '../contexts/AppContext'
 import FabButton from './ui/FabButton'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, FIXED_EXPENSE_CATEGORIES } from '../constants'
+import { categoryService } from '../lib/services/categoryService'
+import { renameQuickPresetCategory } from '../hooks/useQuickRecordPresets'
 
 type TabKey = 'expense' | 'income' | 'fixed'
 
@@ -18,7 +21,8 @@ const TABS: { key: TabKey; label: string }[] = [
 
 export default function CategoryEditScreen() {
   const navigate = useNavigate()
-  const { categories } = useAppContext()
+  const { categories, user } = useAppContext()
+  const queryClient = useQueryClient()
   const {
     expenseCategories,
     incomeCategories,
@@ -35,6 +39,16 @@ export default function CategoryEditScreen() {
   const expenseRef = useRef<CategoryListHandle>(null)
   const incomeRef = useRef<CategoryListHandle>(null)
   const fixedRef = useRef<CategoryListHandle>(null)
+
+  function renameRecords(type: TabKey) {
+    return async (oldName: string, newName: string) => {
+      if (!user) return
+      await categoryService.rename(user.id, type, oldName, newName)
+      if (type === 'expense') renameQuickPresetCategory(user.id, oldName, newName)
+      // 取引・固定費・消耗品・予算など、カテゴリ名を含むキャッシュをまとめて取り直す
+      void queryClient.invalidateQueries()
+    }
+  }
 
   function handleFab() {
     if (activeTab === 'expense') expenseRef.current?.openAdd()
@@ -89,6 +103,7 @@ export default function CategoryEditScreen() {
             ref={expenseRef}
             categories={expenseCategories}
             onChange={updateExpenseCategories}
+            onRename={renameRecords('expense')}
           />
         )}
         {activeTab === 'income' && (
@@ -96,6 +111,7 @@ export default function CategoryEditScreen() {
             ref={incomeRef}
             categories={incomeCategories}
             onChange={updateIncomeCategories}
+            onRename={renameRecords('income')}
           />
         )}
         {activeTab === 'fixed' && (
@@ -103,6 +119,7 @@ export default function CategoryEditScreen() {
             ref={fixedRef}
             categories={fixedCategories}
             onChange={updateFixedCategories}
+            onRename={renameRecords('fixed')}
           />
         )}
       </div>

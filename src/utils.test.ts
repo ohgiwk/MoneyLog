@@ -17,6 +17,7 @@ import {
   nextPurchaseDate,
   monthlyConsumableCost,
   daysUntil,
+  renameCategoryKey,
 } from './utils'
 import type { Consumable } from './lib/database.types'
 
@@ -288,5 +289,25 @@ describe('daysUntil', () => {
   it('今日の日付のとき 0 を返す', () => {
     vi.setSystemTime(new Date(2026, 6, 10, 12, 0, 0))
     expect(daysUntil(new Date(2026, 6, 10))).toBe(0)
+  })
+})
+
+describe('renameCategoryKey', () => {
+  it('旧カテゴリ名のキーを新しい名前に付け替える', () => {
+    expect(renameCategoryKey({ 食費: 30000, 日用品: 5000 }, '食費', '食料品')).toEqual({
+      食料品: 30000,
+      日用品: 5000,
+    })
+  })
+
+  it('新しい名前のキーが既にあれば金額を合算する', () => {
+    expect(renameCategoryKey({ 食費: 30000, 食料品: 2000 }, '食費', '食料品')).toEqual({
+      食料品: 32000,
+    })
+  })
+
+  it('旧カテゴリ名のキーがなければ元のマップをそのまま返す', () => {
+    const map = { 日用品: 5000 }
+    expect(renameCategoryKey(map, '食費', '食料品')).toBe(map)
   })
 })
