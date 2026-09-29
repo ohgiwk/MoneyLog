@@ -204,7 +204,6 @@ export function useOneTimeForm({
             values.type === 'expense' && values.paymentType && values.paymentType !== 'cash'
               ? values.paymentMethod || null
               : null,
-          recurring_rule_id: null,
         })
         resetForm()
         setShowSuccess(true)

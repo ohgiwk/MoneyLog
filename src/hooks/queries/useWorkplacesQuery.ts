@@ -1,18 +1,12 @@
 import { useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { workplaceService } from '../../lib/services/workplaceService'
 import type { ShiftType } from '../../lib/database.types'
 
 export function useWorkplacesQuery(userId: string) {
-  const queryClient = useQueryClient()
   const query = useQuery({
     queryKey: ['workplaces', userId],
-    queryFn: async () => {
-      const { seeded, ...data } = await workplaceService.fetchOrSeed(userId)
-      // 旧区分の記録を付け替えたので勤務カレンダーを取り直す
-      if (seeded) void queryClient.invalidateQueries({ queryKey: ['workSchedule', userId] })
-      return data
-    },
+    queryFn: () => workplaceService.fetchOrSeed(userId),
     enabled: !!userId,
   })
 

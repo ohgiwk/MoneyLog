@@ -65,24 +65,6 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['fixed_expenses']['Insert']>
       }
-      recurring_rules: {
-        Row: {
-          id: string
-          user_id: string
-          name: string
-          category: string
-          estimated_amount: number
-          recurrence_type: 'daily' | 'weekly' | 'monthly' | 'yearly'
-          recurrence_interval: number
-          start_date: string
-          next_date: string
-          auto_record: boolean
-          is_active: boolean
-          created_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['recurring_rules']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['recurring_rules']['Insert']>
-      }
       transactions: {
         Row: {
           id: string
@@ -97,7 +79,6 @@ export interface Database {
           meal_type: string | null
           payment_type: string | null
           payment_method: string | null
-          recurring_rule_id: string | null
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['transactions']['Row'], 'id' | 'created_at'>
@@ -110,8 +91,6 @@ export interface Database {
           name: string
           planned_date: string
           status: 'open' | 'done'
-          total_budget: number
-          total_actual: number | null
           created_at: string
         }
         Insert: Omit<Database['public']['Tables']['shopping_lists']['Row'], 'id' | 'created_at'>
@@ -163,22 +142,6 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['savings_goals']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['savings_goals']['Insert']>
       }
-      monthly_adjustments: {
-        Row: {
-          id: string
-          user_id: string
-          savings_goal_id: string
-          year_month: string
-          amount: number
-          memo: string | null
-          created_at: string
-        }
-        Insert: Omit<
-          Database['public']['Tables']['monthly_adjustments']['Row'],
-          'id' | 'created_at'
-        >
-        Update: Partial<Database['public']['Tables']['monthly_adjustments']['Insert']>
-      }
       calendar_events: {
         Row: {
           id: string
@@ -188,7 +151,6 @@ export interface Database {
           title: string
           start_time: string | null
           end_time: string | null
-          planned_expense: number
           expense_items: CalendarEventExpenseItem[]
           memo: string | null
           created_at: string
@@ -204,12 +166,7 @@ export interface Database {
           id: string
           user_id: string
           date: string
-          // 旧区分（shift_types 導入前のデータのみ）
-          day_type: 'work' | 'am_off' | 'pm_off' | 'off' | 'holiday' | null
           shift_type_id: string | null
-          hours_worked: number | null
-          hourly_wage: number | null
-          daily_income: number | null
           memo: string | null
           created_at: string
         }
@@ -244,21 +201,6 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['shift_types']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['shift_types']['Insert']>
       }
-      income_records: {
-        Row: {
-          id: string
-          user_id: string
-          year_month: string
-          expected_income: number
-          actual_income: number | null
-          work_days_expected: number
-          work_days_actual: number | null
-          notes: string | null
-          created_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['income_records']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['income_records']['Insert']>
-      }
       budgets: {
         Row: {
           user_id: string
@@ -290,7 +232,6 @@ export interface Database {
 // Convenience types
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type FixedExpense = Database['public']['Tables']['fixed_expenses']['Row']
-export type RecurringRule = Database['public']['Tables']['recurring_rules']['Row']
 export type Transaction = Database['public']['Tables']['transactions']['Row']
 export type ShoppingList = Database['public']['Tables']['shopping_lists']['Row']
 export type ShoppingItem = Database['public']['Tables']['shopping_items']['Row']
@@ -301,6 +242,5 @@ export type Workplace = Database['public']['Tables']['workplaces']['Row']
 export type ShiftType = Database['public']['Tables']['shift_types']['Row']
 export type CalendarEventExpenseItem = { label: string; amount: number }
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
-export type IncomeRecord = Database['public']['Tables']['income_records']['Row']
 export type Consumable = Database['public']['Tables']['consumables']['Row']
 export type BudgetRow = Database['public']['Tables']['budgets']['Row']

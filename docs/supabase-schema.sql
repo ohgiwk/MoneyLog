@@ -72,28 +72,6 @@ alter table public.fixed_expenses enable row level security;
 create policy "own fixed_expenses" on public.fixed_expenses for all using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
--- recurring_rules（繰り返しルール）※現在アプリからは未使用
--- ------------------------------------------------------------
-create table public.recurring_rules (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users on delete cascade,
-  name text not null,
-  category text not null,
-  estimated_amount numeric not null,
-  recurrence_type text not null,
-  recurrence_interval int not null default 1,
-  start_date date not null,
-  next_date date not null,
-  auto_record boolean not null default false,
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  constraint recurring_rules_recurrence_type_check
-    check (recurrence_type in ('daily', 'weekly', 'monthly', 'yearly'))
-);
-alter table public.recurring_rules enable row level security;
-create policy "own recurring_rules" on public.recurring_rules for all using (auth.uid() = user_id);
-
--- ------------------------------------------------------------
 -- transactions（収支記録）
 -- ------------------------------------------------------------
 create table public.transactions (
@@ -113,7 +91,6 @@ create table public.transactions (
   -- payment_method = 具体的なサービス名（例: 楽天カード、PayPay）
   payment_type text,
   payment_method text,
-  recurring_rule_id uuid references public.recurring_rules on delete set null,
   created_at timestamptz not null default now(),
   constraint transactions_type_check check (type in ('income', 'expense')),
   constraint transactions_expense_kind_check
@@ -182,17 +159,17 @@ create table public.shopping_lists (
   name text not null,
   planned_date date not null,
   status text not null default 'open',
-  total_budget numeric not null default 0,
-  total_actual numeric,
   created_at timestamptz not null default now(),
-  constraint shopping_lists_status_check check (status in ('open', 'done'))
+  constraint shopping_lists_status_check check (status in ('open', 'done')),
+  -- 子テーブルが (id, user_id) で参照し、親子の所有者を一致させるため
+  constraint shopping_lists_id_user_id_key unique (id, user_id)
 );
 alter table public.shopping_lists enable row level security;
 create policy "own shopping_lists" on public.shopping_lists for all using (auth.uid() = user_id);
 
 create table public.shopping_items (
   id uuid primary key default gen_random_uuid(),
-  list_id uuid not null references public.shopping_lists on delete cascade,
+  list_id uuid not null,
   user_id uuid not null references auth.users on delete cascade,
   name text not null,
   category text not null,
@@ -203,13 +180,15 @@ create table public.shopping_items (
   is_template boolean not null default false,
   sort_order int not null default 0,
   created_at timestamptz not null default now(),
-  constraint shopping_items_status_check check (status in ('pending', 'bought', 'skipped'))
+  constraint shopping_items_status_check check (status in ('pending', 'bought', 'skipped')),
+  constraint shopping_items_list_id_user_id_fkey foreign key (list_id, user_id)
+    references public.shopping_lists (id, user_id) on delete cascade
 );
 alter table public.shopping_items enable row level security;
 create policy "own shopping_items" on public.shopping_items for all using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
--- wishlist_items / savings_goals / monthly_adjustments（欲しいもの・貯金目標）
+-- wishlist_items / savings_goals（欲しいもの・貯金目標）
 -- ------------------------------------------------------------
 create table public.wishlist_items (
   id uuid primary key default gen_random_uuid(),
@@ -220,7 +199,8 @@ create table public.wishlist_items (
   purchased_at date,
   target_date date,
   notes text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint wishlist_items_id_user_id_key unique (id, user_id)
 );
 alter table public.wishlist_items enable row level security;
 create policy "own wishlist_items" on public.wishlist_items for all using (auth.uid() = user_id);
@@ -228,45 +208,17 @@ create policy "own wishlist_items" on public.wishlist_items for all using (auth.
 create table public.savings_goals (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users on delete cascade,
-  wishlist_item_id uuid references public.wishlist_items on delete set null,
+  wishlist_item_id uuid,
   target_amount numeric not null,
   monthly_target numeric not null,
   deadline date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- 欲しいものの削除時は参照だけを外す（user_id は残す）
+  constraint savings_goals_wishlist_item_id_user_id_fkey foreign key (wishlist_item_id, user_id)
+    references public.wishlist_items (id, user_id) on delete set null (wishlist_item_id)
 );
 alter table public.savings_goals enable row level security;
 create policy "own savings_goals" on public.savings_goals for all using (auth.uid() = user_id);
-
--- ※現在アプリからは未使用
-create table public.monthly_adjustments (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users on delete cascade,
-  savings_goal_id uuid not null references public.savings_goals on delete cascade,
-  year_month text not null,
-  amount numeric not null,
-  memo text,
-  created_at timestamptz not null default now()
-);
-alter table public.monthly_adjustments enable row level security;
-create policy "own monthly_adjustments" on public.monthly_adjustments for all using (auth.uid() = user_id);
-
--- ------------------------------------------------------------
--- income_records（月次収入サマリー）※現在アプリからは未使用
--- ------------------------------------------------------------
-create table public.income_records (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users on delete cascade,
-  year_month text not null,
-  expected_income numeric not null,
-  actual_income numeric,
-  work_days_expected int not null,
-  work_days_actual int,
-  notes text,
-  created_at timestamptz not null default now(),
-  unique (user_id, year_month)
-);
-alter table public.income_records enable row level security;
-create policy "own income_records" on public.income_records for all using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
 -- calendar_events（予定。勤務の区分は日付に紐づくため work_schedule で管理）
@@ -280,9 +232,7 @@ create table public.calendar_events (
   title text not null,
   start_time time,
   end_time time,
-  -- 予定出費の合計（expense_items の合計）
-  planned_expense int not null default 0,
-  -- 予定出費の明細（[{ "label": string, "amount": number }]）
+  -- 予定出費の明細（[{ "label": string, "amount": number }]）。合計は明細から求める
   expense_items jsonb not null default '[]'::jsonb,
   memo text,
   created_at timestamptz not null default now()
@@ -299,7 +249,8 @@ create table public.workplaces (
   user_id uuid not null references auth.users on delete cascade,
   name text not null,
   start_date date,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  constraint workplaces_id_user_id_key unique (id, user_id)
 );
 alter table public.workplaces enable row level security;
 create policy "own workplaces" on public.workplaces for all using (auth.uid() = user_id);
@@ -311,7 +262,7 @@ create policy "own workplaces" on public.workplaces for all using (auth.uid() = 
 create table public.shift_types (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users on delete cascade,
-  workplace_id uuid not null references public.workplaces on delete cascade,
+  workplace_id uuid not null,
   name text not null,
   kind text not null default 'work',
   -- 勤務時間帯（[{ "start": "HH:MM", "end": "HH:MM" }]。中抜け勤務は複数、時間なしは空配列）
@@ -320,7 +271,10 @@ create table public.shift_types (
   sort_order int not null default 0,
   archived boolean not null default false,
   created_at timestamptz not null default now(),
-  constraint shift_types_kind_check check (kind in ('work', 'half', 'off', 'other'))
+  constraint shift_types_kind_check check (kind in ('work', 'half', 'off', 'other')),
+  constraint shift_types_id_user_id_key unique (id, user_id),
+  constraint shift_types_workplace_id_user_id_fkey foreign key (workplace_id, user_id)
+    references public.workplaces (id, user_id) on delete cascade
 );
 alter table public.shift_types enable row level security;
 create policy "own shift_types" on public.shift_types for all using (auth.uid() = user_id);
@@ -333,17 +287,13 @@ create table public.work_schedule (
   user_id uuid not null references auth.users on delete cascade,
   date date not null,
   -- 区分（勤務先ごとにユーザーが定義する）
-  shift_type_id uuid references public.shift_types on delete set null,
-  -- 旧区分（shift_types 導入前のデータのみ。新規行では null）
-  day_type text,
-  hours_worked numeric,
-  hourly_wage numeric,
-  daily_income numeric,
+  shift_type_id uuid,
   memo text,
   created_at timestamptz not null default now(),
   unique (user_id, date),
-  constraint work_schedule_day_type_check
-    check (day_type in ('work', 'am_off', 'pm_off', 'off', 'holiday'))
+  -- 区分の削除時は参照だけを外す（user_id は残す）
+  constraint work_schedule_shift_type_id_user_id_fkey foreign key (shift_type_id, user_id)
+    references public.shift_types (id, user_id) on delete set null (shift_type_id)
 );
 alter table public.work_schedule enable row level security;
 create policy "own work_schedule" on public.work_schedule for all using (auth.uid() = user_id);

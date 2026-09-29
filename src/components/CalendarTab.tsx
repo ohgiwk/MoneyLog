@@ -13,7 +13,7 @@ import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
+import { formatDateWithWeekday, formatYen, plannedExpenseOf, todayStr } from '../utils'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
 import { useWorkplacesQuery } from '../hooks/queries/useWorkplacesQuery'
 import { countShiftDays, formatShiftTime, shiftColor, workplaceForDate } from '../lib/workShift'
@@ -23,11 +23,6 @@ interface Props {
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
-
-// expense_items カラム追加前のデータでも落ちないようにする
-function expenseItemsOf(ev: CalendarEvent): CalendarEvent['expense_items'] {
-  return ev.expense_items ?? []
-}
 
 function formatEventPoint(date: string, time: string | null): string {
   const label = `${parseInt(date.slice(5, 7))}/${parseInt(date.slice(8))}`
@@ -380,9 +375,10 @@ export default function CalendarTab({ userId }: Props) {
                       </div>
                     )
                   )}
-                  {(expenseItemsOf(ev).length > 1 || expenseItemsOf(ev).some((i) => i.label)) && (
+                  {((ev.expense_items ?? []).length > 1 ||
+                    (ev.expense_items ?? []).some((i) => i.label)) && (
                     <div className="text-xs text-ink-muted mt-0.5 flex flex-wrap gap-x-2">
-                      {expenseItemsOf(ev).map((item, i) => (
+                      {(ev.expense_items ?? []).map((item, i) => (
                         <span key={i}>
                           {item.label || '出費'} {formatYen(item.amount)}
                         </span>
@@ -393,9 +389,9 @@ export default function CalendarTab({ userId }: Props) {
                     <div className="text-xs text-ink-muted mt-0.5 truncate">{ev.memo}</div>
                   )}
                 </div>
-                {ev.planned_expense > 0 && (
+                {plannedExpenseOf(ev) > 0 && (
                   <span className="text-sm font-semibold text-danger-500 shrink-0">
-                    -{formatYen(ev.planned_expense)}
+                    -{formatYen(plannedExpenseOf(ev))}
                   </span>
                 )}
               </button>

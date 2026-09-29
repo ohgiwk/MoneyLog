@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import type { CalendarEvent } from '../database.types'
+import { plannedExpenseOf } from '../../utils'
 
 type CalendarEventInsert = Omit<CalendarEvent, 'id' | 'created_at'>
 
@@ -29,10 +30,9 @@ export const calendarEventService = {
       .select('*')
       .eq('user_id', userId)
       .gte('date', fromDate)
-      .gt('planned_expense', 0)
       .order('date', { ascending: true })
     if (error) throw new Error(error.message)
-    return data ?? []
+    return (data ?? []).filter((ev) => plannedExpenseOf(ev) > 0)
   },
 
   insert: async (data: CalendarEventInsert): Promise<void> => {

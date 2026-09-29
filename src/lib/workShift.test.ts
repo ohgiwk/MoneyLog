@@ -26,11 +26,7 @@ function record(date: string, shift_type_id: string | null): WorkSchedule {
     id: date,
     user_id: 'u',
     date,
-    day_type: null,
     shift_type_id,
-    hours_worked: null,
-    hourly_wage: null,
-    daily_income: null,
     memo: null,
     created_at: '',
   }

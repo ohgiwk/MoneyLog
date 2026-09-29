@@ -10,7 +10,6 @@
 ├── profiles ................ ユーザー設定・収入情報・同居人数・月開始日
 ├── fixed_expenses .......... 固定費
 ├── consumables ............. 消耗品費（日用品・消耗品の購入サイクル管理）
-├── recurring_rules ......... 繰り返しルール（変動ルーチン費）
 ├── transactions ............ 実際の収支記録
 ├── budgets ................. 月次予算設定
 ├── shopping_lists .......... 買い物リスト（セッション単位）
@@ -20,10 +19,8 @@
 ├── workplaces .............. 勤務先（開始日付き）
 ├── shift_types ............. 勤務先ごとのカレンダー区分・勤務時間
 ├── user_categories ......... カテゴリのカスタマイズ設定
-├── income_records .......... 月次収入サマリー（予測vs実績）
 ├── wishlist_items .......... 欲しいものリスト
-├── savings_goals ........... 貯金目標
-└── monthly_adjustments ..... 貯金の手動調整
+└── savings_goals ........... 貯金目標
 ```
 
 ---
@@ -80,25 +77,9 @@ erDiagram
         timestamptz created_at
     }
 
-    recurring_rules {
-        uuid id PK
-        uuid user_id FK
-        text name
-        text category
-        numeric estimated_amount
-        text recurrence_type
-        int recurrence_interval
-        date start_date
-        date next_date
-        boolean auto_record
-        boolean is_active
-        timestamptz created_at
-    }
-
     transactions {
         uuid id PK
         uuid user_id FK
-        uuid recurring_rule_id FK
         text type
         text expense_kind
         date date
@@ -129,8 +110,6 @@ erDiagram
         text name
         date planned_date
         text status
-        numeric total_budget
-        numeric total_actual
         timestamptz created_at
     }
 
@@ -157,7 +136,6 @@ erDiagram
         text title
         time start_time
         time end_time
-        int planned_expense
         jsonb expense_items
         text memo
         timestamptz created_at
@@ -168,10 +146,6 @@ erDiagram
         uuid user_id FK
         date date
         uuid shift_type_id FK
-        text day_type
-        numeric hours_worked
-        numeric hourly_wage
-        numeric daily_income
         text memo
         timestamptz created_at
     }
@@ -204,18 +178,6 @@ erDiagram
         timestamptz updated_at
     }
 
-    income_records {
-        uuid id PK
-        uuid user_id FK
-        text year_month
-        numeric expected_income
-        numeric actual_income
-        int work_days_expected
-        int work_days_actual
-        text notes
-        timestamptz created_at
-    }
-
     wishlist_items {
         uuid id PK
         uuid user_id FK
@@ -238,20 +200,9 @@ erDiagram
         timestamptz created_at
     }
 
-    monthly_adjustments {
-        uuid id PK
-        uuid user_id FK
-        uuid savings_goal_id FK
-        text year_month
-        numeric amount
-        text memo
-        timestamptz created_at
-    }
-
     auth_users ||--|| profiles : "1:1"
     auth_users ||--o{ fixed_expenses : "1:N"
     auth_users ||--o{ consumables : "1:N"
-    auth_users ||--o{ recurring_rules : "1:N"
     auth_users ||--o{ transactions : "1:N"
     auth_users ||--o{ budgets : "1:N"
     auth_users ||--o{ shopping_lists : "1:N"
@@ -259,13 +210,10 @@ erDiagram
     auth_users ||--o{ work_schedule : "1:N"
     auth_users ||--o{ workplaces : "1:N"
     auth_users ||--o{ user_categories : "1:N"
-    auth_users ||--o{ income_records : "1:N"
     auth_users ||--o{ wishlist_items : "1:N"
     auth_users ||--o{ savings_goals : "1:N"
-    recurring_rules ||--o{ transactions : "生成元"
     shopping_lists ||--o{ shopping_items : "1:N"
     wishlist_items ||--o| savings_goals : "1:1"
-    savings_goals ||--o{ monthly_adjustments : "1:N"
     workplaces ||--o{ shift_types : "1:N"
     shift_types ||--o{ work_schedule : "区分"
 ```
@@ -285,10 +233,6 @@ auth.users
     │
     ├── consumables（1対多）
     │
-    ├── recurring_rules（1対多）
-    │       │
-    │       └── transactions（繰り返しから生成された記録）
-    │
     ├── transactions（1対多）
     │
     ├── budgets（1対多、user_id + month で複合主キー）
@@ -307,18 +251,14 @@ auth.users
     │
     ├── user_categories（1対多、user_id + type で複合主キー）
     │
-    ├── income_records（1対多）← 月次収入の予測vs実績
-    │
     ├── wishlist_items（1対多）
     │       │
     │       └── savings_goals（1対1）
-    │                   │
-    │                   └── monthly_adjustments（1対多）
     │
     └── savings_goals（1対多）
-            │
-            └── monthly_adjustments（1対多）
 ```
+
+親子関係のある子テーブル（`shopping_items`・`shift_types`・`work_schedule`・`savings_goals`）は、親の `(id, user_id)` を複合外部キーで参照する。これにより、子の `user_id` が親の `user_id` と必ず一致する。
 
 ---
 
@@ -401,36 +341,7 @@ auth.users
 
 ---
 
-### 4. recurring_rules（繰り返しルール）
-
-「毎週月曜に食費3,000円」のような繰り返しパターンを登録するテーブル。
-
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | uuid | ルールID |
-| user_id | uuid | ユーザーID |
-| name | text | ルール名（例：週の食費、電気代） |
-| category | text | カテゴリ |
-| estimated_amount | numeric | 想定金額 |
-| recurrence_type | text | 繰り返し種別（下記参照） |
-| recurrence_interval | int | 間隔（例：2週おきなら2） |
-| start_date | date | 開始日 |
-| next_date | date | 次回予定日（自動計算して更新） |
-| auto_record | boolean | true=自動記録 / false=手動確認 |
-| is_active | boolean | ルールが有効かどうか |
-| created_at | timestamptz | 作成日時 |
-
-**recurrence_typeの選択肢**
-```
-daily    毎日
-weekly   毎週（recurrence_interval=1なら毎週、2なら隔週）
-monthly  毎月（recurrence_interval=1なら毎月、2なら隔月）
-yearly   毎年
-```
-
----
-
-### 5. transactions（収支記録）
+### 4. transactions（収支記録）
 
 実際に記録された収支の一覧。過去の記録はすべてここに入る。
 
@@ -444,7 +355,6 @@ yearly   毎年
 | category | text | カテゴリ |
 | amount | numeric | 金額 |
 | memo | text | メモ |
-| recurring_rule_id | uuid | 繰り返しルールから生成された場合はそのID、手動入力はnull |
 | store_type | text | 店舗種別（任意、例：スーパー・コンビニ・ドラッグストア・100円ショップ・家電量販店） |
 | meal_type | text | 食事タイプ（食費カテゴリ時の任意項目：朝食/昼食/夕食/飲み物/その他） |
 | payment_type | text | 支払い方法種別（`cash` / `credit_card` / `emoney` / `qr`） |
@@ -455,7 +365,7 @@ yearly   毎年
 
 ---
 
-### 6. budgets（月次予算設定）
+### 5. budgets（月次予算設定）
 
 月ごとの予算を管理するテーブル。`(user_id, month)` が複合主キー。
 
@@ -472,7 +382,7 @@ yearly   毎年
 
 ---
 
-### 7. shopping_lists（買い物リスト）
+### 6. shopping_lists（買い物リスト）
 
 買い物セッション単位で管理するテーブル。
 
@@ -483,13 +393,11 @@ yearly   毎年
 | name | text | リスト名（例：スーパー、薬局） |
 | planned_date | date | 予定日 |
 | status | text | `open`（未購入）/ `done`（記録済み） |
-| total_budget | numeric | アイテムの予算合計（自動集計） |
-| total_actual | numeric | 実際の合計（記録時に確定） |
 | created_at | timestamptz | 作成日時 |
 
 ---
 
-### 8. shopping_items（買い物アイテム）
+### 7. shopping_items（買い物アイテム）
 
 shopping_listsに紐づく個々のアイテム。
 
@@ -520,7 +428,7 @@ shopping_listsに紐づく個々のアイテム。
 
 ---
 
-### 9. calendar_events（カレンダー予定）
+### 8. calendar_events（カレンダー予定）
 
 日付に紐づく予定・イベントを記録するテーブル。勤務/休暇の区分は `work_schedule` で管理する。
 
@@ -533,28 +441,22 @@ shopping_listsに紐づく個々のアイテム。
 | title | text | イベントタイトル |
 | start_time | time | 開始時刻（任意） |
 | end_time | time | 終了時刻（任意） |
-| planned_expense | int | 予定出費の合計（`expense_items` の合計、デフォルト0） |
-| expense_items | jsonb | 予定出費の明細（`[{ label, amount }]`） |
+| expense_items | jsonb | 予定出費の明細（`[{ label, amount }]`）。予定出費の合計は明細から求める |
 | memo | text | メモ |
 | created_at | timestamptz | 作成日時 |
 
 ---
 
-### 10. work_schedule（勤務カレンダー）
+### 9. work_schedule（勤務カレンダー）
 
-日ごとの勤務状況を記録。カレンダー表示と収入計算の両方に使う。
-時給・勤務時間もここで記録するため、過去の実績が設定変更に影響されない。
+日ごとの勤務状況（区分）を記録。カレンダー表示と出勤・休日数の集計に使う。
 
 | カラム名 | 型 | 説明 |
 |---|---|---|
 | id | uuid | - |
 | user_id | uuid | - |
 | date | date | 対象日（`user_id + date` でユニーク） |
-| day_type | text | 旧区分（移行前データのみ）: `work`（出勤）/ `off`（休み）/ `holiday`（祝日・有給） |
 | shift_type_id | uuid | 区分（shift_types.id）。勤務先ごとにユーザーが定義する |
-| hours_worked | numeric | 実際の労働時間（nullable） |
-| hourly_wage | numeric | **その日の時給をスナップショット**（時給が変わっても過去実績を保持） |
-| daily_income | numeric | `hours_worked × hourly_wage`（記録時に計算して保存） |
 | memo | text | メモ（例：「午前のみ」） |
 | created_at | timestamptz | - |
 
@@ -589,26 +491,9 @@ shopping_listsに紐づく個々のアイテム。
 | archived | boolean | 削除済み（選択肢に出さない） |
 | created_at | timestamptz | 作成日時 |
 
-### 11. income_records（月次収入サマリー）
-
-月次で収入の予測と実績を比較するためのサマリーテーブル。
-`(user_id, year_month)` でユニーク制約あり。
-
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | uuid | - |
-| user_id | uuid | - |
-| year_month | text | 対象月（例：`2026-07`） |
-| expected_income | numeric | 予測収入（profiles設定から月初に計算） |
-| actual_income | numeric | 実際の支給額（振込確認後に入力） |
-| work_days_expected | int | 想定稼働日数 |
-| work_days_actual | int | 実際の稼働日数（work_scheduleから集計） |
-| notes | text | メモ |
-| created_at | timestamptz | - |
-
 ---
 
-### 12. wishlist_items（欲しいものリスト）
+### 10. wishlist_items（欲しいものリスト）
 
 | カラム名 | 型 | 説明 |
 |---|---|---|
@@ -624,7 +509,7 @@ shopping_listsに紐づく個々のアイテム。
 
 ---
 
-### 13. savings_goals（貯金目標）
+### 11. savings_goals（貯金目標）
 
 欲しいものに対して「いつまでに・毎月いくら貯める」を管理するテーブル。
 
@@ -640,23 +525,7 @@ shopping_listsに紐づく個々のアイテム。
 
 ---
 
-### 14. monthly_adjustments（貯金の手動調整）
-
-自動計算された余剰に対して、実態に合わせた差分を記録する。
-
-| カラム名 | 型 | 説明 |
-|---|---|---|
-| id | uuid | - |
-| user_id | uuid | - |
-| savings_goal_id | uuid | 対象の貯金目標 |
-| year_month | text | 対象月（例：`2026-07`） |
-| amount | numeric | 調整額（正＝追加、負＝減額） |
-| memo | text | 理由（例：「先月分の未入力分を補正」） |
-| created_at | timestamptz | - |
-
----
-
-### 15. user_categories（カテゴリのカスタマイズ設定）
+### 12. user_categories（カテゴリのカスタマイズ設定）
 
 支出・収入・固定費のカテゴリ一覧をユーザーごとに保存する。デバイス間で共有するためDBに保存し、`(user_id, type)` が複合主キー。
 

@@ -15,6 +15,7 @@ import {
   periodDayIndex,
   periodKey,
   todayStr,
+  plannedExpenseOf,
 } from '../utils'
 import { oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS } from '../lib/services/budgetService'
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
@@ -475,7 +476,7 @@ export default function HomeTab({ userId }: Props) {
               >((acc, event) => {
                 const month = event.date.slice(0, 7)
                 if (!acc[month]) acc[month] = { total: 0, events: [] }
-                acc[month].total += event.planned_expense
+                acc[month].total += plannedExpenseOf(event)
                 acc[month].events.push(event)
                 return acc
               }, {})
@@ -510,7 +511,7 @@ export default function HomeTab({ userId }: Props) {
                               </span>
                             </div>
                             <span className="font-semibold text-ink">
-                              {formatYen(event.planned_expense)}
+                              {formatYen(plannedExpenseOf(event))}
                             </span>
                           </button>
                         </li>

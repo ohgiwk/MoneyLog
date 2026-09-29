@@ -79,7 +79,6 @@ export default function ConsumablesList({
       meal_type: null,
       payment_type: null,
       payment_method: null,
-      recurring_rule_id: null,
     })
     await consumableService.update(purchasing.id, { last_purchased: date })
     setPurchasing(null)

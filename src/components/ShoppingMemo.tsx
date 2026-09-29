@@ -142,7 +142,6 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
       meal_type: null,
       payment_type: paymentType,
       payment_method: null,
-      recurring_rule_id: null,
     })
     const ids = [...selected]
     await deleteMutation.mutateAsync(ids)

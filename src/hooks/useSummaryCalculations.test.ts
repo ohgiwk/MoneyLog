@@ -18,7 +18,6 @@ function makeTx(overrides: Partial<Transaction> = {}): Transaction {
     meal_type: null,
     payment_type: null,
     payment_method: null,
-    recurring_rule_id: null,
     created_at: '2026-07-10T00:00:00Z',
     ...overrides,
   }

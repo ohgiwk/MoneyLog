@@ -58,14 +58,13 @@ export type TimeRange = ShiftType['time_ranges'][number]
 
 export type ShiftTypeDraft = Pick<ShiftType, 'name' | 'kind' | 'time_ranges' | 'color'>
 
-// 初回に作成する区分。旧区分（day_type）からの移行先も兼ねる
-export const DEFAULT_SHIFT_TYPES: (ShiftTypeDraft & { legacy?: 'work' | 'off' | 'holiday' })[] = [
+// 初回に作成する区分
+export const DEFAULT_SHIFT_TYPES: ShiftTypeDraft[] = [
   {
     name: '勤務日',
     kind: 'work',
     time_ranges: [{ start: '09:00', end: '18:00' }],
     color: 'primary',
-    legacy: 'work',
   },
   {
     name: '午前半休',
@@ -79,8 +78,8 @@ export const DEFAULT_SHIFT_TYPES: (ShiftTypeDraft & { legacy?: 'work' | 'off' | 
     time_ranges: [{ start: '09:00', end: '13:00' }],
     color: 'teal',
   },
-  { name: '休暇', kind: 'off', time_ranges: [], color: 'sky', legacy: 'off' },
-  { name: 'その他', kind: 'other', time_ranges: [], color: 'warning', legacy: 'holiday' },
+  { name: '休暇', kind: 'off', time_ranges: [], color: 'sky' },
+  { name: 'その他', kind: 'other', time_ranges: [], color: 'warning' },
 ]
 
 // 日付に適用される勤務先（start_date がその日以前で最も新しいもの。該当なしなら最も古いもの）

@@ -1,5 +1,5 @@
 import { ALL_CATEGORIES, type CategoryInfo } from './constants'
-import type { Consumable } from './lib/database.types'
+import type { CalendarEvent, Consumable } from './lib/database.types'
 
 export function todayStr(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
@@ -126,4 +126,9 @@ export function renameCategoryKey(
   if (!(oldName in map) || oldName === newName) return map
   const { [oldName]: amount, ...rest } = map
   return { ...rest, [newName]: (rest[newName] ?? 0) + amount }
+}
+
+// 予定出費の合計（明細の合計。合計値はDBに持たず毎回ここで求める）
+export function plannedExpenseOf(event: Pick<CalendarEvent, 'expense_items'>): number {
+  return (event.expense_items ?? []).reduce((sum, item) => sum + item.amount, 0)
 }

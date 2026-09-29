@@ -18,6 +18,7 @@ import {
   monthlyConsumableCost,
   daysUntil,
   renameCategoryKey,
+  plannedExpenseOf,
 } from './utils'
 import type { Consumable } from './lib/database.types'
 
@@ -309,5 +310,22 @@ describe('renameCategoryKey', () => {
   it('旧カテゴリ名のキーがなければ元のマップをそのまま返す', () => {
     const map = { 日用品: 5000 }
     expect(renameCategoryKey(map, '食費', '食料品')).toBe(map)
+  })
+})
+
+describe('plannedExpenseOf', () => {
+  it('予定出費の明細の合計を返す', () => {
+    expect(
+      plannedExpenseOf({
+        expense_items: [
+          { label: '交通費', amount: 3000 },
+          { label: '食事', amount: 2500 },
+        ],
+      })
+    ).toBe(5500)
+  })
+
+  it('明細がなければ 0 を返す', () => {
+    expect(plannedExpenseOf({ expense_items: [] })).toBe(0)
   })
 })

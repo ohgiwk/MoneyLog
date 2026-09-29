@@ -50,7 +50,7 @@ async function insertShiftTypes(
   return data ?? []
 }
 
-// 初回利用時に既定の勤務先・区分を作成し、旧区分（day_type）の記録を新しい区分へ付け替える
+// 初回利用時に既定の勤務先・区分を作成する
 async function seedDefaults(userId: string): Promise<void> {
   const { data: workplace, error } = await supabase
     .from('workplaces')
@@ -58,36 +58,24 @@ async function seedDefaults(userId: string): Promise<void> {
     .select('*')
     .single()
   if (error) throw new Error(error.message)
-  const created = await insertShiftTypes(userId, workplace.id, DEFAULT_SHIFT_TYPES)
-  for (const def of DEFAULT_SHIFT_TYPES) {
-    if (!def.legacy) continue
-    const target = created.find((t) => t.name === def.name)
-    if (!target) continue
-    const { error: updError } = await supabase
-      .from('work_schedule')
-      .update({ shift_type_id: target.id })
-      .eq('user_id', userId)
-      .eq('day_type', def.legacy)
-      .is('shift_type_id', null)
-    if (updError) throw new Error(updError.message)
-  }
+  await insertShiftTypes(userId, workplace.id, DEFAULT_SHIFT_TYPES)
 }
 
 // StrictMode 等で同時に呼ばれても既定データを二重作成しない
 const seeding = new Map<string, Promise<void>>()
 
 export const workplaceService = {
-  // 勤務先と区分を取得する。未作成なら既定データを作ってから返す（seeded: 旧データを移行したか）
-  fetchOrSeed: async (userId: string): Promise<WorkplaceData & { seeded: boolean }> => {
+  // 勤務先と区分を取得する。未作成なら既定データを作ってから返す
+  fetchOrSeed: async (userId: string): Promise<WorkplaceData> => {
     const data = await fetchAll(userId)
-    if (data.workplaces.length > 0) return { ...data, seeded: false }
+    if (data.workplaces.length > 0) return data
     let p = seeding.get(userId)
     if (!p) {
       p = seedDefaults(userId).finally(() => seeding.delete(userId))
       seeding.set(userId, p)
     }
     await p
-    return { ...(await fetchAll(userId)), seeded: true }
+    return fetchAll(userId)
   },
 
   // 勤務先を追加する。copyFrom を指定するとその勤務先の区分（削除済みを除く）を複製する

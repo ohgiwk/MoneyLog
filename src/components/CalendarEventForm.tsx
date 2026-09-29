@@ -24,13 +24,8 @@ interface ExpenseRow {
   amount: string
 }
 
-// 明細導入前に登録された予定は planned_expense しか持たないため、ラベルなしの1行として扱う
 function initialExpenseRows(event: CalendarEvent | null): ExpenseRow[] {
-  const items = event?.expense_items?.length
-    ? event.expense_items
-    : event?.planned_expense
-      ? [{ label: '', amount: event.planned_expense }]
-      : [{ label: '', amount: 0 }]
+  const items = event?.expense_items?.length ? event.expense_items : [{ label: '', amount: 0 }]
   return items.map((item, i) => ({
     id: i,
     label: item.label,
@@ -96,7 +91,6 @@ export default function CalendarEventForm({
         title: title.trim(),
         start_time: allDay ? null : startTime || null,
         end_time: allDay ? null : endTime || null,
-        planned_expense: expenseItems.reduce((sum, item) => sum + item.amount, 0),
         expense_items: expenseItems,
         memo: memo.trim() || null,
       }

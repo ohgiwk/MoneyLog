@@ -22,7 +22,6 @@ async function ensureOpenList(userId: string): Promise<string> {
       name: '買い物メモ',
       planned_date: todayStr(),
       status: 'open',
-      total_budget: 0,
     })
     .select('id')
     .single()
