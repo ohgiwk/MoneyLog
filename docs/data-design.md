@@ -493,7 +493,8 @@ shopping_listsに紐づく個々のアイテム。
 | id | uuid | - |
 | user_id | uuid | - |
 | date | date | 対象日（`user_id + date` でユニーク） |
-| day_type | text | `work`（出勤）/ `off`（休み）/ `holiday`（祝日・有給） |
+| day_type | text | 旧区分（移行前データのみ）: `work`（出勤）/ `off`（休み）/ `holiday`（祝日・有給） |
+| shift_type_id | uuid | 区分（shift_types.id）。勤務先ごとにユーザーが定義する |
 | hours_worked | numeric | 実際の労働時間（nullable） |
 | hourly_wage | numeric | **その日の時給をスナップショット**（時給が変わっても過去実績を保持） |
 | daily_income | numeric | `hours_worked × hourly_wage`（記録時に計算して保存） |
@@ -501,6 +502,33 @@ shopping_listsに紐づく個々のアイテム。
 | created_at | timestamptz | - |
 
 ---
+
+#### workplaces（勤務先）
+
+職場ごとにカレンダー区分を持たせるためのテーブル。日付に対して `start_date` が最も新しい（その日以前の）勤務先の区分がカレンダーに並ぶ。職場が変わったら新しい勤務先を追加するだけで、過去の日の区分・勤務時間は変わらない。
+
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | uuid | - |
+| user_id | uuid | - |
+| name | text | 勤務先名 |
+| start_date | date | この日以降に適用（null は「はじめから」） |
+
+#### shift_types（カレンダー区分）
+
+勤務先ごとにユーザーが追加・編集・削除できる区分。削除は `archived = true` にして選択肢から外すだけで、過去の記録からは参照し続ける。
+
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | uuid | - |
+| user_id | uuid | - |
+| workplace_id | uuid | 勤務先 |
+| name | text | 区分名（例：勤務日・午前半休） |
+| kind | text | 日数の数え方: `work`（出勤1日）/ `half`（出勤0.5日・休日0.5日）/ `off`（休日1日）/ `other`（集計しない） |
+| time_ranges | jsonb | 勤務時間帯 `[{ start: "HH:MM", end: "HH:MM" }]`。中抜け勤務は複数、時間なしは空配列 |
+| color | text | 表示色のキー |
+| sort_order | int | 並び順 |
+| archived | boolean | 削除済み（選択肢に出さない） |
 
 ### 11. income_records（月次収入サマリー）
 

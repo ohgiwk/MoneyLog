@@ -18,6 +18,7 @@ import BudgetScreen from './components/BudgetScreen'
 import ExchangeRateScreen from './components/ExchangeRateScreen'
 import PaymentMethodsScreen from './components/PaymentMethodsScreen'
 import StoreTypesScreen from './components/StoreTypesScreen'
+import WorkplacesScreen from './components/WorkplacesScreen'
 import OnboardingScreen from './components/OnboardingScreen'
 import AnalyticsScreen from './components/AnalyticsScreen'
 import SavingTipsScreen from './components/SavingTipsScreen'
@@ -111,6 +112,7 @@ function AppRoutes() {
         <Route path="settings/exchange-rate" element={<ExchangeRateScreen />} />
         <Route path="settings/payment-methods" element={<PaymentMethodsScreen />} />
         <Route path="settings/store-types" element={<StoreTypesScreen />} />
+        <Route path="settings/workplaces" element={<WorkplacesScreen userId={user.id} />} />
         <Route path="settings/change-password" element={<ChangePasswordScreen />} />
         <Route path="budget" element={<BudgetScreen userId={user.id} />} />
         <Route path="analytics" element={<AnalyticsScreen userId={user.id} />} />

@@ -203,7 +203,8 @@ export interface Database {
           id: string
           user_id: string
           date: string
-          day_type: 'work' | 'off' | 'holiday'
+          day_type: 'work' | 'off' | 'holiday' | null
+          shift_type_id: string | null
           hours_worked: number | null
           hourly_wage: number | null
           daily_income: number | null
@@ -212,6 +213,34 @@ export interface Database {
         }
         Insert: Omit<Database['public']['Tables']['work_schedule']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['work_schedule']['Insert']>
+      }
+      workplaces: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          start_date: string | null
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['workplaces']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['workplaces']['Insert']>
+      }
+      shift_types: {
+        Row: {
+          id: string
+          user_id: string
+          workplace_id: string
+          name: string
+          kind: 'work' | 'half' | 'off' | 'other'
+          // 勤務時間帯（HH:MM）。中抜け勤務は複数、時間なしは空配列
+          time_ranges: { start: string; end: string }[]
+          color: string
+          sort_order: number
+          archived: boolean
+          created_at: string
+        }
+        Insert: Omit<Database['public']['Tables']['shift_types']['Row'], 'id' | 'created_at'>
+        Update: Partial<Database['public']['Tables']['shift_types']['Insert']>
       }
       income_records: {
         Row: {
@@ -266,6 +295,8 @@ export type ShoppingItem = Database['public']['Tables']['shopping_items']['Row']
 export type WishlistItem = Database['public']['Tables']['wishlist_items']['Row']
 export type SavingsGoal = Database['public']['Tables']['savings_goals']['Row']
 export type WorkSchedule = Database['public']['Tables']['work_schedule']['Row']
+export type Workplace = Database['public']['Tables']['workplaces']['Row']
+export type ShiftType = Database['public']['Tables']['shift_types']['Row']
 export type CalendarEventExpenseItem = { label: string; amount: number }
 export type CalendarEvent = Database['public']['Tables']['calendar_events']['Row']
 export type IncomeRecord = Database['public']['Tables']['income_records']['Row']

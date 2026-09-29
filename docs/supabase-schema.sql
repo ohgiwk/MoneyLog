@@ -193,6 +193,50 @@ alter table public.calendar_events add column if not exists end_date date;
 -- planned_expense は明細の合計として引き続き保持する
 alter table public.calendar_events add column if not exists expense_items jsonb not null default '[]'::jsonb;
 
+-- workplaces（勤務先。start_date 以降の日付はこの勤務先の区分を使う。null は「はじめから」）
+create table if not exists public.workplaces (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  name text not null,
+  start_date date,
+  created_at timestamptz not null default now()
+);
+alter table public.workplaces enable row level security;
+create policy "own workplaces" on public.workplaces for all using (auth.uid() = user_id);
+
+-- shift_types（勤務先ごとのカレンダー区分。削除は archived で非表示にし、過去の記録は残す）
+-- kind: work=出勤1日 / half=半休（出勤0.5日・休日0.5日）/ off=休日1日 / other=集計しない
+create table if not exists public.shift_types (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  workplace_id uuid not null references public.workplaces on delete cascade,
+  name text not null,
+  kind text not null default 'work' check (kind in ('work', 'half', 'off', 'other')),
+  start_time time,
+  end_time time,
+  color text not null default 'primary',
+  sort_order int not null default 0,
+  archived boolean not null default false,
+  created_at timestamptz not null default now()
+);
+alter table public.shift_types enable row level security;
+create policy "own shift_types" on public.shift_types for all using (auth.uid() = user_id);
+
+-- work_schedule の区分を shift_types 参照に移行（day_type は移行前データ用に残す）
+alter table public.work_schedule add column if not exists shift_type_id uuid references public.shift_types on delete set null;
+alter table public.work_schedule alter column day_type drop not null;
+
+-- shift_types の勤務時間を時間帯の配列に変更（中抜け勤務対応。[{ "start": "HH:MM", "end": "HH:MM" }]）
+alter table public.shift_types add column if not exists time_ranges jsonb not null default '[]'::jsonb;
+update public.shift_types
+  set time_ranges = jsonb_build_array(jsonb_build_object(
+    'start', to_char(start_time, 'HH24:MI'),
+    'end', to_char(end_time, 'HH24:MI')
+  ))
+  where start_time is not null and end_time is not null and time_ranges = '[]'::jsonb;
+alter table public.shift_types drop column if exists start_time;
+alter table public.shift_types drop column if exists end_time;
+
 -- consumables（消耗品費）
 create table public.consumables (
   id uuid primary key default gen_random_uuid(),

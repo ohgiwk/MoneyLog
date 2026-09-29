@@ -6,7 +6,7 @@ import BottomSheet from './ui/BottomSheet'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAppContext } from '../contexts/AppContext'
-import type { CalendarEvent, Transaction, WorkSchedule } from '../lib/database.types'
+import type { CalendarEvent, ShiftType, Transaction } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
 import { workScheduleService } from '../lib/services/workScheduleService'
 import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
@@ -15,36 +15,14 @@ import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDateWithWeekday, formatYen, todayStr } from '../utils'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
+import { useWorkplacesQuery } from '../hooks/queries/useWorkplacesQuery'
+import { countShiftDays, formatShiftTime, shiftColor, workplaceForDate } from '../lib/workShift'
 
 interface Props {
   userId: string
 }
 
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土']
-
-const DAY_TYPE_LABELS: Record<
-  WorkSchedule['day_type'],
-  { label: string; color: string; cellBg: string }
-> = {
-  work: {
-    label: '勤務日',
-    color:
-      'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 border-primary-200 dark:border-primary-900',
-    cellBg: 'bg-primary-50 dark:bg-primary-950/50',
-  },
-  off: {
-    label: '休暇',
-    color:
-      'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-900',
-    cellBg: 'bg-sky-50 dark:bg-sky-950/50',
-  },
-  holiday: {
-    label: 'その他',
-    color:
-      'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900',
-    cellBg: 'bg-warning-50 dark:bg-warning-950/50',
-  },
-}
 
 // expense_items カラム追加前のデータでも落ちないようにする
 function expenseItemsOf(ev: CalendarEvent): CalendarEvent['expense_items'] {
@@ -81,32 +59,48 @@ export default function CalendarTab({ userId }: Props) {
   const { data: workSchedule = [], isError: scheduleError } = useWorkScheduleQuery(userId, month)
   const { data: transactions = [], isError: txError } = useTransactionsQuery(userId, month)
 
+  const {
+    workplaces,
+    shiftTypeById,
+    shiftTypes,
+    isError: workplacesError,
+  } = useWorkplacesQuery(userId)
+
   const fetchError =
-    eventsError || scheduleError || txError ? 'データの読み込みに失敗しました' : null
+    eventsError || scheduleError || txError || workplacesError
+      ? 'データの読み込みに失敗しました'
+      : null
 
-  const dayTypeByDate = useMemo(() => {
-    const map = new Map<string, WorkSchedule['day_type']>()
-    for (const s of workSchedule) map.set(s.date, s.day_type)
-    return map
-  }, [workSchedule])
-
-  const dayTypeCounts = useMemo(() => {
-    let work = 0
-    let off = 0
-    for (const type of dayTypeByDate.values()) {
-      if (type === 'work') work++
-      else if (type === 'off') off++
+  const shiftTypeByDate = useMemo(() => {
+    const map = new Map<string, ShiftType>()
+    for (const s of workSchedule) {
+      const t = s.shift_type_id ? shiftTypeById.get(s.shift_type_id) : undefined
+      if (t) map.set(s.date, t)
     }
-    return { work, off }
-  }, [dayTypeByDate])
+    return map
+  }, [workSchedule, shiftTypeById])
 
-  async function handleDayTypeChange(next: WorkSchedule['day_type'] | null) {
+  const dayTypeCounts = useMemo(
+    () => countShiftDays(workSchedule, shiftTypeById),
+    [workSchedule, shiftTypeById]
+  )
+
+  const selectedShiftType = shiftTypeByDate.get(selectedDate)
+  const selectedShiftTime = selectedShiftType ? formatShiftTime(selectedShiftType) : null
+  // 選択日に適用される勤務先の区分を選択肢にする（職場が変わっても過去の日は元の区分のまま）
+  const selectedWorkplace = workplaceForDate(workplaces, selectedDate)
+  const shiftOptions = useMemo(
+    () => shiftTypes.filter((t) => t.workplace_id === selectedWorkplace?.id && !t.archived),
+    [shiftTypes, selectedWorkplace]
+  )
+
+  async function handleShiftTypeChange(next: ShiftType | null) {
     setDayTypeError(null)
     try {
       if (next === null) {
         await workScheduleService.clearDayType(userId, selectedDate)
       } else {
-        await workScheduleService.setDayType(userId, selectedDate, next)
+        await workScheduleService.setShiftType(userId, selectedDate, next.id)
       }
       void queryClient.invalidateQueries({ queryKey: ['workSchedule', userId, month] })
     } catch (err) {
@@ -216,8 +210,8 @@ export default function CalendarTab({ userId }: Props) {
             const isToday = date === todayStr()
             const dow = new Date(date + 'T00:00:00').getDay()
             const dayNum = parseInt(date.slice(8))
-            const dayType = dayTypeByDate.get(date)
-            const cellBg = dayType ? DAY_TYPE_LABELS[dayType].cellBg : ''
+            const shiftType = shiftTypeByDate.get(date)
+            const cellBg = shiftType ? shiftColor(shiftType.color).cellBg : ''
             const expense = expenseByDate.get(date) ?? 0
             const hasEvent = eventsByDate.has(date)
             return (
@@ -299,38 +293,68 @@ export default function CalendarTab({ userId }: Props) {
       </div>
 
       {/* 選択日の区分設定 */}
-      <div className="bg-surface rounded-2xl shadow-sm px-4 py-2 flex items-center gap-3">
-        <span className="text-xs text-ink-muted shrink-0">区分</span>
-        <ErrorText>{dayTypeError}</ErrorText>
-        <div className="flex gap-2 flex-1">
-          {(['work', 'off', 'holiday'] as const).map((t) => {
-            const selected = dayTypeByDate.get(selectedDate) === t
-            return (
-              <button
-                key={t}
-                type="button"
-                onClick={() => void handleDayTypeChange(selected ? null : t)}
-                className={
-                  'flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ' +
-                  (selected
-                    ? DAY_TYPE_LABELS[t].color
-                    : 'border-line-subtle text-ink-muted bg-surface-subtle')
-                }
-              >
-                {DAY_TYPE_LABELS[t].label}
-              </button>
-            )
-          })}
+      <div className="bg-surface rounded-2xl shadow-sm px-3 py-2 flex items-start gap-2">
+        <div className="shrink-0 pt-1.5">
+          <div className="text-xs text-ink-muted">区分</div>
+          {workplaces.length > 1 && selectedWorkplace && (
+            <div className="text-[10px] text-ink-subtle max-w-[4rem] truncate">
+              {selectedWorkplace.name}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <ErrorText>{dayTypeError}</ErrorText>
+          {shiftOptions.length === 0 ? (
+            <div className="py-1.5 text-xs text-ink-muted">
+              区分がありません。設定の「勤務先と区分」から追加できます
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {shiftOptions.map((t) => {
+                const selected = selectedShiftType?.id === t.id
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => void handleShiftTypeChange(selected ? null : t)}
+                    className={
+                      'px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition whitespace-nowrap ' +
+                      (selected
+                        ? shiftColor(t.color).chip
+                        : 'border-line-subtle text-ink-muted bg-surface-subtle')
+                    }
+                  >
+                    {t.name}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {/* 選択日の予定リスト */}
       <div className="space-y-1">
         <span className="text-xs text-ink-muted px-1">予定</span>
-        {selectedEvents.length === 0 ? (
-          <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
-            予定はありません
+        {selectedShiftType && selectedShiftTime && (
+          <div className="bg-surface rounded-xl shadow-sm px-3 py-1.5 flex items-center gap-2 text-xs">
+            <span
+              className={
+                'px-1.5 py-0.5 rounded border font-semibold ' +
+                shiftColor(selectedShiftType.color).chip
+              }
+            >
+              {selectedShiftType.name}
+            </span>
+            <span className="text-ink font-medium tabular-nums">{selectedShiftTime}</span>
           </div>
+        )}
+        {selectedEvents.length === 0 ? (
+          selectedShiftTime ? null : (
+            <div className="bg-surface rounded-2xl shadow-sm px-4 py-6 text-center text-sm text-ink-muted">
+              予定はありません
+            </div>
+          )
         ) : (
           <div className="space-y-2">
             {selectedEvents.map((ev) => (

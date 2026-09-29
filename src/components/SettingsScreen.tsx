@@ -157,13 +157,26 @@ export default function SettingsScreen({ userId }: Props) {
           </button>
           <button
             onClick={() => navigate('/settings/store-types')}
-            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle border-b border-line-subtle"
           >
             <span className="text-xl">🏪</span>
             <div className="flex-1 text-left">
               <div className="text-sm font-medium text-ink">店舗種別</div>
               <div className="text-xs text-ink-muted">
                 出費入力・買い物メモで使う店舗種別を追加・編集・並び替え
+              </div>
+            </div>
+            <span className="text-ink-subtle text-lg">›</span>
+          </button>
+          <button
+            onClick={() => navigate('/settings/workplaces')}
+            className="w-full flex items-center gap-3 px-4 py-4 active:bg-surface-subtle"
+          >
+            <span className="text-xl">🕘</span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium text-ink">勤務先と区分</div>
+              <div className="text-xs text-ink-muted">
+                カレンダーの区分と勤務時間を勤務先ごとに追加・編集
               </div>
             </div>
             <span className="text-ink-subtle text-lg">›</span>
