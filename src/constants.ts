@@ -104,6 +104,8 @@ export const STORE_TYPES: CategoryInfo[] = [
   { name: '温泉・銭湯', icon: '♨️', color: '#f87171' },
   { name: 'ホテル・旅館', icon: '🏨', color: '#818cf8' },
   { name: '理容室・美容室', icon: '💈', color: '#ec4899' },
+  { name: 'カラオケボックス', icon: '🎤', color: '#d946ef' },
+  { name: '映画館', icon: '🎬', color: '#475569' },
   { name: 'その他', icon: '🏷️', color: '#64748b' },
 ]
 
