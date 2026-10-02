@@ -11,7 +11,7 @@ interface Props {
   children: React.ReactNode
 }
 
-export default function SwipeableRow({
+export default function ActionMenuRow({
   onEdit,
   onDelete,
   onDuplicate,

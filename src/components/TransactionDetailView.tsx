@@ -1,5 +1,5 @@
 import Card from './ui/Card'
-import SwipeableRow from './ui/SwipeableRow'
+import ActionMenuRow from './ui/ActionMenuRow'
 import { useMemo, useRef, useState } from 'react'
 import type { Transaction } from '../lib/database.types'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
@@ -421,7 +421,7 @@ export default function TransactionDetailView({
                       ? MEAL_TYPES.find((m) => m.name === t.meal_type)
                       : undefined
                   return (
-                    <SwipeableRow
+                    <ActionMenuRow
                       key={t.id}
                       onEdit={() => onEditTx?.(t)}
                       onDelete={() => onDeleteTx?.(t.id)}
@@ -463,7 +463,7 @@ export default function TransactionDetailView({
                           {formatYen(t.amount)}
                         </span>
                       </div>
-                    </SwipeableRow>
+                    </ActionMenuRow>
                   )
                 })}
               </div>
