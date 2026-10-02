@@ -61,3 +61,13 @@ export function useShoppingMemoDelete(userId: string) {
     },
   })
 }
+
+export function useShoppingMemoRestore(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) => shoppingMemoService.restoreItems(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shoppingMemo(userId) })
+    },
+  })
+}

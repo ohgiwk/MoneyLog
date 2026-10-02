@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import { AnimatePresence } from 'motion/react'
 import type { CategoryInfo } from '../constants'
 import { STORE_TYPES } from '../constants'
 import type { ShoppingItem } from '../lib/database.types'
@@ -8,11 +9,14 @@ import {
   useShoppingMemoAdd,
   useShoppingMemoUpdate,
   useShoppingMemoDelete,
+  useShoppingMemoRestore,
 } from '../hooks/queries/useShoppingMemoQuery'
 import PurchaseDialog from './PurchaseDialog'
 import ShoppingItemDialog from './ShoppingItemDialog'
 import ConfirmDialog from './ui/ConfirmDialog'
 import FabButton from './ui/FabButton'
+import SwipeToDeleteRow from './ui/SwipeToDeleteRow'
+import Toast from './ui/Toast'
 
 interface Props {
   userId: string
@@ -49,6 +53,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const addMutation = useShoppingMemoAdd(userId)
   const updateMutation = useShoppingMemoUpdate(userId)
   const deleteMutation = useShoppingMemoDelete(userId)
+  const restoreMutation = useShoppingMemoRestore(userId)
   const error = queryError
     ? queryError instanceof Error
       ? queryError.message
@@ -61,6 +66,10 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
   const [addingToGroup, setAddingToGroup] = useState<string | null>(null)
   const [showItemDialog, setShowItemDialog] = useState(false)
   const [confirmDeleteSelected, setConfirmDeleteSelected] = useState(false)
+  const [undo, setUndo] = useState<{ ids: string[]; name: string } | null>(null)
+  // 元に戻した行がスワイプ済みの見た目のまま残らないよう、行を作り直すためのキー
+  const [restoreCount, setRestoreCount] = useState(0)
+  const closeUndoToast = useCallback(() => setUndo(null), [])
 
   function openAddDialog(group?: string) {
     setEditingItem(null)
@@ -97,6 +106,26 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
     } finally {
       setConfirmDeleteSelected(false)
     }
+  }
+
+  async function handleDeleteItem(item: ShoppingItem) {
+    const id = item.id
+    await deleteMutation.mutateAsync([id])
+    setSelected((prev) => {
+      if (!prev.has(id)) return prev
+      const n = new Set(prev)
+      n.delete(id)
+      return n
+    })
+    // トースト表示中に続けて削除した分は、まとめて元に戻せるようにする
+    setUndo((prev) => ({ ids: [...(prev?.ids ?? []), id], name: item.name }))
+  }
+
+  function handleUndoDelete() {
+    if (!undo) return
+    restoreMutation.mutate(undo.ids)
+    setUndo(null)
+    setRestoreCount((c) => c + 1)
   }
 
   function toggleSelect(id: string) {
@@ -268,70 +297,76 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
                 {/* アイテムリスト */}
                 <div className="border-t border-line-subtle divide-y divide-line-subtle">
                   {groupedItems.map((item) => (
-                    <div
-                      key={item.id}
-                      onClick={() => toggleSelect(item.id)}
-                      className="px-3 py-3 flex items-center gap-3 cursor-pointer active:bg-surface-subtle"
+                    <SwipeToDeleteRow
+                      key={`${item.id}:${restoreCount}`}
+                      onDelete={() => handleDeleteItem(item)}
                     >
-                      {/* チェックボックス */}
                       <div
-                        className={
-                          'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors pointer-events-none ' +
-                          (selected.has(item.id)
-                            ? 'bg-primary-500 border-primary-500'
-                            : 'border-line-strong bg-surface')
-                        }
+                        onClick={() => toggleSelect(item.id)}
+                        className="px-3 py-3 flex items-center gap-3 cursor-pointer active:bg-surface-subtle"
                       >
-                        {selected.has(item.id) && (
-                          <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                            <path
-                              d="M1 4L4 7.5L10 1"
-                              stroke="white"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </div>
-
-                      {/* 名前 / メモ / 予算 */}
-                      <div className="flex-1 min-w-0">
-                        <span className="block text-sm text-ink-strong truncate">{item.name}</span>
-                        {(item.memo || item.budget_amount > 0) && (
-                          <span className="block text-xs text-ink-muted truncate">
-                            {item.memo}
-                            {item.memo && item.budget_amount > 0 ? ' / ' : ''}
-                            {item.budget_amount > 0
-                              ? `予算 ¥${item.budget_amount.toLocaleString()}`
-                              : ''}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 編集ボタン */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          openEditDialog(item)
-                        }}
-                        className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
-                      >
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                        {/* チェックボックス */}
+                        <div
+                          className={
+                            'w-5 h-5 rounded-md border-2 flex-shrink-0 flex items-center justify-center transition-colors pointer-events-none ' +
+                            (selected.has(item.id)
+                              ? 'bg-primary-500 border-primary-500'
+                              : 'border-line-strong bg-surface')
+                          }
                         >
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                        </svg>
-                      </button>
-                    </div>
+                          {selected.has(item.id) && (
+                            <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                              <path
+                                d="M1 4L4 7.5L10 1"
+                                stroke="white"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+
+                        {/* 名前 / メモ / 予算 */}
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-sm text-ink-strong truncate">
+                            {item.name}
+                          </span>
+                          {(item.memo || item.budget_amount > 0) && (
+                            <span className="block text-xs text-ink-muted truncate">
+                              {item.memo}
+                              {item.memo && item.budget_amount > 0 ? ' / ' : ''}
+                              {item.budget_amount > 0
+                                ? `予算 ¥${item.budget_amount.toLocaleString()}`
+                                : ''}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* 編集ボタン */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openEditDialog(item)
+                          }}
+                          className="p-1.5 text-ink-muted active:text-primary-500 rounded-lg"
+                        >
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </button>
+                      </div>
+                    </SwipeToDeleteRow>
                   ))}
                 </div>
               </div>
@@ -401,6 +436,20 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
           setAddingToGroup(null)
         }}
       />
+      <AnimatePresence>
+        {undo && (
+          <Toast
+            message={
+              undo.ids.length === 1
+                ? `「${undo.name}」を削除しました`
+                : `${undo.ids.length}件を削除しました`
+            }
+            actionLabel="元に戻す"
+            onAction={handleUndoDelete}
+            onClose={closeUndoToast}
+          />
+        )}
+      </AnimatePresence>
       {confirmDeleteSelected && (
         <ConfirmDialog
           message={`選択中の${selected.size}件を削除しますか？`}
