@@ -6,6 +6,7 @@ import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
 import NewMonthBudgetDialog from '../NewMonthBudgetDialog'
 import QuickRecordSheet from '../QuickRecordSheet'
+import MonthPickerDialog from '../MonthPickerDialog'
 import { shiftMonth, monthLabel, todayStr } from '../../utils'
 import type { Transaction } from '../../lib/database.types'
 
@@ -36,6 +37,7 @@ export default function MainLayout() {
   } = useAppContext()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [quickSheetOpen, setQuickSheetOpen] = useState(false)
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafRef = useRef<number | null>(null)
@@ -175,7 +177,13 @@ export default function MainLayout() {
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
                 </button>
-                <span className="text-base font-bold text-ink-strong">{monthLabel(month)}</span>
+                <button
+                  onClick={() => setMonthPickerOpen(true)}
+                  className="px-1 py-1 rounded-lg text-base font-bold text-ink-strong active:bg-surface-subtle"
+                  aria-label={`${monthLabel(month)}、年月を選ぶ`}
+                >
+                  {monthLabel(month)}
+                </button>
                 <button
                   onClick={() => setMonth(shiftMonth(month, 1))}
                   className="w-8 h-8 flex items-center justify-center rounded-full active:bg-surface-subtle text-ink-muted"
@@ -260,6 +268,17 @@ export default function MainLayout() {
           )}
         </div>
       </div>
+
+      {monthPickerOpen && (
+        <MonthPickerDialog
+          month={month}
+          onSelect={(m) => {
+            setMonth(m)
+            setMonthPickerOpen(false)
+          }}
+          onClose={() => setMonthPickerOpen(false)}
+        />
+      )}
 
       {/* ドロワーメニュー */}
       <AnimatePresence>
