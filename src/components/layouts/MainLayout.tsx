@@ -42,6 +42,7 @@ export default function MainLayout() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const rafRef = useRef<number | null>(null)
   const pressStartRef = useRef<number>(0)
+  const pressRectRef = useRef<DOMRect | null>(null)
   const isLongPress = useRef(false)
   // フィルオーバーレイ div の DOM ref（RAF から直接 height を更新）
   const fillOverlayRef = useRef<HTMLSpanElement | null>(null)
@@ -49,8 +50,15 @@ export default function MainLayout() {
   const prevPath = useRef(location.pathname)
 
   const LONG_PRESS_MS = 500
+  // 長押し中に指がこの距離までボタンの外へずれても、押し続けているとみなす
+  const PRESS_SLOP_PX = 24
 
-  function startLongPress() {
+  function startLongPress(e: React.PointerEvent<HTMLButtonElement>) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    cancelLongPress()
+    // 指がボタンの外へずれても move / up を受け取り続ける
+    e.currentTarget.setPointerCapture(e.pointerId)
+    pressRectRef.current = e.currentTarget.getBoundingClientRect()
     isLongPress.current = false
     pressStartRef.current = performance.now()
 
@@ -68,11 +76,24 @@ export default function MainLayout() {
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(animate)
       } else {
+        rafRef.current = null
         isLongPress.current = true
         setQuickSheetOpen(true)
       }
     }
     rafRef.current = requestAnimationFrame(animate)
+  }
+
+  // わずかな指のずれでは中断せず、ボタンから大きく離れたときだけ長押しをやめる
+  function handlePressMove(e: React.PointerEvent<HTMLButtonElement>) {
+    const rect = pressRectRef.current
+    if (rafRef.current === null || !rect) return
+    const outside =
+      e.clientX < rect.left - PRESS_SLOP_PX ||
+      e.clientX > rect.right + PRESS_SLOP_PX ||
+      e.clientY < rect.top - PRESS_SLOP_PX ||
+      e.clientY > rect.bottom + PRESS_SLOP_PX
+    if (outside) cancelLongPress()
   }
 
   function cancelLongPress() {
@@ -314,13 +335,14 @@ export default function MainLayout() {
                     navigate(t.path)
                   }
                 }}
-                onTouchStart={startLongPress}
-                onTouchEnd={cancelLongPress}
-                onTouchMove={cancelLongPress}
-                onMouseDown={startLongPress}
-                onMouseUp={cancelLongPress}
-                onMouseLeave={cancelLongPress}
-                className="flex flex-col items-center gap-0.5 px-4 py-1 -mt-6"
+                onPointerDown={startLongPress}
+                onPointerMove={handlePressMove}
+                onPointerUp={cancelLongPress}
+                onPointerCancel={cancelLongPress}
+                // 長押しで出る OS のメニューや文字選択に操作を奪われないようにする
+                onContextMenu={(e) => e.preventDefault()}
+                style={{ WebkitTouchCallout: 'none' }}
+                className="flex flex-col items-center gap-0.5 px-4 py-1 -mt-6 select-none touch-none"
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               >
