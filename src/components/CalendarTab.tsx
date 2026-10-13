@@ -15,7 +15,14 @@ import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen, plannedExpenseOf, shiftMonth, todayStr } from '../utils'
+import {
+  formatDateWithWeekday,
+  formatYen,
+  holidayName,
+  plannedExpenseOf,
+  shiftMonth,
+  todayStr,
+} from '../utils'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
 import { useWorkplacesQuery } from '../hooks/queries/useWorkplacesQuery'
 import { countShiftDays, formatShiftTime, shiftColor, workplaceForDate } from '../lib/workShift'
@@ -89,6 +96,7 @@ export default function CalendarTab({ userId }: Props) {
   }, [workSchedule, shiftTypeById])
 
   const selectedShiftType = shiftTypeByDate.get(selectedDate)
+  const selectedHoliday = holidayName(selectedDate)
   const selectedShiftTime = selectedShiftType ? formatShiftTime(selectedShiftType) : null
   // 選択日に適用される勤務先の区分を選択肢にする（職場が変わっても過去の日は元の区分のまま）
   const selectedWorkplace = workplaceForDate(workplaces, selectedDate)
@@ -187,7 +195,7 @@ export default function CalendarTab({ userId }: Props) {
               key={d}
               className={
                 'py-2 text-center text-xs font-semibold ' +
-                (i === 0 ? 'text-danger-400' : i === 6 ? 'text-sky-500' : 'text-ink-muted')
+                (i === 0 ? 'text-danger-600' : i === 6 ? 'text-sky-500' : 'text-ink-muted')
               }
             >
               {d}
@@ -240,6 +248,9 @@ export default function CalendarTab({ userId }: Props) {
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-ink">
           {formatDateWithWeekday(selectedDate)}
+          {selectedHoliday && (
+            <span className="ml-2 text-xs text-danger-600">{selectedHoliday}</span>
+          )}
         </span>
       </div>
 
@@ -582,8 +593,8 @@ function MonthGrid({
                     'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
                     (isToday
                       ? 'bg-primary-500 text-white'
-                      : dow === 0
-                        ? 'text-danger-400'
+                      : dow === 0 || holidayName(date)
+                        ? 'text-danger-600'
                         : dow === 6
                           ? 'text-sky-500'
                           : 'text-ink')

@@ -19,6 +19,7 @@ import {
   daysUntil,
   renameCategoryKey,
   plannedExpenseOf,
+  holidayName,
 } from './utils'
 import type { Consumable } from './lib/database.types'
 
@@ -327,5 +328,27 @@ describe('plannedExpenseOf', () => {
 
   it('明細がなければ 0 を返す', () => {
     expect(plannedExpenseOf({ expense_items: [] })).toBe(0)
+  })
+})
+
+describe('holidayName', () => {
+  it('祝日は祝日名を返す', () => {
+    expect(holidayName('2026-01-01')).toBe('元日')
+    expect(holidayName('2026-10-12')).toBe('スポーツの日')
+  })
+
+  it('年によって日付が変わる祝日も判定する', () => {
+    expect(holidayName('2025-03-20')).toBe('春分の日')
+  })
+
+  it('振替休日・国民の休日も祝日として扱う', () => {
+    expect(holidayName('2024-02-12')).toBe('振替休日')
+    expect(holidayName('2026-09-22')).toBe('国民の休日')
+  })
+
+  it('祝日でない日は null を返す', () => {
+    expect(holidayName('2026-10-13')).toBeNull()
+    // 祝日ではない土日
+    expect(holidayName('2026-10-11')).toBeNull()
   })
 })

@@ -1,3 +1,4 @@
+import { isHoliday } from 'japanese-holidays'
 import { ALL_CATEGORIES, type CategoryInfo } from './constants'
 import type { CalendarEvent, Consumable } from './lib/database.types'
 
@@ -131,4 +132,10 @@ export function renameCategoryKey(
 // 予定出費の合計（明細の合計。合計値はDBに持たず毎回ここで求める）
 export function plannedExpenseOf(event: Pick<CalendarEvent, 'expense_items'>): number {
   return (event.expense_items ?? []).reduce((sum, item) => sum + item.amount, 0)
+}
+
+// 日本の祝日名（振替休日・国民の休日を含む）。祝日でなければ null
+export function holidayName(dateStr: string): string | null {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  return isHoliday(new Date(y, m - 1, d)) ?? null
 }
