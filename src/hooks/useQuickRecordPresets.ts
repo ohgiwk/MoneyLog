@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export interface QuickPreset {
   name?: string
@@ -11,32 +11,51 @@ function storageKey(userId: string) {
   return `qrp_${userId}`
 }
 
+// 同じ画面に複数のリスト（長押しシートと記録タブ）が出るため、変更を他のインスタンスへ伝える
+const CHANGE_EVENT = 'quick-record-presets-change'
+type ChangeDetail = { userId: string; presets: Presets }
+
+export function readQuickRecordPresets(userId: string): Presets {
+  try {
+    const raw = localStorage.getItem(storageKey(userId))
+    return raw ? (JSON.parse(raw) as Presets) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function writeQuickRecordPresets(userId: string, presets: Presets) {
+  try {
+    localStorage.setItem(storageKey(userId), JSON.stringify(presets))
+  } catch {
+    // 保存できなくても、表示中の画面には変更を反映する
+  }
+  window.dispatchEvent(new CustomEvent<ChangeDetail>(CHANGE_EVENT, { detail: { userId, presets } }))
+}
+
 export function useQuickRecordPresets(userId: string) {
-  const [presets, setPresets] = useState<Presets>(() => {
-    try {
-      const raw = localStorage.getItem(storageKey(userId))
-      return raw ? (JSON.parse(raw) as Presets) : {}
-    } catch {
-      return {}
+  const [presets, setPresets] = useState<Presets>(() => readQuickRecordPresets(userId))
+
+  useEffect(() => {
+    function sync(e: Event) {
+      const detail = (e as CustomEvent<ChangeDetail>).detail
+      if (detail.userId === userId) setPresets(detail.presets)
     }
-  })
+    window.addEventListener(CHANGE_EVENT, sync)
+    return () => window.removeEventListener(CHANGE_EVENT, sync)
+  }, [userId])
 
   function updatePreset(key: string, patch: Partial<QuickPreset>) {
-    setPresets((prev) => {
-      const merged = { ...prev[key], ...patch }
-      // 空オブジェクトなら削除
-      const hasData = merged.name || merged.pinned
-      const next = { ...prev }
-      if (hasData) {
-        next[key] = merged
-      } else {
-        delete next[key]
-      }
-      try {
-        localStorage.setItem(storageKey(userId), JSON.stringify(next))
-      } catch {}
-      return next
-    })
+    const merged = { ...presets[key], ...patch }
+    // 空オブジェクトなら削除
+    const hasData = merged.name || merged.pinned
+    const next = { ...presets }
+    if (hasData) {
+      next[key] = merged
+    } else {
+      delete next[key]
+    }
+    writeQuickRecordPresets(userId, next)
   }
 
   return { presets, updatePreset }

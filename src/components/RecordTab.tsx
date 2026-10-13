@@ -13,10 +13,19 @@ import { periodKey, todayStr } from '../utils'
 import OneTimeTransactionList from './OneTimeTransactionList'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import BottomSheet from './ui/BottomSheet'
+import { TabGroup } from './ui/TabGroup'
+import { QuickRecordList } from './QuickRecordSheet'
 
 interface Props {
   userId: string
 }
+
+type SubTab = 'list' | 'frequent'
+
+const SUB_TABS: { key: SubTab; label: string }[] = [
+  { key: 'list', label: '記録' },
+  { key: 'frequent', label: 'よく記録する出費' },
+]
 
 export default function RecordTab({ userId }: Props) {
   const location = useLocation()
@@ -36,6 +45,7 @@ export default function RecordTab({ userId }: Props) {
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [formDuplicateTx, setFormDuplicateTx] = useState<Transaction | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [subTab, setSubTab] = useState<SubTab>('list')
   const [formType, setFormType] = useState<'expense' | 'income'>('expense')
   const submitRef = useRef<(() => void) | null>(null)
   const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
@@ -148,6 +158,13 @@ export default function RecordTab({ userId }: Props) {
     setModalOpen(true)
   }
 
+  function openDuplicateForm(tx: Transaction) {
+    setFormEditingTx(null)
+    setFormDuplicateTx(tx)
+    setFormType(tx.type as 'expense' | 'income')
+    setModalOpen(true)
+  }
+
   function closeModal() {
     setModalOpen(false)
     setFormEditingTx(null)
@@ -170,34 +187,42 @@ export default function RecordTab({ userId }: Props) {
         </div>
       )}
 
-      <OneTimeTransactionList
-        transactions={rangeTransactions ?? transactions}
-        month={month}
-        setMonth={setMonth}
-        availableMonths={months}
-        loading={loading}
-        onAdd={() => openForm()}
-        onEditTx={(tx) => openForm(tx)}
-        onDeleteTx={(id) => deleteMutation.mutate(id)}
-        onDuplicateTx={(tx) => {
-          setFormEditingTx(null)
-          setFormDuplicateTx(tx)
-          setFormType(tx.type as 'expense' | 'income')
-          setModalOpen(true)
-        }}
-        startDay={monthStartDay}
-        budget={oneTimeBudget}
-        dateFrom={dateFrom}
-        setDateFrom={setDateFrom}
-        dateTo={dateTo}
-        setDateTo={setDateTo}
-        typeFilter={typeFilter}
-        setTypeFilter={setTypeFilter}
-        categoryFilter={categoryFilter}
-        setCategoryFilter={setCategoryFilter}
-        storeTypeFilter={storeTypeFilter}
-        paymentTypeFilter={paymentTypeFilter}
-      />
+      <div className="sticky top-0 z-10 bg-surface-subtle px-4 pt-4 pb-2">
+        <TabGroup tabs={SUB_TABS} active={subTab} onChange={setSubTab} size="sm" />
+      </div>
+
+      {subTab === 'frequent' && (
+        // relative z-0: リスト内の z-index（メニューボタン等）が固定ヘッダーより手前に出ないよう層を閉じる
+        <div className="relative z-0 px-4 pt-2">
+          <QuickRecordList userId={userId} editable onSelect={openDuplicateForm} />
+        </div>
+      )}
+
+      {subTab === 'list' && (
+        <OneTimeTransactionList
+          transactions={rangeTransactions ?? transactions}
+          month={month}
+          setMonth={setMonth}
+          availableMonths={months}
+          loading={loading}
+          onAdd={() => openForm()}
+          onEditTx={(tx) => openForm(tx)}
+          onDeleteTx={(id) => deleteMutation.mutate(id)}
+          onDuplicateTx={openDuplicateForm}
+          startDay={monthStartDay}
+          budget={oneTimeBudget}
+          dateFrom={dateFrom}
+          setDateFrom={setDateFrom}
+          dateTo={dateTo}
+          setDateTo={setDateTo}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          storeTypeFilter={storeTypeFilter}
+          paymentTypeFilter={paymentTypeFilter}
+        />
+      )}
 
       {/* 入力ボトムシート */}
       <BottomSheet

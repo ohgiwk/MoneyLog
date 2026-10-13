@@ -10,6 +10,7 @@ import FabButton from './ui/FabButton'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES, FIXED_EXPENSE_CATEGORIES } from '../constants'
 import { categoryService } from '../lib/services/categoryService'
 import { renameQuickPresetCategory } from '../hooks/useQuickRecordPresets'
+import { renamePinnedItemCategory } from '../hooks/usePinnedItems'
 
 type TabKey = 'expense' | 'income' | 'fixed'
 
@@ -44,7 +45,10 @@ export default function CategoryEditScreen() {
     return async (oldName: string, newName: string) => {
       if (!user) return
       await categoryService.rename(user.id, type, oldName, newName)
-      if (type === 'expense') renameQuickPresetCategory(user.id, oldName, newName)
+      if (type === 'expense') {
+        renameQuickPresetCategory(user.id, oldName, newName)
+        renamePinnedItemCategory(user.id, oldName, newName)
+      }
       // 取引・固定費・消耗品・予算など、カテゴリ名を含むキャッシュをまとめて取り直す
       void queryClient.invalidateQueries()
     }
