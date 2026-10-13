@@ -544,10 +544,7 @@ function MonthGrid({
     <>
       <div className="grid grid-cols-7">
         {calendarDays.map((date, i) => {
-          if (!date)
-            return (
-              <div key={i} className="h-16 border-b border-r border-line-subtle last:border-r-0" />
-            )
+          if (!date) return <div key={i} className="h-[3.75rem]" />
           const isSelected = date === selectedDate
           const isToday = date === todayStr()
           const dow = new Date(date + 'T00:00:00').getDay()
@@ -561,33 +558,38 @@ function MonthGrid({
               key={date}
               tabIndex={isCurrent ? undefined : -1}
               onClick={() => onSelectDate(date)}
-              className={
-                'relative h-16 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
-                cellBg +
-                ' ' +
-                (isSelected
-                  ? 'ring-2 ring-inset ring-primary-400'
-                  : cellBg
-                    ? ''
-                    : 'active:bg-surface-subtle')
-              }
+              className="group h-[3.75rem] flex flex-col items-center pt-1"
             >
+              {/* 外側の円: 勤務区分の色と選択状態 / 内側の円: 今日の印 */}
               <span
                 className={
-                  'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
-                  (isToday
-                    ? 'bg-primary-500 text-white'
-                    : dow === 0
-                      ? 'text-danger-400'
-                      : dow === 6
-                        ? 'text-sky-500'
-                        : 'text-ink')
+                  'w-10 h-10 flex items-center justify-center rounded-full transition ' +
+                  cellBg +
+                  ' ' +
+                  (isSelected
+                    ? 'ring-2 ring-primary-400'
+                    : cellBg
+                      ? ''
+                      : 'group-active:bg-surface-subtle')
                 }
               >
-                {dayNum}
+                <span
+                  className={
+                    'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
+                    (isToday
+                      ? 'bg-primary-500 text-white'
+                      : dow === 0
+                        ? 'text-danger-400'
+                        : dow === 6
+                          ? 'text-sky-500'
+                          : 'text-ink')
+                  }
+                >
+                  {dayNum}
+                </span>
               </span>
               {(expense > 0 || hasEvent) && (
-                <div className="flex flex-row items-center gap-0.5 mt-0.5">
+                <div className="flex flex-row items-center gap-0.5 mt-1">
                   {expense > 0 && (
                     <span
                       className={
