@@ -5,6 +5,8 @@ import ErrorText from './ui/ErrorText'
 import BottomSheet from './ui/BottomSheet'
 import OneTimeTransactionForm from './OneTimeTransactionForm'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { animate, motion, useMotionValue, type PanInfo } from 'motion/react'
 import { useAppContext } from '../contexts/AppContext'
 import type { CalendarEvent, ShiftType, Transaction } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
@@ -13,7 +15,7 @@ import { useCalendarEventsQuery } from '../hooks/queries/useCalendarEventsQuery'
 import { useWorkScheduleQuery } from '../hooks/queries/useWorkScheduleQuery'
 import { useTransactionsQuery } from '../hooks/queries/useTransactionsQuery'
 import { useQueryClient } from '@tanstack/react-query'
-import { formatDateWithWeekday, formatYen, plannedExpenseOf, todayStr } from '../utils'
+import { formatDateWithWeekday, formatYen, plannedExpenseOf, shiftMonth, todayStr } from '../utils'
 import { MEAL_TYPES, STORE_TYPES } from '../constants'
 import { useWorkplacesQuery } from '../hooks/queries/useWorkplacesQuery'
 import { countShiftDays, formatShiftTime, shiftColor, workplaceForDate } from '../lib/workShift'
@@ -30,7 +32,7 @@ function formatEventPoint(date: string, time: string | null): string {
 }
 
 export default function CalendarTab({ userId }: Props) {
-  const { month, calendarSelectedDate, categories } = useAppContext()
+  const { month, setMonth, calendarSelectedDate, calendarTodayTapKey, categories } = useAppContext()
   const expenseCategories = categories.activeExpenseCategories
   const incomeCategories = categories.activeIncomeCategories
   const queryClient = useQueryClient()
@@ -42,6 +44,17 @@ export default function CalendarTab({ userId }: Props) {
   const [formEditingTx, setFormEditingTx] = useState<Transaction | null>(null)
   const [formHeaderState, setFormHeaderState] = useState<HeaderState | null>(null)
   const submitRef = useRef<(() => void) | null>(null)
+  const swipeX = useMotionValue(0)
+  const swipeTrackRef = useRef<HTMLDivElement>(null)
+  const swipedRef = useRef(false)
+  const [swipeSettling, setSwipeSettling] = useState(false)
+
+  // ヘッダーの「今日」ボタン: 表示月が今月のままでも選択日を今日に戻す
+  const [seenTodayTapKey, setSeenTodayTapKey] = useState(calendarTodayTapKey)
+  if (seenTodayTapKey !== calendarTodayTapKey) {
+    setSeenTodayTapKey(calendarTodayTapKey)
+    setSelectedDate(todayStr())
+  }
 
   useEffect(() => {
     if (selectedDate.slice(0, 7) !== month) {
@@ -75,11 +88,6 @@ export default function CalendarTab({ userId }: Props) {
     return map
   }, [workSchedule, shiftTypeById])
 
-  const dayTypeCounts = useMemo(
-    () => countShiftDays(workSchedule, shiftTypeById),
-    [workSchedule, shiftTypeById]
-  )
-
   const selectedShiftType = shiftTypeByDate.get(selectedDate)
   const selectedShiftTime = selectedShiftType ? formatShiftTime(selectedShiftType) : null
   // 選択日に適用される勤務先の区分を選択肢にする（職場が変わっても過去の日は元の区分のまま）
@@ -103,38 +111,33 @@ export default function CalendarTab({ userId }: Props) {
     }
   }
 
-  // カレンダーグリッド生成
-  const calendarDays = useMemo(() => {
-    const [year, monthNum] = month.split('-').map(Number)
-    const firstDay = new Date(year, monthNum - 1, 1).getDay()
-    const lastDate = new Date(year, monthNum, 0).getDate()
-    const days: (string | null)[] = Array(firstDay).fill(null)
-    for (let d = 1; d <= lastDate; d++) {
-      days.push(`${month}-${String(d).padStart(2, '0')}`)
-    }
-    while (days.length % 7 !== 0) days.push(null)
-    return days
-  }, [month])
+  function handleSwipeEnd(_: unknown, info: PanInfo) {
+    // ドラッグ直後に発火するセルの click を無視するためのフラグ。click が来ない場合に備えて後始末する
+    setTimeout(() => (swipedRef.current = false), 0)
+    const width = swipeTrackRef.current?.offsetWidth ?? 0
+    // 離した瞬間の勢いも加味して、月を送るかどうかを決める
+    const projected = info.offset.x + info.velocity.x * 0.2
+    const delta = projected < -width / 3 ? 1 : projected > width / 3 ? -1 : 0
+    setSwipeSettling(true)
+    animate(swipeX, -delta * width, {
+      type: 'tween',
+      ease: [0.32, 0.72, 0, 1],
+      duration: 0.28,
+      onComplete: () => {
+        // 月の差し替えと位置のリセットを同じフレームで反映し、1フレームだけ隣の月が見えるのを防ぐ
+        flushSync(() => {
+          if (delta !== 0) setMonth(shiftMonth(month, delta))
+          setSwipeSettling(false)
+        })
+        swipeX.jump(0)
+      },
+    })
+  }
 
-  const expenseByDate = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const tx of transactions) {
-      if (tx.type === 'expense') map.set(tx.date, (map.get(tx.date) ?? 0) + tx.amount)
-    }
-    return map
-  }, [transactions])
-
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, CalendarEvent[]>()
-    for (const date of calendarDays) {
-      if (!date) continue
-      const dayEvents = events.filter((e) => e.date <= date && date <= (e.end_date ?? e.date))
-      if (dayEvents.length > 0) map.set(date, dayEvents)
-    }
-    return map
-  }, [events, calendarDays])
-
-  const selectedEvents = eventsByDate.get(selectedDate) ?? []
+  const selectedEvents = useMemo(
+    () => events.filter((e) => e.date <= selectedDate && selectedDate <= (e.end_date ?? e.date)),
+    [events, selectedDate]
+  )
   const selectedTransactions = useMemo(
     () => transactions.filter((tx) => tx.date === selectedDate && tx.type === 'expense'),
     [transactions, selectedDate]
@@ -191,93 +194,46 @@ export default function CalendarTab({ userId }: Props) {
             </div>
           ))}
         </div>
-        {/* 日付セル */}
-        <div className="grid grid-cols-7">
-          {calendarDays.map((date, i) => {
-            if (!date)
-              return (
-                <div
-                  key={i}
-                  className="h-16 border-b border-r border-line-subtle last:border-r-0"
-                />
-              )
-            const isSelected = date === selectedDate
-            const isToday = date === todayStr()
-            const dow = new Date(date + 'T00:00:00').getDay()
-            const dayNum = parseInt(date.slice(8))
-            const shiftType = shiftTypeByDate.get(date)
-            const cellBg = shiftType ? shiftColor(shiftType.color).cellBg : ''
-            const expense = expenseByDate.get(date) ?? 0
-            const hasEvent = eventsByDate.has(date)
+        {/* 月グリッド（前月・当月・翌月を横に並べ、スワイプで月を移動する） */}
+        <motion.div
+          ref={swipeTrackRef}
+          className="relative"
+          style={{ x: swipeX }}
+          drag={swipeSettling ? false : 'x'}
+          dragDirectionLock
+          dragMomentum={false}
+          onDragStart={() => (swipedRef.current = true)}
+          onDragEnd={handleSwipeEnd}
+          onClickCapture={(e) => {
+            if (!swipedRef.current) return
+            swipedRef.current = false
+            e.stopPropagation()
+          }}
+        >
+          {[-1, 0, 1].map((delta) => {
+            const m = shiftMonth(month, delta)
             return (
-              <button
-                key={date}
-                onClick={() => setSelectedDate(date)}
+              <div
+                key={m}
+                aria-hidden={delta !== 0}
                 className={
-                  'relative h-16 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
-                  cellBg +
-                  ' ' +
-                  (isSelected
-                    ? 'ring-2 ring-inset ring-primary-400'
-                    : cellBg
-                      ? ''
-                      : 'active:bg-surface-subtle')
+                  delta === 0
+                    ? ''
+                    : 'absolute top-0 w-full ' + (delta < 0 ? 'right-full' : 'left-full')
                 }
               >
-                <span
-                  className={
-                    'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
-                    (isToday
-                      ? 'bg-primary-500 text-white'
-                      : dow === 0
-                        ? 'text-danger-400'
-                        : dow === 6
-                          ? 'text-sky-500'
-                          : 'text-ink')
-                  }
-                >
-                  {dayNum}
-                </span>
-                {(expense > 0 || hasEvent) && (
-                  <div className="flex flex-row items-center gap-0.5 mt-0.5">
-                    {expense > 0 && (
-                      <span
-                        className={
-                          'rounded-full bg-danger-400 ' +
-                          (expense >= 15000
-                            ? 'w-2.5 h-2.5'
-                            : expense >= 5000
-                              ? 'w-2 h-2'
-                              : expense >= 1000
-                                ? 'w-1.5 h-1.5'
-                                : 'w-1 h-1')
-                        }
-                      />
-                    )}
-                    {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
-                  </div>
-                )}
-              </button>
+                <MonthGrid
+                  userId={userId}
+                  month={m}
+                  isCurrent={delta === 0}
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                  shiftTypeById={shiftTypeById}
+                />
+              </div>
             )
           })}
-        </div>
-        {/* 月の出勤・休日数 */}
-        <div className="flex justify-end gap-3 px-3 py-1.5 text-[11px] text-ink-muted">
-          <span>
-            出勤{' '}
-            <span className="font-semibold text-primary-600 dark:text-primary-400">
-              {dayTypeCounts.work}
-            </span>
-            日
-          </span>
-          <span>
-            休日{' '}
-            <span className="font-semibold text-sky-600 dark:text-sky-400">
-              {dayTypeCounts.off}
-            </span>
-            日
-          </span>
-        </div>
+        </motion.div>
       </Card>
 
       {/* 選択日のヘッダー */}
@@ -518,5 +474,156 @@ export default function CalendarTab({ userId }: Props) {
         }}
       />
     </div>
+  )
+}
+
+function MonthGrid({
+  userId,
+  month,
+  isCurrent,
+  selectedDate,
+  onSelectDate,
+  shiftTypeById,
+}: {
+  userId: string
+  month: string
+  isCurrent: boolean
+  selectedDate: string
+  onSelectDate: (date: string) => void
+  shiftTypeById: Map<string, ShiftType>
+}) {
+  const { data: events = [] } = useCalendarEventsQuery(userId, month)
+  const { data: workSchedule = [] } = useWorkScheduleQuery(userId, month)
+  const { data: transactions = [] } = useTransactionsQuery(userId, month)
+
+  const shiftTypeByDate = useMemo(() => {
+    const map = new Map<string, ShiftType>()
+    for (const s of workSchedule) {
+      const t = s.shift_type_id ? shiftTypeById.get(s.shift_type_id) : undefined
+      if (t) map.set(s.date, t)
+    }
+    return map
+  }, [workSchedule, shiftTypeById])
+
+  const dayTypeCounts = useMemo(
+    () => countShiftDays(workSchedule, shiftTypeById),
+    [workSchedule, shiftTypeById]
+  )
+
+  const calendarDays = useMemo(() => {
+    const [year, monthNum] = month.split('-').map(Number)
+    const firstDay = new Date(year, monthNum - 1, 1).getDay()
+    const lastDate = new Date(year, monthNum, 0).getDate()
+    const days: (string | null)[] = Array(firstDay).fill(null)
+    for (let d = 1; d <= lastDate; d++) {
+      days.push(`${month}-${String(d).padStart(2, '0')}`)
+    }
+    while (days.length % 7 !== 0) days.push(null)
+    return days
+  }, [month])
+
+  const expenseByDate = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const tx of transactions) {
+      if (tx.type === 'expense') map.set(tx.date, (map.get(tx.date) ?? 0) + tx.amount)
+    }
+    return map
+  }, [transactions])
+
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>()
+    for (const date of calendarDays) {
+      if (!date) continue
+      const dayEvents = events.filter((e) => e.date <= date && date <= (e.end_date ?? e.date))
+      if (dayEvents.length > 0) map.set(date, dayEvents)
+    }
+    return map
+  }, [events, calendarDays])
+
+  return (
+    <>
+      <div className="grid grid-cols-7">
+        {calendarDays.map((date, i) => {
+          if (!date)
+            return (
+              <div key={i} className="h-16 border-b border-r border-line-subtle last:border-r-0" />
+            )
+          const isSelected = date === selectedDate
+          const isToday = date === todayStr()
+          const dow = new Date(date + 'T00:00:00').getDay()
+          const dayNum = parseInt(date.slice(8))
+          const shiftType = shiftTypeByDate.get(date)
+          const cellBg = shiftType ? shiftColor(shiftType.color).cellBg : ''
+          const expense = expenseByDate.get(date) ?? 0
+          const hasEvent = eventsByDate.has(date)
+          return (
+            <button
+              key={date}
+              tabIndex={isCurrent ? undefined : -1}
+              onClick={() => onSelectDate(date)}
+              className={
+                'relative h-16 flex flex-col items-center pt-1 border-b border-r border-line-subtle last:border-r-0 transition ' +
+                cellBg +
+                ' ' +
+                (isSelected
+                  ? 'ring-2 ring-inset ring-primary-400'
+                  : cellBg
+                    ? ''
+                    : 'active:bg-surface-subtle')
+              }
+            >
+              <span
+                className={
+                  'w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold ' +
+                  (isToday
+                    ? 'bg-primary-500 text-white'
+                    : dow === 0
+                      ? 'text-danger-400'
+                      : dow === 6
+                        ? 'text-sky-500'
+                        : 'text-ink')
+                }
+              >
+                {dayNum}
+              </span>
+              {(expense > 0 || hasEvent) && (
+                <div className="flex flex-row items-center gap-0.5 mt-0.5">
+                  {expense > 0 && (
+                    <span
+                      className={
+                        'rounded-full bg-danger-400 ' +
+                        (expense >= 15000
+                          ? 'w-2.5 h-2.5'
+                          : expense >= 5000
+                            ? 'w-2 h-2'
+                            : expense >= 1000
+                              ? 'w-1.5 h-1.5'
+                              : 'w-1 h-1')
+                      }
+                    />
+                  )}
+                  {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {/* 月の出勤・休日数 */}
+      <div className="flex justify-end gap-3 px-3 py-1.5 text-[11px] text-ink-muted">
+        <span>
+          出勤{' '}
+          <span className="font-semibold text-primary-600 dark:text-primary-400">
+            {dayTypeCounts.work}
+          </span>
+          日
+        </span>
+        <span>
+          休日{' '}
+          <span className="font-semibold text-sky-600 dark:text-sky-400">{dayTypeCounts.off}</span>
+          日
+        </span>
+      </div>
+    </>
   )
 }

@@ -29,8 +29,10 @@ interface AppContextValue {
   setHeaderBack: (state: HeaderBack) => void
   recordTapKey: number
   shoppingTapKey: number
+  calendarTodayTapKey: number
   bumpRecordTap: () => void
   bumpShoppingTap: () => void
+  bumpCalendarTodayTap: () => void
   categories: ReturnType<typeof useCategories>
   theme: ReturnType<typeof useTheme>
   scrollToTop: () => void
@@ -51,6 +53,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [headerBack, setHeaderBack] = useState<HeaderBack>(null)
   const [recordTapKey, setRecordTapKey] = useState(0)
   const [shoppingTapKey, setShoppingTapKey] = useState(0)
+  const [calendarTodayTapKey, setCalendarTodayTapKey] = useState(0)
 
   return (
     <AppContext.Provider
@@ -70,8 +73,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setHeaderBack,
         recordTapKey,
         shoppingTapKey,
+        calendarTodayTapKey,
         bumpRecordTap: () => setRecordTapKey((k) => k + 1),
         bumpShoppingTap: () => setShoppingTapKey((k) => k + 1),
+        bumpCalendarTodayTap: () => setCalendarTodayTapKey((k) => k + 1),
         categories,
         theme,
         scrollToTop: () => scrollToTopFn.current(),

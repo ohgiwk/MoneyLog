@@ -6,7 +6,7 @@ import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
 import NewMonthBudgetDialog from '../NewMonthBudgetDialog'
 import QuickRecordSheet from '../QuickRecordSheet'
-import { shiftMonth, monthLabel } from '../../utils'
+import { shiftMonth, monthLabel, todayStr } from '../../utils'
 import type { Transaction } from '../../lib/database.types'
 
 const TABS = [
@@ -30,6 +30,7 @@ export default function MainLayout() {
     setCalendarSelectedDate,
     bumpRecordTap,
     bumpShoppingTap,
+    bumpCalendarTodayTap,
     registerScrollToTop,
     setQuickRecordTx,
   } = useAppContext()
@@ -135,6 +136,16 @@ export default function MainLayout() {
               >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
+            </button>
+          ) : isCalendar ? (
+            <button
+              onClick={() => {
+                setMonth(todayStr().slice(0, 7))
+                bumpCalendarTodayTap()
+              }}
+              className="justify-self-start -ml-2 -my-2 px-3 py-3 rounded-lg text-xs font-semibold text-ink-muted whitespace-nowrap active:bg-surface-hover"
+            >
+              今日
             </button>
           ) : (
             <span />
