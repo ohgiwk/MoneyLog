@@ -31,10 +31,11 @@ export const SHIFT_COLORS: Record<string, { chip: string; cellBg: string; swatch
     cellBg: 'bg-violet-50 dark:bg-violet-950/50',
     swatch: 'bg-violet-400',
   },
+  // キーは DB に保存済みのため warning のまま。amber は primary と見分けにくいので pink を当てる
   warning: {
-    chip: 'text-warning-600 dark:text-warning-400 bg-warning-50 dark:bg-warning-950/60 border-warning-200 dark:border-warning-900',
-    cellBg: 'bg-warning-50 dark:bg-warning-950/50',
-    swatch: 'bg-warning-400',
+    chip: 'text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-950/60 border-pink-200 dark:border-pink-900',
+    cellBg: 'bg-pink-50 dark:bg-pink-950/50',
+    swatch: 'bg-pink-400',
   },
   danger: {
     chip: 'text-danger-600 dark:text-danger-400 bg-danger-50 dark:bg-danger-950/60 border-danger-200 dark:border-danger-900',
@@ -70,13 +71,13 @@ export const DEFAULT_SHIFT_TYPES: ShiftTypeDraft[] = [
     name: '午前半休',
     kind: 'half',
     time_ranges: [{ start: '14:00', end: '18:00' }],
-    color: 'teal',
+    color: 'violet',
   },
   {
     name: '午後半休',
     kind: 'half',
     time_ranges: [{ start: '09:00', end: '13:00' }],
-    color: 'teal',
+    color: 'violet',
   },
   { name: '休暇', kind: 'off', time_ranges: [], color: 'sky' },
   { name: 'その他', kind: 'other', time_ranges: [], color: 'warning' },
