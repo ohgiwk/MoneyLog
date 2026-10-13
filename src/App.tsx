@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppProvider, useAppContext } from './contexts/AppContext'
 import { Capacitor } from '@capacitor/core'
@@ -30,8 +30,17 @@ import ExpenseFilterScreen from './components/ExpenseFilterScreen'
 
 const TAB_PATHS = ['/', '/record', '/shopping', '/fixed', '/calendar']
 
+// 認証確認が一瞬で終わってもスプラッシュを視認できるよう、最低限この時間は表示する
+const MIN_SPLASH_MS = 1000
+
 function AppRoutes() {
   const { user, authLoading } = useAppContext()
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMinSplashElapsed(true), MIN_SPLASH_MS)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return
@@ -68,9 +77,10 @@ function AppRoutes() {
   const direction = useNavDirection()
   const pageKey = TAB_PATHS.includes(location.pathname) ? 'main' : location.pathname
 
-  if (authLoading) {
+  if (authLoading || !minSplashElapsed) {
     return (
-      <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-8">
+      // pb-[20dvh]: 中央揃えの基準を画面高さの 10% 分だけ上にずらす
+      <div className="min-h-screen bg-surface-subtle flex flex-col items-center justify-center gap-8 pb-[20dvh]">
         <div className="flex items-center gap-3">
           <img
             src={`${import.meta.env.BASE_URL}logo.png`}
