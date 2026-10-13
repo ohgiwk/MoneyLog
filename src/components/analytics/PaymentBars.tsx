@@ -1,5 +1,6 @@
 import { PAYMENT_TYPES } from '../../constants'
 import { formatYen } from '../../utils'
+import { GrowBar } from './GrowBar'
 
 interface Props {
   entries: [string, number][]
@@ -18,7 +19,7 @@ export function PaymentBars({ entries, valueType, onItemClick }: Props) {
   const fmt = (v: number) => (valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`)
   return (
     <div className="space-y-2">
-      {entries.map(([paymentType, value]) => {
+      {entries.map(([paymentType, value], index) => {
         const info = PAYMENT_TYPES.find((p) => p.type === paymentType)
         const icon = paymentType === '未記録' ? '−' : (info?.icon ?? '💳')
         const label = paymentType === '未記録' ? '未記録' : (info?.name ?? paymentType)
@@ -41,9 +42,11 @@ export function PaymentBars({ entries, valueType, onItemClick }: Props) {
               <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div
-                className={`h-full ${barColor} rounded-full transition-all`}
-                style={{ width: `${pct}%` }}
+              <GrowBar
+                pct={pct}
+                index={index}
+                axis="x"
+                className={`h-full ${barColor} rounded-full`}
               />
             </div>
           </div>

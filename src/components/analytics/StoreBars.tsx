@@ -1,4 +1,5 @@
 import { formatYen } from '../../utils'
+import { GrowBar } from './GrowBar'
 
 interface Props {
   entries: [string, number][]
@@ -18,7 +19,7 @@ export function StoreBars({ entries, valueType, storeTypes, onItemClick }: Props
   const fmt = (v: number) => (valueType === 'amount' ? `-${formatYen(Math.round(v))}` : `${v}件`)
   return (
     <div className="space-y-2">
-      {entries.map(([storeName, value]) => {
+      {entries.map(([storeName, value], index) => {
         const info = storeTypes.find((s) => s.name === storeName)
         const icon = storeName === '未記録' ? '−' : (info?.icon ?? '🏷️')
         const pct = max > 0 ? (value / max) * 100 : 0
@@ -40,9 +41,11 @@ export function StoreBars({ entries, valueType, storeTypes, onItemClick }: Props
               <span className={`text-xs font-semibold ${valueColor}`}>{fmt(value)}</span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div
-                className={`h-full ${barColor} rounded-full transition-all`}
-                style={{ width: `${pct}%` }}
+              <GrowBar
+                pct={pct}
+                index={index}
+                axis="x"
+                className={`h-full ${barColor} rounded-full`}
               />
             </div>
           </div>

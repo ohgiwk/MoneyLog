@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { motion, useInView } from 'motion/react'
+import { PanelInViewContext } from './panelInView'
 
 export function CollapsiblePanel({
   title,
@@ -8,8 +10,17 @@ export function CollapsiblePanel({
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(true)
+  const ref = useRef<HTMLDivElement>(null)
+  // スクロールで画面内に入るまでは隠しておき、入ったら一度だけ表示する
+  const inView = useInView(ref, { once: true, amount: 0.2 })
   return (
-    <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
+    <motion.div
+      ref={ref}
+      className="bg-surface rounded-2xl shadow-sm overflow-hidden"
+      initial={{ opacity: 0, y: 16 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+      transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -36,9 +47,11 @@ export function CollapsiblePanel({
         }}
       >
         <div style={{ overflow: 'hidden' }}>
-          <div className="px-4 pb-4 space-y-3">{children}</div>
+          <div className="px-4 pb-4 space-y-3">
+            <PanelInViewContext.Provider value={inView}>{children}</PanelInViewContext.Provider>
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

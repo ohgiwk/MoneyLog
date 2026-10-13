@@ -7,6 +7,7 @@ import MonthSwitcher from './ui/MonthSwitcher'
 import YearSwitcher from './ui/YearSwitcher'
 import { TabGroup } from './ui/TabGroup'
 import ScreenHeader from './ui/ScreenHeader'
+import CountUp from './ui/CountUp'
 import { CollapsiblePanel } from './analytics/CollapsiblePanel'
 import { ExpenseBarChart } from './analytics/ExpenseBarChart'
 import { BreakdownBars } from './analytics/BreakdownBars'
@@ -110,11 +111,15 @@ export default function AnalyticsScreen({ userId }: Props) {
         <CollapsiblePanel title="累計記録">
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-surface-subtle rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-primary-500">{periodStats.recordDays}</div>
+              <div className="text-2xl font-bold text-primary-500 tabular-nums">
+                <CountUp value={periodStats.recordDays} />
+              </div>
               <div className="text-xs text-ink-muted mt-0.5">記録日数</div>
             </div>
             <div className="bg-surface-subtle rounded-xl p-3 text-center">
-              <div className="text-2xl font-bold text-primary-500">{periodStats.recordCount}</div>
+              <div className="text-2xl font-bold text-primary-500 tabular-nums">
+                <CountUp value={periodStats.recordCount} />
+              </div>
               <div className="text-xs text-ink-muted mt-0.5">記録回数</div>
             </div>
           </div>

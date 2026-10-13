@@ -1,4 +1,5 @@
 import { categoryInfo, formatYen } from '../../utils'
+import { GrowBar } from './GrowBar'
 
 interface Props {
   entries: [string, number][]
@@ -14,7 +15,7 @@ export function BreakdownBars({ entries, total, barColor, valueColor, onItemClic
   }
   return (
     <div className="space-y-2">
-      {entries.map(([cat, amt]) => {
+      {entries.map(([cat, amt], index) => {
         const pct = total > 0 ? (amt / total) * 100 : 0
         const info = categoryInfo(cat)
         const clickable = onItemClick != null
@@ -37,9 +38,11 @@ export function BreakdownBars({ entries, total, barColor, valueColor, onItemClic
               </span>
             </div>
             <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <div
-                className={`h-full ${barColor} rounded-full transition-all`}
-                style={{ width: `${pct}%` }}
+              <GrowBar
+                pct={pct}
+                index={index}
+                axis="x"
+                className={`h-full ${barColor} rounded-full`}
               />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { formatYen } from '../../utils'
+import { GrowBar } from './GrowBar'
 
 function niceMax(value: number, steps = 4): number {
   if (value <= 0) return steps
@@ -62,7 +63,7 @@ export function ExpenseBarChart({ entries, barGap = 'gap-px' }: Props) {
         </div>
 
         <div className={`absolute inset-0 flex items-end ${barGap} overflow-x-auto`}>
-          {entries.map(({ label, amount, showLabel = true }) => {
+          {entries.map(({ label, amount, showLabel = true }, index) => {
             const pct = amount > 0 ? (amount / max) * 100 : 0
             return (
               <div
@@ -72,9 +73,11 @@ export function ExpenseBarChart({ entries, barGap = 'gap-px' }: Props) {
               >
                 <div className="w-full flex flex-col justify-end" style={{ height: BAR_H }}>
                   {amount > 0 && (
-                    <div
+                    <GrowBar
+                      pct={pct}
+                      index={index}
+                      axis="y"
                       className="w-full bg-danger-400 rounded-t-sm"
-                      style={{ height: `${pct}%` }}
                     />
                   )}
                 </div>
