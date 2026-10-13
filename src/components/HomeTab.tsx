@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { animate, motion, useMotionValue, useTransform } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext } from '../contexts/AppContext'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
@@ -303,11 +304,10 @@ export default function HomeTab({ userId }: Props) {
 
           <div className="text-sm font-semibold text-ink-muted">本日のお小遣い</div>
           <div className="relative flex items-center justify-center gap-1.5">
-            <div
-              className={`text-4xl font-bold ${todayAllowance >= 0 ? 'text-income-600' : 'text-danger-500'}`}
-            >
-              {formatYen(todayAllowance)}
-            </div>
+            <CountUpYen
+              value={todayAllowance}
+              className={`text-4xl font-bold tabular-nums ${todayAllowance >= 0 ? 'text-income-600' : 'text-danger-500'}`}
+            />
             <button
               type="button"
               aria-label="本日のお小遣いの説明"
@@ -526,4 +526,21 @@ export default function HomeTab({ userId }: Props) {
       </div>
     </div>
   )
+}
+
+function CountUpYen({ value, className }: { value: number; className: string }) {
+  const count = useMotionValue(0)
+  // 0 へ向かう負の端数は Math.round で -0 になり「¥-0」と表示されるため + 0 で正規化する
+  const text = useTransform(count, (v) => formatYen(Math.round(v) + 0))
+
+  useEffect(() => {
+    const controls = animate(count, value, {
+      duration: 0.6,
+      ease: [0.32, 0.72, 0, 1],
+      delay: 0.1,
+    })
+    return () => controls.stop()
+  }, [count, value])
+
+  return <motion.div className={className}>{text}</motion.div>
 }
