@@ -554,16 +554,20 @@ function MonthGrid({
           const expense = expenseByDate.get(date) ?? 0
           const hasEvent = eventsByDate.has(date)
           return (
-            <button
+            <motion.button
               key={date}
               tabIndex={isCurrent ? undefined : -1}
               onClick={() => onSelectDate(date)}
+              whileTap={{ scale: 0.88 }}
               className="group h-[3.75rem] flex flex-col items-center pt-1"
             >
               {/* 外側の円: 勤務区分の色と選択状態 / 内側の円: 今日の印 */}
-              <span
+              <motion.span
+                initial={false}
+                animate={{ scale: isSelected ? [0.8, 1.1, 1] : 1 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
                 className={
-                  'w-10 h-10 flex items-center justify-center rounded-full transition ' +
+                  'w-10 h-10 flex items-center justify-center rounded-full transition-colors ' +
                   cellBg +
                   ' ' +
                   (isSelected
@@ -587,7 +591,7 @@ function MonthGrid({
                 >
                   {dayNum}
                 </span>
-              </span>
+              </motion.span>
               {(expense > 0 || hasEvent) && (
                 <div className="flex flex-row items-center gap-0.5 mt-1">
                   {expense > 0 && (
@@ -607,7 +611,7 @@ function MonthGrid({
                   {hasEvent && <span className="w-1.5 h-1.5 rounded-full bg-income-400" />}
                 </div>
               )}
-            </button>
+            </motion.button>
           )
         })}
       </div>
