@@ -13,6 +13,8 @@ interface Entry {
   label: string
   amount: number
   showLabel?: boolean
+  // 見込み（未確定）の値。色を薄くして確定した値と見分ける
+  projected?: boolean
 }
 
 interface Props {
@@ -63,11 +65,12 @@ export function ExpenseBarChart({ entries, barGap = 'gap-px' }: Props) {
         </div>
 
         <div className={`absolute inset-0 flex items-end ${barGap} overflow-x-auto`}>
-          {entries.map(({ label, amount, showLabel = true }, index) => {
+          {entries.map(({ label, amount, showLabel = true, projected = false }, index) => {
             const pct = amount > 0 ? (amount / max) * 100 : 0
             return (
               <div
-                key={label}
+                // 同じラベルが複数回出る（年をまたぐ月など）ことがあるため位置も含める
+                key={`${index}:${label}`}
                 className="flex flex-col items-center flex-1 min-w-0"
                 style={{ height: '100%' }}
               >
@@ -77,12 +80,12 @@ export function ExpenseBarChart({ entries, barGap = 'gap-px' }: Props) {
                       pct={pct}
                       index={index}
                       axis="y"
-                      className="w-full bg-danger-400 rounded-t-sm"
+                      className={`w-full rounded-t-sm ${projected ? 'bg-danger-400/35' : 'bg-danger-400'}`}
                     />
                   )}
                 </div>
                 <div
-                  className="text-[9px] text-ink-muted leading-none"
+                  className="text-[9px] text-ink-muted leading-none whitespace-nowrap"
                   style={{
                     height: LABEL_H,
                     display: 'flex',

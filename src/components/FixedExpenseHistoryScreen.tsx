@@ -8,7 +8,10 @@ import {
 import { useFixedExpensesQuery } from '../hooks/queries/useFixedExpensesQuery'
 import {
   addableFixedExpenses,
+  isYearlyPayment,
+  projectRecords,
   summarizeHistory,
+  yearlyWithoutRenewalMonth,
   matchesStatusFilter,
   sortByCategoryOrder,
   toMonthlyRecord,
@@ -32,7 +35,10 @@ interface Props {
   userId: string
 }
 
-const CHART_MONTHS = 12
+// グラフに出す過去の月数（今月を除く）
+const CHART_PAST_MONTHS = 11
+// 見込みを表示する未来の月数
+const FUTURE_MONTHS = 12
 
 const STATUS_FILTER_TABS: { key: AddStatusFilter; label: string }[] = [
   { key: 'all', label: 'すべて' },
@@ -46,6 +52,10 @@ const CHANGE_BADGE: Record<Exclude<HistoryChange, 'same'>, { label: string; clas
   up: { label: '増額', className: 'bg-danger-50 text-danger-600' },
   down: { label: '減額', className: 'bg-primary-50 text-primary-600' },
   ended: { label: '終了', className: 'bg-surface-muted text-ink-muted' },
+  yearly: {
+    label: '年払い',
+    className: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300',
+  },
 }
 
 // 増えたら赤、減ったら緑（固定費は少ないほど良い）
@@ -64,10 +74,13 @@ function DiffText({ diff, className = '' }: { diff: number; className?: string }
 function MonthDetail({
   summary,
   categoryOrder,
+  projected = false,
   onDelete,
 }: {
   summary: MonthSummary
   categoryOrder: string[]
+  // 未来の月の見込み。確定した月と見分けられるよう文字色を薄くする
+  projected?: boolean
   // 過去の月だけ渡す（当月は自動で同期されるため削除できない）
   onDelete?: (item: HistoryItem) => void
 }) {
@@ -84,10 +97,13 @@ function MonthDetail({
     [items, categoryOrder]
   )
 
+  const mainText = projected ? 'text-ink-subtle' : 'text-ink'
+  const subText = projected ? 'text-ink-subtle' : 'text-ink-muted'
+
   return (
     <div className="bg-surface rounded-2xl shadow-sm overflow-hidden">
       <div className="px-4 py-3 flex items-end justify-between gap-3">
-        <div className="text-xs text-ink-muted">
+        <div className={`text-xs ${subText}`}>
           {activeCount}件
           {comparedLabel && diff != null && (
             <>
@@ -96,7 +112,7 @@ function MonthDetail({
             </>
           )}
         </div>
-        <div className="text-2xl font-bold text-ink">{formatYen(total)}</div>
+        <div className={`text-2xl font-bold ${mainText}`}>{formatYen(total)}</div>
       </div>
 
       <ul className="border-t border-line-subtle divide-y divide-line-subtle">
@@ -107,11 +123,11 @@ function MonthDetail({
             <li key={it.key} className="px-4 py-2.5 flex items-center gap-2">
               <div className="flex-1 min-w-0">
                 <div
-                  className={`text-sm truncate ${ended ? 'text-ink-muted line-through' : 'text-ink'}`}
+                  className={`text-sm truncate ${ended ? 'text-ink-muted line-through' : mainText}`}
                 >
                   {it.name}
                 </div>
-                <div className="text-[11px] text-ink-muted">{it.category}</div>
+                <div className={`text-[11px] ${subText}`}>{it.category}</div>
               </div>
               {badge && (
                 <span
@@ -121,7 +137,7 @@ function MonthDetail({
                 </span>
               )}
               <div className="shrink-0 text-right">
-                <div className={`text-sm font-semibold ${ended ? 'text-ink-muted' : 'text-ink'}`}>
+                <div className={`text-sm font-semibold ${ended ? 'text-ink-muted' : mainText}`}>
                   {ended ? formatYen(it.prevAmount ?? 0) : formatYen(it.amount)}
                 </div>
                 {(it.change === 'up' || it.change === 'down') && it.prevAmount != null && (
@@ -198,20 +214,34 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
   const { data: fixedExpenses = [] } = useFixedExpensesQuery(userId)
   const addMutation = useFixedExpenseHistoryAdd(userId)
   const deleteMutation = useFixedExpenseHistoryDelete(userId)
-  const summaries = useMemo(() => summarizeHistory(records), [records])
   const currentMonth = currentMonthStr()
+  // 未来の月は保存せず、現在の設定から見込みを計算して履歴と並べる
+  const summaries = useMemo(() => {
+    const futureMonths = Array.from({ length: FUTURE_MONTHS }, (_, i) =>
+      shiftMonth(currentMonth, i + 1)
+    )
+    const yearlyIds = new Set(fixedExpenses.filter(isYearlyPayment).map((f) => f.id))
+    return summarizeHistory(
+      [
+        ...records.filter((r) => r.month <= currentMonth),
+        ...projectRecords(userId, fixedExpenses, futureMonths),
+      ],
+      yearlyIds
+    )
+  }, [records, fixedExpenses, userId, currentMonth])
+  const missingRenewal = useMemo(() => yearlyWithoutRenewalMonth(fixedExpenses), [fixedExpenses])
   const { categories } = useAppContext()
   const categoryOrder = useMemo(
     () => categories.activeFixedCategories.map((c) => c.name),
     [categories.activeFixedCategories]
   )
 
-  // 未選択のときは最新の記録月（記録がなければ今月）を表示する
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null)
-  const month = selectedMonth ?? summaries[0]?.month ?? currentMonth
+  const month = selectedMonth ?? currentMonth
   const selected = summaries.find((s) => s.month === month) ?? null
-  // 当月は固定費の設定から自動で同期されるので、手動の追加・削除は過去の月に限る
+  // 当月は固定費の設定から自動で同期され、未来の月は見込みなので、手動の追加・削除は過去の月に限る
   const editable = month < currentMonth
+  const isFuture = month > currentMonth
 
   const [addOpen, setAddOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<AddStatusFilter>('all')
@@ -231,11 +261,19 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
     [fixedExpenses, records, month, categoryOrder]
   )
 
+  // 過去〜今月は確定、未来の月は見込みとして色を薄くする。本数が多いので、今月を基準に3か月ごとにラベルを出す
   const chartEntries = useMemo(() => {
     const totals = new Map(summaries.map((s) => [s.month, s.total]))
-    return Array.from({ length: CHART_MONTHS }, (_, i) => {
-      const m = shiftMonth(currentMonth, i - (CHART_MONTHS - 1))
-      return { label: `${Number(m.slice(5))}月`, amount: totals.get(m) ?? 0 }
+    return Array.from({ length: CHART_PAST_MONTHS + 1 + FUTURE_MONTHS }, (_, i) => {
+      const offset = i - CHART_PAST_MONTHS
+      const m = shiftMonth(currentMonth, offset)
+      return {
+        label: `${Number(m.slice(5))}月`,
+        amount: totals.get(m) ?? 0,
+        // 右端の棒のラベルはグラフの外にはみ出して切れるため出さない
+        showLabel: offset % 3 === 0 && offset < FUTURE_MONTHS,
+        projected: offset > 0,
+      }
     })
   }, [summaries, currentMonth])
 
@@ -317,8 +355,18 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
         ) : (
           <>
             <div className="bg-surface rounded-2xl p-4 shadow-sm">
-              <div className="text-sm font-semibold text-ink mb-3">
-                固定費合計の推移（月額換算）
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="text-sm font-semibold text-ink">固定費の支払額の推移</div>
+                <div className="flex items-center gap-2 text-[10px] text-ink-muted">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-danger-400" aria-hidden />
+                    確定
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-sm bg-danger-400/35" aria-hidden />
+                    見込み
+                  </span>
+                </div>
               </div>
               <ExpenseBarChart entries={chartEntries} barGap="gap-1" />
             </div>
@@ -336,10 +384,13 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
                 {month === currentMonth && (
                   <span className="ml-1.5 text-[10px] font-semibold text-primary-600">今月</span>
                 )}
+                {isFuture && (
+                  <span className="ml-1.5 text-[10px] font-semibold text-ink-muted">未確定</span>
+                )}
               </div>
               <button
                 onClick={() => changeMonth(shiftMonth(month, 1))}
-                disabled={month >= currentMonth}
+                disabled={month >= shiftMonth(currentMonth, FUTURE_MONTHS)}
                 className="w-9 h-9 flex items-center justify-center rounded-full text-ink-muted active:bg-surface-hover disabled:opacity-30"
                 aria-label="次の月"
               >
@@ -351,11 +402,12 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
               <MonthDetail
                 summary={selected}
                 categoryOrder={categoryOrder}
+                projected={isFuture}
                 onDelete={editable ? setDeleteTarget : undefined}
               />
             ) : (
               <div className="bg-surface rounded-2xl shadow-sm px-4 py-8 text-center text-sm text-ink-muted">
-                この月の記録はありません
+                {isFuture ? 'この月の支払い予定はありません' : 'この月の記録はありません'}
               </div>
             )}
 
@@ -363,9 +415,20 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
               <Button variant="secondary" fullWidth onClick={openAddSheet}>
                 ＋ 固定費の設定から追加
               </Button>
+            ) : isFuture ? (
+              <div className="text-xs text-ink-muted px-1">
+                現在の固定費の設定から計算した見込みです。設定を変えると変わります。
+              </div>
             ) : (
               <div className="text-xs text-ink-muted px-1">
                 今月の記録は固定費の設定に合わせて自動で更新されます。過去の月は左のボタンで移動して、追加・削除できます。
+              </div>
+            )}
+
+            {missingRenewal.length > 0 && (
+              <div className="bg-surface rounded-xl px-4 py-3 text-xs text-ink-muted border border-line-subtle">
+                更新月が未設定の年払い（{missingRenewal.map((f) => f.name).join('、')}
+                ）は履歴に含まれません。固定費の編集で更新月を設定してください。
               </div>
             )}
           </>
@@ -393,7 +456,7 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
       >
         <div className="pt-1">
           <p className="text-xs text-ink-muted mb-2 px-1">
-            現在の固定費の設定から選びます。金額は現在の設定の月額換算です。
+            現在の固定費の設定から選びます。金額は現在の設定の支払額です（年払いは年額）。
           </p>
           <div className="mb-3">
             <TabGroup

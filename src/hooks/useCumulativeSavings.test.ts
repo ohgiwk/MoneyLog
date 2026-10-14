@@ -108,4 +108,33 @@ describe('useCumulativeSavings', () => {
     expect(fixed).toEqual({ '2026-09': 53000, '2026-08': 80000 })
     expect(result.current.total).toBe(300000 - 53000 + (300000 - 80000))
   })
+
+  it('記録がない月は、年払いを更新月にだけ年額で含める', async () => {
+    tables.budgets = chain([
+      { month: '2026-08', savings: 0, income: 300000 },
+      { month: '2026-09', savings: 0, income: 300000 },
+    ])
+    tables.transactions = chain([])
+    tables.fixed_expenses = chain([
+      {
+        id: 'y1',
+        name: '保険',
+        category: '保険',
+        amount: 24000,
+        cycle: 'yearly',
+        status: 'active',
+        renewal_month: 8,
+        loan_start_month: null,
+        loan_end_month: null,
+      },
+    ])
+
+    const { result } = renderHook(() => useCumulativeSavings('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    const fixed = Object.fromEntries(
+      result.current.monthlyBreakdown.map((e) => [e.month, e.fixedExpenses])
+    )
+    expect(fixed).toEqual({ '2026-09': 0, '2026-08': 24000 })
+  })
 })

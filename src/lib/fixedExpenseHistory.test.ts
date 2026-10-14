@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
   addableFixedExpenses,
+  isPaidInMonth,
+  projectRecords,
+  yearlyWithoutRenewalMonth,
   buildMonthlySnapshot,
   diffMonthlyRecords,
   fixedTotalsByMonth,
@@ -71,9 +74,20 @@ describe('buildMonthlySnapshot', () => {
     })
   })
 
-  it('年払いは12で割り、円単位に丸める', () => {
-    const [row] = buildMonthlySnapshot('u1', [fe({ cycle: 'yearly', amount: 10000 })], '2026-10')
-    expect(row.monthly_amount).toBe(833)
+  it('年払いは更新月にだけ年額で記録し、それ以外の月には含めない', () => {
+    const yearly = fe({ cycle: 'yearly', amount: 10000, renewal_month: 10 })
+    expect(buildMonthlySnapshot('u1', [yearly], '2026-10')[0].monthly_amount).toBe(10000)
+    expect(buildMonthlySnapshot('u1', [yearly], '2026-11')).toEqual([])
+  })
+
+  it('更新月が未設定の年払いはどの月にも含めない', () => {
+    const yearly = fe({ cycle: 'yearly', amount: 10000, renewal_month: null })
+    expect(buildMonthlySnapshot('u1', [yearly], '2026-10')).toEqual([])
+  })
+
+  it('月払いの金額は端数を円単位に丸める', () => {
+    const [row] = buildMonthlySnapshot('u1', [fe({ amount: 1234.6 })], '2026-10')
+    expect(row.monthly_amount).toBe(1235)
   })
 
   it('金額が未入力の項目は 0 円で記録する', () => {
@@ -228,7 +242,7 @@ describe('summarizeHistory', () => {
 })
 
 describe('toMonthlyRecord', () => {
-  it('解約済みなど状態にかかわらず、設定を指定した月の記録行にする', () => {
+  it('解約済みなど状態にかかわらず、設定を指定した月の記録行にする（年払いは年額）', () => {
     expect(
       toMonthlyRecord(
         'u1',
@@ -241,7 +255,7 @@ describe('toMonthlyRecord', () => {
       fixed_expense_id: 'x',
       name: '家賃',
       category: '住居費',
-      monthly_amount: 1000,
+      monthly_amount: 12000,
     })
   })
 })
@@ -347,5 +361,94 @@ describe('fixedTotalsByMonth', () => {
 
   it('記録がないとき空の Map を返す', () => {
     expect(fixedTotalsByMonth([]).size).toBe(0)
+  })
+})
+
+describe('isPaidInMonth', () => {
+  it('ローンは年払いの設定でも毎月の分割払いとして扱う', () => {
+    const loan = fe({
+      category: 'ローン',
+      cycle: 'yearly',
+      amount: 120000,
+      loan_start_month: '2026-01',
+      loan_end_month: '2026-12',
+    })
+    expect(isPaidInMonth(loan, '2026-05')).toBe(true)
+  })
+
+  it('解約済みの項目はどの月にも含めない', () => {
+    expect(isPaidInMonth(fe({ status: 'cancelled' }), '2026-10')).toBe(false)
+  })
+})
+
+describe('projectRecords', () => {
+  it('指定した各月の見込みを、保存済みの記録と同じ形で返す', () => {
+    const list = [
+      fe({ id: 'm' }),
+      fe({ id: 'y', cycle: 'yearly', amount: 6000, renewal_month: 12 }),
+    ]
+    const rows = projectRecords('u1', list, ['2026-11', '2026-12'])
+    expect(rows.map((r) => [r.month, r.fixed_expense_id, r.monthly_amount])).toEqual([
+      ['2026-11', 'm', 80000],
+      ['2026-12', 'm', 80000],
+      ['2026-12', 'y', 6000],
+    ])
+    expect(rows[0].id).toBe('projected:2026-11:m')
+  })
+})
+
+describe('yearlyWithoutRenewalMonth', () => {
+  it('更新月が未設定の契約中の年払いだけを返す', () => {
+    const list = [
+      fe({ id: 'a', cycle: 'yearly', renewal_month: null }),
+      fe({ id: 'b', cycle: 'yearly', renewal_month: 4 }),
+      fe({ id: 'c', cycle: 'yearly', renewal_month: null, status: 'cancelled' }),
+      fe({ id: 'd', cycle: 'monthly' }),
+    ]
+    expect(yearlyWithoutRenewalMonth(list).map((f) => f.id)).toEqual(['a'])
+  })
+})
+
+describe('summarizeHistory の年払い', () => {
+  it('年払いは前の月になくても「年払い」とし、翌月に「終了」を出さない', () => {
+    const result = summarizeHistory(
+      [
+        rec({
+          id: '1',
+          month: '2026-09',
+          fixed_expense_id: 'm',
+          name: '家賃',
+          monthly_amount: 80000,
+        }),
+        rec({
+          id: '2',
+          month: '2026-10',
+          fixed_expense_id: 'm',
+          name: '家賃',
+          monthly_amount: 80000,
+        }),
+        rec({
+          id: '3',
+          month: '2026-10',
+          fixed_expense_id: 'y',
+          name: '保険',
+          monthly_amount: 12000,
+        }),
+        rec({
+          id: '4',
+          month: '2026-11',
+          fixed_expense_id: 'm',
+          name: '家賃',
+          monthly_amount: 80000,
+        }),
+      ],
+      new Set(['y'])
+    )
+    const byMonth = Object.fromEntries(
+      result.map((m) => [m.month, m.items.map((it) => `${it.name}:${it.change}`)])
+    )
+    expect(byMonth['2026-10']).toEqual(['家賃:same', '保険:yearly'])
+    expect(byMonth['2026-11']).toEqual(['家賃:same'])
+    expect(result.find((m) => m.month === '2026-11')?.diff).toBe(-12000)
   })
 })

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import { isActiveFixedExpense, toMonthlyAmount } from '../lib/loan'
-import { fixedTotalsByMonth } from '../lib/fixedExpenseHistory'
+import { buildMonthlySnapshot, fixedTotalsByMonth } from '../lib/fixedExpenseHistory'
 import { shiftMonth, todayStr } from '../utils'
 
 export interface MonthlySavingEntry {
@@ -39,10 +38,7 @@ export function useCumulativeSavings(userId: string) {
           // 末日を `${lastMonth}-31` とすると 30 日までの月で存在しない日付になり、クエリが失敗するため
           // 当月 1 日より前で絞り込む
           .lt('date', `${currentMonth}-01`),
-        supabase
-          .from('fixed_expenses')
-          .select('id, category, amount, cycle, status, loan_start_month, loan_end_month')
-          .eq('user_id', userId),
+        supabase.from('fixed_expenses').select('*').eq('user_id', userId),
         supabase
           .from('fixed_expense_monthly_records')
           .select('month, monthly_amount')
@@ -66,17 +62,16 @@ export function useCumulativeSavings(userId: string) {
         }
       }
 
-      // 固定費の記録がない月（記録を始める前の月など）は、現在の設定の合計で計算する
-      const currentFixedTotal = fixedExpenses
-        .filter((f) => isActiveFixedExpense(f))
-        .reduce((s, f) => s + toMonthlyAmount(f, f.amount), 0)
+      // 固定費の記録がない月（記録を始める前の月など）は、現在の設定からその月に払う額を計算する
+      const projectedFixed = (month: string) =>
+        buildMonthlySnapshot(userId, fixedExpenses, month).reduce((s, r) => s + r.monthly_amount, 0)
 
       let cumulative = 0
       const breakdown: MonthlySavingEntry[] = []
       for (const b of budgets) {
         const budgetIncome = b.income ?? 0
         const actualOneTime = oneTimeByMonth.get(b.month) ?? 0
-        const monthFixed = fixedByMonth.get(b.month) ?? currentFixedTotal
+        const monthFixed = fixedByMonth.get(b.month) ?? projectedFixed(b.month)
         const monthTotal = budgetIncome - monthFixed - actualOneTime
         cumulative += monthTotal
         breakdown.push({

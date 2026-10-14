@@ -3,7 +3,27 @@ import type {
   FixedExpenseMonthlyRecord,
   FixedExpenseMonthlyRecordInsert,
 } from './database.types'
-import { isActiveFixedExpense, toMonthlyAmount } from './loan'
+import { getLoanPeriod, isActiveFixedExpense } from './loan'
+
+// 年払い（ローンは毎月の分割払いなので除く）か
+export function isYearlyPayment(
+  f: Pick<FixedExpense, 'id' | 'category' | 'cycle' | 'loan_start_month' | 'loan_end_month'>
+): boolean {
+  return f.cycle === 'yearly' && !getLoanPeriod(f)
+}
+
+// 1回の支払額。履歴には月額換算ではなく実際に払う額を残す（年払いは年額、ローンは1回分）
+export function paymentAmount(f: FixedExpense): number {
+  const period = getLoanPeriod(f)
+  return period ? (f.amount ?? 0) / period.installments : (f.amount ?? 0)
+}
+
+// その月に支払いがあるか。年払いは更新月だけで、更新月が未設定のものはどの月にも含めない
+export function isPaidInMonth(f: FixedExpense, month: string): boolean {
+  if (!isActiveFixedExpense(f, month)) return false
+  if (!isYearlyPayment(f)) return true
+  return f.renewal_month === Number(month.slice(5))
+}
 
 // 固定費の設定1件を、その月の記録行にする。
 // 端数のわずかな差で同期が繰り返されないよう、記録時に円単位へ丸める
@@ -18,19 +38,41 @@ export function toMonthlyRecord(
     fixed_expense_id: f.id,
     name: f.name,
     category: f.category,
-    monthly_amount: Math.round(toMonthlyAmount(f, f.amount)),
+    monthly_amount: Math.round(paymentAmount(f)),
   }
 }
 
-// その月の固定費合計に含める項目を、月額換算で記録行にする
+// その月に支払う固定費を記録行にする
 export function buildMonthlySnapshot(
   userId: string,
   fixedExpenses: FixedExpense[],
   month: string
 ): FixedExpenseMonthlyRecordInsert[] {
   return fixedExpenses
-    .filter((f) => isActiveFixedExpense(f, month))
+    .filter((f) => isPaidInMonth(f, month))
     .map((f) => toMonthlyRecord(userId, f, month))
+}
+
+// 未来の月の見込み。DB には保存せず、現在の設定から計算した行を履歴と同じ形で返す
+export function projectRecords(
+  userId: string,
+  fixedExpenses: FixedExpense[],
+  months: string[]
+): FixedExpenseMonthlyRecord[] {
+  return months.flatMap((month) =>
+    buildMonthlySnapshot(userId, fixedExpenses, month).map((row) => ({
+      ...row,
+      id: `projected:${month}:${row.fixed_expense_id}`,
+      created_at: '',
+    }))
+  )
+}
+
+// 更新月が未設定のため履歴に含まれない年払い（契約中・見直し中のもの）
+export function yearlyWithoutRenewalMonth(fixedExpenses: FixedExpense[]): FixedExpense[] {
+  return fixedExpenses.filter(
+    (f) => isActiveFixedExpense(f) && isYearlyPayment(f) && f.renewal_month == null
+  )
 }
 
 // カテゴリ設定の順に並べる（設定にないカテゴリは最後）。同じカテゴリの中では元の順を保つ
@@ -104,7 +146,8 @@ export function fixedTotalsByMonth(
   return totals
 }
 
-export type HistoryChange = 'new' | 'up' | 'down' | 'same' | 'ended'
+// yearly: 年払いの支払い月。毎年、更新月に「新規」、翌月に「終了」と出ないよう別に扱う
+export type HistoryChange = 'new' | 'up' | 'down' | 'same' | 'ended' | 'yearly'
 
 export interface HistoryItem {
   key: string
@@ -132,10 +175,21 @@ function itemKey(r: FixedExpenseMonthlyRecord): string {
   return r.fixed_expense_id ?? `${r.category}/${r.name}`
 }
 
-const CHANGE_ORDER: Record<HistoryChange, number> = { new: 0, up: 0, down: 0, same: 0, ended: 1 }
+const CHANGE_ORDER: Record<HistoryChange, number> = {
+  new: 0,
+  up: 0,
+  down: 0,
+  same: 0,
+  yearly: 0,
+  ended: 1,
+}
 
-// 記録を月ごとにまとめ、記録がある直前の月と比べた変化を付ける（新しい月から順に返す）
-export function summarizeHistory(records: FixedExpenseMonthlyRecord[]): MonthSummary[] {
+// 記録を月ごとにまとめ、記録がある直前の月と比べた変化を付ける（新しい月から順に返す）。
+// yearlyIds は年払いの固定費の id。前の月になくても「新規」にせず、翌月に「終了」も出さない
+export function summarizeHistory(
+  records: FixedExpenseMonthlyRecord[],
+  yearlyIds: ReadonlySet<string> = new Set()
+): MonthSummary[] {
   const byMonth = new Map<string, FixedExpenseMonthlyRecord[]>()
   for (const r of records) {
     const list = byMonth.get(r.month) ?? []
@@ -156,7 +210,9 @@ export function summarizeHistory(records: FixedExpenseMonthlyRecord[]): MonthSum
       const prev = prevByKey.get(itemKey(r))
       const prevAmount = prev ? Number(prev.monthly_amount) : null
       let change: HistoryChange = 'same'
-      if (prevMonth && prevAmount == null) change = 'new'
+      if (r.fixed_expense_id != null && yearlyIds.has(r.fixed_expense_id) && prevAmount == null)
+        change = 'yearly'
+      else if (prevMonth && prevAmount == null) change = 'new'
       else if (prevAmount != null && amount > prevAmount) change = 'up'
       else if (prevAmount != null && amount < prevAmount) change = 'down'
       return {
@@ -172,7 +228,7 @@ export function summarizeHistory(records: FixedExpenseMonthlyRecord[]): MonthSum
 
     const currentKeys = new Set(items.map((it) => it.key))
     for (const [key, prev] of prevByKey) {
-      if (currentKeys.has(key)) continue
+      if (currentKeys.has(key) || yearlyIds.has(key)) continue
       items.push({
         key,
         recordId: null,
