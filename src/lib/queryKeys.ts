@@ -2,6 +2,7 @@ export const queryKeys = {
   profile: (userId: string) => ['profile', userId] as const,
   budget: (userId: string, month: string) => ['budget', userId, month] as const,
   fixedExpenses: (userId: string) => ['fixedExpenses', userId] as const,
+  fixedExpenseHistory: (userId: string) => ['fixedExpenseHistory', userId] as const,
   consumables: (userId: string) => ['consumables', userId] as const,
   transactions: (userId: string, month: string) => ['transactions', userId, month] as const,
   calendarEvents: (userId: string) => ['calendarEvents', userId] as const,

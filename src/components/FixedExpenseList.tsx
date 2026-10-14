@@ -1,6 +1,7 @@
 import Card from './ui/Card'
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import { STATUS_LABELS, type CategoryInfo } from '../constants'
 import type { FixedExpense } from '../lib/database.types'
 import type { HeaderState } from '../types/layout'
@@ -55,6 +56,7 @@ export default function FixedExpenseList({
   fromOnboarding,
   onWizardOpen,
 }: Props) {
+  const navigate = useNavigate()
   const [filter, setFilter] = useState<FixedExpense['status']>('active')
   const [editing, setEditing] = useState<FixedExpense | null | 'new'>(null)
   const [showPicker, setShowPicker] = useState(false)
@@ -275,6 +277,12 @@ export default function FixedExpenseList({
             </span>
           </div>
         )}
+        <button
+          onClick={() => navigate('/fixed-history')}
+          className="mt-3 -mb-1 text-xs font-semibold text-primary-600 active:opacity-70"
+        >
+          毎月の履歴を見る ›
+        </button>
       </div>
 
       {/* フィルター */}

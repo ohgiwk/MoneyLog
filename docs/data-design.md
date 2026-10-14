@@ -9,6 +9,7 @@
 アプリデータ（自分で設計）
 ├── profiles ................ ユーザー設定・収入情報・同居人数・月開始日
 ├── fixed_expenses .......... 固定費
+├── fixed_expense_monthly_records ... 固定費の月次記録（月ごとの固定費のスナップショット）
 ├── consumables ............. 消耗品費（日用品・消耗品の購入サイクル管理）
 ├── transactions ............ 実際の収支記録
 ├── budgets ................. 月次予算設定
@@ -60,6 +61,17 @@ erDiagram
         numeric usd_amount
         text loan_start_month
         text loan_end_month
+        timestamptz created_at
+    }
+
+    fixed_expense_monthly_records {
+        uuid id PK
+        uuid user_id FK
+        text month
+        uuid fixed_expense_id FK
+        text name
+        text category
+        numeric monthly_amount
         timestamptz created_at
     }
 
@@ -202,6 +214,8 @@ erDiagram
 
     auth_users ||--|| profiles : "1:1"
     auth_users ||--o{ fixed_expenses : "1:N"
+    auth_users ||--o{ fixed_expense_monthly_records : "1:N"
+    fixed_expenses |o--o{ fixed_expense_monthly_records : "1:N"
     auth_users ||--o{ consumables : "1:N"
     auth_users ||--o{ transactions : "1:N"
     auth_users ||--o{ budgets : "1:N"
@@ -230,6 +244,7 @@ auth.users
     │       ↑ month_start_day をホーム/記録タブが参照
     │
     ├── fixed_expenses（1対多）
+    │       └── fixed_expense_monthly_records（1対多。固定費を削除しても記録は残る）
     │
     ├── consumables（1対多）
     │
@@ -310,6 +325,26 @@ auth.users
 年間節約額 = 月間節約額 × 12
 累計節約額 = 月間節約額 × 経過月数
 ```
+
+#### fixed_expense_monthly_records（固定費の月次記録）
+
+月ごとの固定費を残し、毎月の変動を固定費履歴画面で見られるようにするテーブル。1行が「ある月の固定費1件」。
+
+| カラム名 | 型 | 説明 |
+|---|---|---|
+| id | uuid | 記録ID |
+| user_id | uuid | どのユーザーの記録か |
+| month | text | 対象月（`YYYY-MM`。カレンダー月） |
+| fixed_expense_id | uuid | 元の固定費（固定費を削除すると null。`user_id, month, fixed_expense_id` で一意） |
+| name | text | 記録時点の名前 |
+| category | text | 記録時点のカテゴリ |
+| monthly_amount | numeric | 月額換算の金額（円・整数に丸める。年払いは 1/12、ローンは総額 ÷ 分割回数） |
+| created_at | timestamptz | 作成日時 |
+
+**記録のタイミング**
+- 起動時に当月の記録を確認し、なければ固定費の設定から作成する（対象は固定費合計と同じく契約中・見直し中で、完済前のもの）。
+- 当月中に固定費を変更すると、当月の記録を最新の設定に合わせて更新する。
+- 前月以前の記録は確定値として変更しない。記録は機能を導入した月から始まる。
 
 ---
 

@@ -65,6 +65,24 @@ export interface Database {
         }
         Update: Partial<Database['public']['Tables']['fixed_expenses']['Insert']>
       }
+      fixed_expense_monthly_records: {
+        Row: {
+          id: string
+          user_id: string
+          month: string
+          // 固定費を削除すると null になる（記録時点の name / category は残る）
+          fixed_expense_id: string | null
+          name: string
+          category: string
+          monthly_amount: number
+          created_at: string
+        }
+        Insert: Omit<
+          Database['public']['Tables']['fixed_expense_monthly_records']['Row'],
+          'id' | 'created_at'
+        >
+        Update: Partial<Database['public']['Tables']['fixed_expense_monthly_records']['Insert']>
+      }
       transactions: {
         Row: {
           id: string
@@ -232,6 +250,10 @@ export interface Database {
 // Convenience types
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type FixedExpense = Database['public']['Tables']['fixed_expenses']['Row']
+export type FixedExpenseMonthlyRecord =
+  Database['public']['Tables']['fixed_expense_monthly_records']['Row']
+export type FixedExpenseMonthlyRecordInsert =
+  Database['public']['Tables']['fixed_expense_monthly_records']['Insert']
 export type Transaction = Database['public']['Tables']['transactions']['Row']
 export type ShoppingList = Database['public']['Tables']['shopping_lists']['Row']
 export type ShoppingItem = Database['public']['Tables']['shopping_items']['Row']

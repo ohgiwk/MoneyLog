@@ -72,6 +72,29 @@ alter table public.fixed_expenses enable row level security;
 create policy "own fixed_expenses" on public.fixed_expenses for all using (auth.uid() = user_id);
 
 -- ------------------------------------------------------------
+-- fixed_expense_monthly_records（固定費の月次記録）
+-- 起動時に当月分を作成し、当月中は固定費の変更に合わせて更新する。前月以前は変更しない
+-- ------------------------------------------------------------
+create table public.fixed_expense_monthly_records (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users on delete cascade,
+  month text not null, -- YYYY-MM
+  -- 固定費を削除しても過去の記録は残すため set null。名前・カテゴリは記録時点の値を保持する
+  fixed_expense_id uuid references public.fixed_expenses on delete set null,
+  name text not null,
+  category text not null,
+  -- 月額換算（円・整数に丸める）
+  monthly_amount numeric not null,
+  created_at timestamptz not null default now(),
+  constraint fixed_expense_monthly_records_unique unique (user_id, month, fixed_expense_id)
+);
+alter table public.fixed_expense_monthly_records enable row level security;
+create policy "own fixed_expense_monthly_records" on public.fixed_expense_monthly_records
+  for all using (auth.uid() = user_id);
+create index fixed_expense_monthly_records_user_month_idx
+  on public.fixed_expense_monthly_records (user_id, month);
+
+-- ------------------------------------------------------------
 -- transactions（収支記録）
 -- ------------------------------------------------------------
 create table public.transactions (

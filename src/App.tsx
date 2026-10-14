@@ -27,6 +27,8 @@ import PrivacyPolicyScreen from './components/PrivacyPolicyScreen'
 import TermsOfServiceScreen from './components/TermsOfServiceScreen'
 import ChangePasswordScreen from './components/ChangePasswordScreen'
 import ExpenseFilterScreen from './components/ExpenseFilterScreen'
+import FixedExpenseHistoryScreen from './components/FixedExpenseHistoryScreen'
+import { useFixedExpenseMonthlySync } from './hooks/queries/useFixedExpenseHistoryQuery'
 
 const TAB_PATHS = ['/', '/record', '/shopping', '/fixed', '/calendar']
 
@@ -36,6 +38,9 @@ const MIN_SPLASH_MS = 1000
 function AppRoutes() {
   const { user, authLoading } = useAppContext()
   const [minSplashElapsed, setMinSplashElapsed] = useState(false)
+
+  // 起動時に当月の固定費の記録を作成し、以降は固定費の変更に合わせて当月分を更新する
+  useFixedExpenseMonthlySync(user?.id ?? '')
 
   useEffect(() => {
     const timer = setTimeout(() => setMinSplashElapsed(true), MIN_SPLASH_MS)
@@ -126,6 +131,7 @@ function AppRoutes() {
         <Route path="settings/change-password" element={<ChangePasswordScreen />} />
         <Route path="budget" element={<BudgetScreen userId={user.id} />} />
         <Route path="analytics" element={<AnalyticsScreen userId={user.id} />} />
+        <Route path="fixed-history" element={<FixedExpenseHistoryScreen userId={user.id} />} />
         <Route path="saving-tips" element={<SavingTipsScreen />} />
         <Route path="achievements" element={<AchievementsScreen userId={user.id} />} />
         <Route path="expense-filter" element={<ExpenseFilterScreen />} />
