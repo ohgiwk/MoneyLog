@@ -63,8 +63,11 @@ create table public.fixed_expenses (
   -- ローン: 開始月・終了月（YYYY-MM）。分割回数は開始月〜終了月の月数
   loan_start_month text,
   loan_end_month text,
+  -- 年払いの更新月（1〜12。null は未設定）
+  renewal_month int,
   created_at timestamptz not null default now(),
   constraint fixed_expenses_cycle_check check (cycle in ('daily', 'weekly', 'monthly', 'yearly')),
+  constraint fixed_expenses_renewal_month_check check (renewal_month between 1 and 12),
   constraint fixed_expenses_status_check
     check (status in ('active', 'reviewing', 'cancelled', 'unsubscribed'))
 );

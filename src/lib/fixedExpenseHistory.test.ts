@@ -28,6 +28,7 @@ function fe(overrides: Partial<FixedExpense>): FixedExpense {
     usd_amount: null,
     loan_start_month: null,
     loan_end_month: null,
+    renewal_month: null,
     created_at: '2026-01-01T00:00:00Z',
     ...overrides,
   }

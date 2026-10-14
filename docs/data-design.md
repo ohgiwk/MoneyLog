@@ -61,6 +61,7 @@ erDiagram
         numeric usd_amount
         text loan_start_month
         text loan_end_month
+        int renewal_month
         timestamptz created_at
     }
 
@@ -317,6 +318,7 @@ auth.users
 | usd_amount | numeric | ドル入力時の入力額（`amount` は保存時のレートで円換算した値） |
 | loan_start_month | text | ローンの開始月（`YYYY-MM`） |
 | loan_end_month | text | ローンの終了月（`YYYY-MM`。分割回数は開始月〜終了月の月数） |
+| renewal_month | int | 年払いの更新月（1〜12。null は未設定。年払い以外は null） |
 | created_at | timestamptz | 作成日時 |
 
 **節約額の計算イメージ**

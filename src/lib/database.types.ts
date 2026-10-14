@@ -52,16 +52,25 @@ export interface Database {
           usd_amount: number | null
           loan_start_month: string | null
           loan_end_month: string | null
+          // 年払いの更新月（1〜12。null は未設定。年払い以外は常に null）
+          renewal_month: number | null
           created_at: string
         }
         Insert: Omit<
           Database['public']['Tables']['fixed_expenses']['Row'],
-          'id' | 'created_at' | 'currency' | 'usd_amount' | 'loan_start_month' | 'loan_end_month'
+          | 'id'
+          | 'created_at'
+          | 'currency'
+          | 'usd_amount'
+          | 'loan_start_month'
+          | 'loan_end_month'
+          | 'renewal_month'
         > & {
           currency?: string | null
           usd_amount?: number | null
           loan_start_month?: string | null
           loan_end_month?: string | null
+          renewal_month?: number | null
         }
         Update: Partial<Database['public']['Tables']['fixed_expenses']['Insert']>
       }

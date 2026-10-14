@@ -32,6 +32,8 @@ interface FormValues {
   subSubcategory: string
   amount: string
   cycle: FixedExpense['cycle']
+  // 年払いの更新月（'' は未設定、'1'〜'12'）
+  renewalMonth: string
   status: FixedExpense['status']
   notes: string
 }
@@ -101,6 +103,7 @@ export default function FixedExpenseForm({
       return expense?.amount != null ? expense.amount.toString() : ''
     })(),
     cycle: expense?.cycle ?? 'monthly',
+    renewalMonth: expense?.renewal_month != null ? expense.renewal_month.toString() : '',
     status: expense?.status ?? 'active',
     notes: expense?.notes ?? '',
   })
@@ -192,6 +195,9 @@ export default function FixedExpenseForm({
         currency: currency === 'USD' ? 'USD' : null,
         usd_amount: currency === 'USD' ? inputAmt : null,
       }
+      // 更新月は年払いのときだけ残す（毎月・ローンに切り替えたら消す）
+      const renewal_month =
+        cycle === 'yearly' && values.renewalMonth ? Number(values.renewalMonth) : null
       const loanFields = {
         loan_start_month: isLoan && computedEndMonth ? loanStartMonth : null,
         loan_end_month: isLoan && computedEndMonth ? computedEndMonth : null,
@@ -204,6 +210,7 @@ export default function FixedExpenseForm({
           cycle,
           status: values.status,
           notes: values.notes || null,
+          renewal_month,
           ...currencyFields,
           ...loanFields,
         })
@@ -222,6 +229,7 @@ export default function FixedExpenseForm({
           notes: values.notes || null,
           start_date: todayStr(),
           billing_day: null,
+          renewal_month,
           ...currencyFields,
           ...loanFields,
         })
@@ -429,6 +437,25 @@ export default function FixedExpenseForm({
             )}
           </div>
         </div>
+
+        {!isLoan && values.cycle === 'yearly' && (
+          <div>
+            <label className="text-xs text-ink-muted">更新月</label>
+            <select
+              value={values.renewalMonth}
+              onChange={(e) => setValue('renewalMonth', e.target.value)}
+              className="w-full mt-1 border border-line rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300"
+              aria-label="更新月"
+            >
+              <option value="">未設定</option>
+              {Array.from({ length: 12 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1)}>
+                  {i + 1}月
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="text-xs text-ink-muted">ステータス</label>
