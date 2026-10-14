@@ -21,11 +21,22 @@ import { oneTimeBudgetTotal, EMPTY_BUDGET_SETTINGS } from '../lib/services/budge
 import { useSummaryCalculations } from '../hooks/useSummaryCalculations'
 import BudgetProgressPanel, { type PeriodMode } from './BudgetProgressPanel'
 import { Row } from './ui/Row'
+import { BalanceChart } from './BalanceChart'
 import Button from './ui/Button'
 import CountUp from './ui/CountUp'
 
 interface Props {
   userId: string
+}
+
+// 収支グラフの色。ライト・ダーク両方の背景で、隣り合う色が色覚の違いでも見分けられる組み合わせ
+const BALANCE_COLORS = {
+  income: { label: '収入', color: 'bg-income-600' },
+  fixed: { label: '固定費', color: 'bg-[#b87800]' },
+  savings: { label: '貯蓄', color: 'bg-navy-400' },
+  expense: { label: '出費', color: 'bg-danger-500' },
+  // 合計の柱は項目と混同しないよう無彩色にする
+  balance: { label: '収支', color: 'bg-ink' },
 }
 
 const allowanceModeKey = (userId: string) => `allowanceMode_${userId}`
@@ -446,20 +457,46 @@ export default function HomeTab({ userId }: Props) {
       <div className="space-y-4">
         <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
           <div className="text-sm font-semibold text-ink">収支</div>
-          <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
-          <Row label="貯蓄" value={`-${formatYen(savings)}`} valueColor="text-ink-muted" />
+          <BalanceChart
+            income={{ ...BALANCE_COLORS.income, value: income }}
+            outflows={[
+              { ...BALANCE_COLORS.fixed, value: totalFixed },
+              { ...BALANCE_COLORS.savings, value: savings },
+              { ...BALANCE_COLORS.expense, value: oneTimeExpense },
+            ]}
+            balanceColor={BALANCE_COLORS.balance.color}
+          />
+          <Row
+            label="収入"
+            value={formatYen(income)}
+            valueColor="text-income-600"
+            swatch={BALANCE_COLORS.income.color}
+          />
           <Row
             label="固定費"
             value={`-${formatYen(Math.round(totalFixed))}`}
             valueColor="text-danger-500"
+            swatch={BALANCE_COLORS.fixed.color}
           />
-          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-danger-500" />
+          <Row
+            label="貯蓄"
+            value={`-${formatYen(savings)}`}
+            valueColor="text-ink-muted"
+            swatch={BALANCE_COLORS.savings.color}
+          />
+          <Row
+            label="出費"
+            value={`-${formatYen(oneTimeExpense)}`}
+            valueColor="text-danger-500"
+            swatch={BALANCE_COLORS.expense.color}
+          />
           <div className="h-px bg-surface-hover" />
           <Row
             label="収支"
             value={(balance >= 0 ? '+' : '') + formatYen(balance)}
             valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
             bold
+            swatch={BALANCE_COLORS.balance.color}
           />
           <Button variant="secondary" fullWidth size="sm" onClick={() => navigate('/analytics')}>
             レポートを確認
