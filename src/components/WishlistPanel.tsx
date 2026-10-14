@@ -680,7 +680,7 @@ export default function WishlistPanel({ userId }: Props) {
                     <span>−{formatYen(entry.fixedExpenses)}</span>
                   </div>
                   <div className="flex justify-between text-xs text-ink-muted">
-                    <span>臨時支出</span>
+                    <span>出費</span>
                     <span className={entry.oneTimeExpenses > 0 ? 'text-danger-500' : ''}>
                       −{formatYen(entry.oneTimeExpenses)}
                     </span>

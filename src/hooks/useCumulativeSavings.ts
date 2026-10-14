@@ -22,8 +22,8 @@ export function useCumulativeSavings(userId: string) {
     let cancelled = false
 
     async function calculate() {
-      const lastMonth = shiftMonth(todayStr().slice(0, 7), -1)
-      const lastMonthEnd = `${lastMonth}-31`
+      const currentMonth = todayStr().slice(0, 7)
+      const lastMonth = shiftMonth(currentMonth, -1)
 
       const [budgetsRes, txRes, fixedRes] = await Promise.all([
         supabase
@@ -35,7 +35,9 @@ export function useCumulativeSavings(userId: string) {
           .from('transactions')
           .select('date, amount, type, expense_kind')
           .eq('user_id', userId)
-          .lte('date', lastMonthEnd),
+          // 末日を `${lastMonth}-31` とすると 30 日までの月で存在しない日付になり、クエリが失敗するため
+          // 当月 1 日より前で絞り込む
+          .lt('date', `${currentMonth}-01`),
         supabase
           .from('fixed_expenses')
           .select('id, category, amount, cycle, status, loan_start_month, loan_end_month')
