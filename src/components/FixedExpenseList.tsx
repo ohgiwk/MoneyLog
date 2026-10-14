@@ -115,13 +115,7 @@ export default function FixedExpenseList({
     [fixedExpenses]
   )
   const toMonthly = (f: FixedExpense) => toMonthlyAmount(f, f.amount)
-  const toMonthlyBaseline = (f: FixedExpense) => toMonthlyAmount(f, f.baseline_amount)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
-  const cancelledExpenses = useMemo(
-    () => fixedExpenses.filter((f) => f.status === 'cancelled' && f.baseline_amount > 0),
-    [fixedExpenses]
-  )
-  const totalSaved = cancelledExpenses.reduce((s, f) => s + toMonthlyBaseline(f), 0)
 
   function renderLoanInfo(f: FixedExpense): ReactNode {
     const period = getLoanPeriod(f)
@@ -251,11 +245,6 @@ export default function FixedExpenseList({
             {summaryPeriod === 'monthly' ? '/月' : '/年'}
           </span>
         </div>
-        {totalSaved > 0 && (
-          <div className="text-xs text-primary-600 font-semibold mt-1">
-            初回登録時より -{formatYen(totalSaved)}/月（年間 -{formatYen(totalSaved * 12)}）
-          </div>
-        )}
         {fixedBudget > 0 && (
           <div className="text-xs text-ink-muted mt-1">
             予算 {formatYen(summaryPeriod === 'monthly' ? fixedBudget : fixedBudget * 12)}
