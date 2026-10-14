@@ -5,8 +5,24 @@ import type {
 } from './database.types'
 import { isActiveFixedExpense, toMonthlyAmount } from './loan'
 
-// その月の固定費合計に含める項目を、月額換算で記録行にする。
+// 固定費の設定1件を、その月の記録行にする。
 // 端数のわずかな差で同期が繰り返されないよう、記録時に円単位へ丸める
+export function toMonthlyRecord(
+  userId: string,
+  f: FixedExpense,
+  month: string
+): FixedExpenseMonthlyRecordInsert {
+  return {
+    user_id: userId,
+    month,
+    fixed_expense_id: f.id,
+    name: f.name,
+    category: f.category,
+    monthly_amount: Math.round(toMonthlyAmount(f, f.amount)),
+  }
+}
+
+// その月の固定費合計に含める項目を、月額換算で記録行にする
 export function buildMonthlySnapshot(
   userId: string,
   fixedExpenses: FixedExpense[],
@@ -14,14 +30,38 @@ export function buildMonthlySnapshot(
 ): FixedExpenseMonthlyRecordInsert[] {
   return fixedExpenses
     .filter((f) => isActiveFixedExpense(f, month))
-    .map((f) => ({
-      user_id: userId,
-      month,
-      fixed_expense_id: f.id,
-      name: f.name,
-      category: f.category,
-      monthly_amount: Math.round(toMonthlyAmount(f, f.amount)),
-    }))
+    .map((f) => toMonthlyRecord(userId, f, month))
+}
+
+// カテゴリ設定の順に並べる（設定にないカテゴリは最後）。同じカテゴリの中では元の順を保つ
+export function sortByCategoryOrder<T extends { category: string }>(
+  list: T[],
+  categoryOrder: string[]
+): T[] {
+  const order = new Map(categoryOrder.map((name, i) => [name, i]))
+  const rank = (c: string) => order.get(c) ?? categoryOrder.length
+  return [...list].sort((a, b) => rank(a.category) - rank(b.category))
+}
+
+export type AddStatusFilter = 'all' | 'active' | 'unsubscribed' | 'cancelled'
+
+// 追加シートのステータス絞り込み。固定費一覧と同じく「契約中」には見直し中も含める
+export function matchesStatusFilter(
+  f: Pick<FixedExpense, 'status'>,
+  filter: AddStatusFilter
+): boolean {
+  if (filter === 'all') return true
+  if (filter === 'active') return f.status === 'active' || f.status === 'reviewing'
+  return f.status === filter
+}
+
+// 過去の月に手動で追加できる固定費（その月にまだ記録がない設定）
+export function addableFixedExpenses(
+  fixedExpenses: FixedExpense[],
+  monthRecords: Pick<FixedExpenseMonthlyRecord, 'fixed_expense_id'>[]
+): FixedExpense[] {
+  const recorded = new Set(monthRecords.map((r) => r.fixed_expense_id))
+  return fixedExpenses.filter((f) => !recorded.has(f.id))
 }
 
 export interface MonthlyRecordDiff {
@@ -57,6 +97,8 @@ export type HistoryChange = 'new' | 'up' | 'down' | 'same' | 'ended'
 
 export interface HistoryItem {
   key: string
+  // その月の記録行の id（前の月にだけある「終了」の項目は null）
+  recordId: string | null
   name: string
   category: string
   amount: number
@@ -106,7 +148,15 @@ export function summarizeHistory(records: FixedExpenseMonthlyRecord[]): MonthSum
       if (prevMonth && prevAmount == null) change = 'new'
       else if (prevAmount != null && amount > prevAmount) change = 'up'
       else if (prevAmount != null && amount < prevAmount) change = 'down'
-      return { key: itemKey(r), name: r.name, category: r.category, amount, prevAmount, change }
+      return {
+        key: itemKey(r),
+        recordId: r.id,
+        name: r.name,
+        category: r.category,
+        amount,
+        prevAmount,
+        change,
+      }
     })
 
     const currentKeys = new Set(items.map((it) => it.key))
@@ -114,6 +164,7 @@ export function summarizeHistory(records: FixedExpenseMonthlyRecord[]): MonthSum
       if (currentKeys.has(key)) continue
       items.push({
         key,
+        recordId: null,
         name: prev.name,
         category: prev.category,
         amount: 0,

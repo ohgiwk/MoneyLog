@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { buildMonthlySnapshot, diffMonthlyRecords, summarizeHistory } from './fixedExpenseHistory'
+import {
+  addableFixedExpenses,
+  buildMonthlySnapshot,
+  diffMonthlyRecords,
+  matchesStatusFilter,
+  sortByCategoryOrder,
+  summarizeHistory,
+  toMonthlyRecord,
+} from './fixedExpenseHistory'
 import type { FixedExpense, FixedExpenseMonthlyRecord } from './database.types'
 
 function fe(overrides: Partial<FixedExpense>): FixedExpense {
@@ -214,5 +222,105 @@ describe('summarizeHistory', () => {
       rec({ id: 'r-2', fixed_expense_id: 'fe-2', monthly_amount: 300 }),
     ])
     expect(m.total).toBe(1500)
+  })
+})
+
+describe('toMonthlyRecord', () => {
+  it('解約済みなど状態にかかわらず、設定を指定した月の記録行にする', () => {
+    expect(
+      toMonthlyRecord(
+        'u1',
+        fe({ id: 'x', status: 'cancelled', cycle: 'yearly', amount: 12000 }),
+        '2026-08'
+      )
+    ).toEqual({
+      user_id: 'u1',
+      month: '2026-08',
+      fixed_expense_id: 'x',
+      name: '家賃',
+      category: '住居費',
+      monthly_amount: 1000,
+    })
+  })
+})
+
+describe('addableFixedExpenses', () => {
+  it('その月にまだ記録がない設定だけを返す', () => {
+    const list = [fe({ id: 'a' }), fe({ id: 'b' }), fe({ id: 'c' })]
+    const result = addableFixedExpenses(list, [
+      { fixed_expense_id: 'b' },
+      { fixed_expense_id: null },
+    ])
+    expect(result.map((f) => f.id)).toEqual(['a', 'c'])
+  })
+
+  it('記録がない月はすべての設定を返す', () => {
+    expect(addableFixedExpenses([fe({ id: 'a' })], [])).toHaveLength(1)
+  })
+})
+
+describe('summarizeHistory の recordId', () => {
+  it('その月の項目には記録行の id、終了した項目には null を付ける', () => {
+    const [oct] = summarizeHistory([
+      rec({ id: 'r-sep', month: '2026-09', fixed_expense_id: 'a', name: '保険' }),
+      rec({ id: 'r-oct', month: '2026-10', fixed_expense_id: 'b', name: '家賃' }),
+    ])
+    const ids = Object.fromEntries(oct.items.map((it) => [it.name, it.recordId]))
+    expect(ids).toEqual({ 家賃: 'r-oct', 保険: null })
+  })
+})
+
+describe('sortByCategoryOrder', () => {
+  const order = ['住居費', '通信費', 'サブスク']
+
+  it('カテゴリ設定の順に並べ、同じカテゴリの中では元の順を保つ', () => {
+    const list = [
+      { name: 'Netflix', category: 'サブスク' },
+      { name: 'スマホ', category: '通信費' },
+      { name: 'Spotify', category: 'サブスク' },
+      { name: '家賃', category: '住居費' },
+    ]
+    expect(sortByCategoryOrder(list, order).map((x) => x.name)).toEqual([
+      '家賃',
+      'スマホ',
+      'Netflix',
+      'Spotify',
+    ])
+  })
+
+  it('設定にないカテゴリは最後に並べる', () => {
+    const list = [
+      { name: 'A', category: '不明' },
+      { name: 'B', category: '通信費' },
+    ]
+    expect(sortByCategoryOrder(list, order).map((x) => x.name)).toEqual(['B', 'A'])
+  })
+
+  it('元の配列を書き換えない', () => {
+    const list = [
+      { name: 'A', category: 'サブスク' },
+      { name: 'B', category: '住居費' },
+    ]
+    sortByCategoryOrder(list, order)
+    expect(list.map((x) => x.name)).toEqual(['A', 'B'])
+  })
+})
+
+describe('matchesStatusFilter', () => {
+  const statuses = ['active', 'reviewing', 'unsubscribed', 'cancelled'] as const
+  const pick = (filter: Parameters<typeof matchesStatusFilter>[1]) =>
+    statuses.filter((status) => matchesStatusFilter({ status }, filter))
+
+  it('すべてのときは全ステータスを含める', () => {
+    expect(pick('all')).toEqual(statuses)
+  })
+
+  it('契約中のときは見直し中も含める', () => {
+    expect(pick('active')).toEqual(['active', 'reviewing'])
+  })
+
+  it('未契約・解約済みのときはそのステータスだけを含める', () => {
+    expect(pick('unsubscribed')).toEqual(['unsubscribed'])
+    expect(pick('cancelled')).toEqual(['cancelled'])
   })
 })

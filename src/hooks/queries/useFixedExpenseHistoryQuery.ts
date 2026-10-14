@@ -1,17 +1,39 @@
 import { useEffect, useRef } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fixedExpenseHistoryService } from '../../lib/services/fixedExpenseHistoryService'
 import { buildMonthlySnapshot, diffMonthlyRecords } from '../../lib/fixedExpenseHistory'
 import { currentMonthStr } from '../../lib/loan'
 import { queryKeys } from '../../lib/queryKeys'
 import { useFixedExpensesQuery } from './useFixedExpensesQuery'
-import type { FixedExpense } from '../../lib/database.types'
+import type { FixedExpense, FixedExpenseMonthlyRecordInsert } from '../../lib/database.types'
 
 export function useFixedExpenseHistoryQuery(userId: string) {
   return useQuery({
     queryKey: queryKeys.fixedExpenseHistory(userId),
     queryFn: () => fixedExpenseHistoryService.fetchByUser(userId),
     enabled: !!userId,
+  })
+}
+
+// 過去の月の記録を手動で追加する（当月分は自動で同期されるため、画面側で過去の月に限る）
+export function useFixedExpenseHistoryAdd(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (rows: FixedExpenseMonthlyRecordInsert[]) =>
+      fixedExpenseHistoryService.upsertMany(rows),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.fixedExpenseHistory(userId) })
+    },
+  })
+}
+
+export function useFixedExpenseHistoryDelete(userId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: string[]) => fixedExpenseHistoryService.deleteByIds(ids),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.fixedExpenseHistory(userId) })
+    },
   })
 }
 
