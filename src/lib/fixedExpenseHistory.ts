@@ -93,6 +93,17 @@ export function diffMonthlyRecords(
   return { upserts, deleteIds }
 }
 
+// 月ごとの固定費合計（記録がある月だけを含む）
+export function fixedTotalsByMonth(
+  records: Pick<FixedExpenseMonthlyRecord, 'month' | 'monthly_amount'>[]
+): Map<string, number> {
+  const totals = new Map<string, number>()
+  for (const r of records) {
+    totals.set(r.month, (totals.get(r.month) ?? 0) + Number(r.monthly_amount))
+  }
+  return totals
+}
+
 export type HistoryChange = 'new' | 'up' | 'down' | 'same' | 'ended'
 
 export interface HistoryItem {

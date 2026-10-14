@@ -49,6 +49,8 @@ beforeEach(() => {
         loan_end_month: null,
       },
     ]),
+    // 記録がない月は現在の設定の合計で計算する
+    fixed_expense_monthly_records: chain([]),
   }
   vi.mocked(supabase.from).mockImplementation(
     (table: string) => tables[table] as unknown as FromReturn
@@ -83,5 +85,27 @@ describe('useCumulativeSavings', () => {
       },
     ])
     expect(result.current.total).toBe(212000)
+  })
+
+  it('固定費の記録がある月はその月の合計を、ない月は現在の設定の合計を使う', async () => {
+    tables.budgets = chain([
+      { month: '2026-08', savings: 0, income: 300000 },
+      { month: '2026-09', savings: 0, income: 300000 },
+    ])
+    tables.transactions = chain([])
+    tables.fixed_expense_monthly_records = chain([
+      { month: '2026-09', monthly_amount: 50000 },
+      { month: '2026-09', monthly_amount: 3000 },
+    ])
+
+    const { result } = renderHook(() => useCumulativeSavings('u1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    expect(tables.fixed_expense_monthly_records.lt).toHaveBeenCalledWith('month', '2026-10')
+    const fixed = Object.fromEntries(
+      result.current.monthlyBreakdown.map((e) => [e.month, e.fixedExpenses])
+    )
+    expect(fixed).toEqual({ '2026-09': 53000, '2026-08': 80000 })
+    expect(result.current.total).toBe(300000 - 53000 + (300000 - 80000))
   })
 })

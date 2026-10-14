@@ -3,6 +3,7 @@ import {
   addableFixedExpenses,
   buildMonthlySnapshot,
   diffMonthlyRecords,
+  fixedTotalsByMonth,
   matchesStatusFilter,
   sortByCategoryOrder,
   summarizeHistory,
@@ -322,5 +323,28 @@ describe('matchesStatusFilter', () => {
   it('未契約・解約済みのときはそのステータスだけを含める', () => {
     expect(pick('unsubscribed')).toEqual(['unsubscribed'])
     expect(pick('cancelled')).toEqual(['cancelled'])
+  })
+})
+
+describe('fixedTotalsByMonth', () => {
+  it('月ごとに記録の金額を合計する', () => {
+    const totals = fixedTotalsByMonth([
+      { month: '2026-09', monthly_amount: 80000 },
+      { month: '2026-09', monthly_amount: 3000 },
+      { month: '2026-10', monthly_amount: 50000 },
+    ])
+    expect(Object.fromEntries(totals)).toEqual({ '2026-09': 83000, '2026-10': 50000 })
+  })
+
+  it('DB から文字列で返った金額も数値として合計する', () => {
+    const totals = fixedTotalsByMonth([
+      { month: '2026-09', monthly_amount: '1200' as unknown as number },
+      { month: '2026-09', monthly_amount: 300 },
+    ])
+    expect(totals.get('2026-09')).toBe(1500)
+  })
+
+  it('記録がないとき空の Map を返す', () => {
+    expect(fixedTotalsByMonth([]).size).toBe(0)
   })
 })

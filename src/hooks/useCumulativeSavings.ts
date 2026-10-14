@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { isActiveFixedExpense, toMonthlyAmount } from '../lib/loan'
+import { fixedTotalsByMonth } from '../lib/fixedExpenseHistory'
 import { shiftMonth, todayStr } from '../utils'
 
 export interface MonthlySavingEntry {
@@ -25,7 +26,7 @@ export function useCumulativeSavings(userId: string) {
       const currentMonth = todayStr().slice(0, 7)
       const lastMonth = shiftMonth(currentMonth, -1)
 
-      const [budgetsRes, txRes, fixedRes] = await Promise.all([
+      const [budgetsRes, txRes, fixedRes, recordsRes] = await Promise.all([
         supabase
           .from('budgets')
           .select('month, savings, income')
@@ -42,6 +43,11 @@ export function useCumulativeSavings(userId: string) {
           .from('fixed_expenses')
           .select('id, category, amount, cycle, status, loan_start_month, loan_end_month')
           .eq('user_id', userId),
+        supabase
+          .from('fixed_expense_monthly_records')
+          .select('month, monthly_amount')
+          .eq('user_id', userId)
+          .lt('month', currentMonth),
       ])
 
       if (cancelled) return
@@ -49,6 +55,7 @@ export function useCumulativeSavings(userId: string) {
       const budgets = budgetsRes.data ?? []
       const transactions = txRes.data ?? []
       const fixedExpenses = fixedRes.data ?? []
+      const fixedByMonth = fixedTotalsByMonth(recordsRes.data ?? [])
 
       const oneTimeByMonth = new Map<string, number>()
 
@@ -59,7 +66,8 @@ export function useCumulativeSavings(userId: string) {
         }
       }
 
-      const totalFixed = fixedExpenses
+      // 固定費の記録がない月（記録を始める前の月など）は、現在の設定の合計で計算する
+      const currentFixedTotal = fixedExpenses
         .filter((f) => isActiveFixedExpense(f))
         .reduce((s, f) => s + toMonthlyAmount(f, f.amount), 0)
 
@@ -68,12 +76,13 @@ export function useCumulativeSavings(userId: string) {
       for (const b of budgets) {
         const budgetIncome = b.income ?? 0
         const actualOneTime = oneTimeByMonth.get(b.month) ?? 0
-        const monthTotal = budgetIncome - totalFixed - actualOneTime
+        const monthFixed = fixedByMonth.get(b.month) ?? currentFixedTotal
+        const monthTotal = budgetIncome - monthFixed - actualOneTime
         cumulative += monthTotal
         breakdown.push({
           month: b.month,
           budgetIncome,
-          fixedExpenses: totalFixed,
+          fixedExpenses: monthFixed,
           oneTimeExpenses: actualOneTime,
           total: monthTotal,
         })
