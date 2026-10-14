@@ -6,6 +6,7 @@ import DrawerMenu from '../DrawerMenu'
 import UpdateNotification from '../UpdateNotification'
 import NewMonthBudgetDialog from '../NewMonthBudgetDialog'
 import QuickRecordSheet from '../QuickRecordSheet'
+import { useLongPress } from '../../hooks/useLongPress'
 import MonthPickerDialog from '../MonthPickerDialog'
 import { shiftMonth, monthLabel, todayStr } from '../../utils'
 import type { Transaction } from '../../lib/database.types'
@@ -37,20 +38,23 @@ export default function MainLayout() {
   } = useAppContext()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [quickSheetOpen, setQuickSheetOpen] = useState(false)
-  const [longPressing, setLongPressing] = useState(false)
   // 暗転の表示中（フェードアウトが終わるまで）は true
   const [dimActive, setDimActive] = useState(false)
   const [monthPickerOpen, setMonthPickerOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pressRectRef = useRef<DOMRect | null>(null)
-  const isLongPress = useRef(false)
   const isCalendar = !!useMatch('/calendar')
   const prevPath = useRef(location.pathname)
 
   const LONG_PRESS_MS = 500
-  // 長押し中に指がこの距離までボタンの外へずれても、押し続けているとみなす
-  const PRESS_SLOP_PX = 24
+
+  // 記録ボタンの長押しで「よく記録する出費」シートを開く
+  const longPress = useLongPress<HTMLButtonElement>({
+    durationMs: LONG_PRESS_MS,
+    slopPx: 24,
+    onStart: () => setDimActive(true),
+    onLongPress: () => setQuickSheetOpen(true),
+  })
+  const longPressing = longPress.pressing
 
   // 濃さはシートの背景（bg-black/40）に合わせ、開いた瞬間に明るさが跳ねないようにする
   const dimMotion = {
@@ -58,44 +62,6 @@ export default function MainLayout() {
     animate: { opacity: 0.4, transition: { duration: LONG_PRESS_MS / 1000, ease: 'easeIn' } },
     exit: { opacity: 0, transition: { duration: 0.2 } },
   } as const
-
-  function startLongPress(e: React.PointerEvent<HTMLButtonElement>) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return
-    cancelLongPress()
-    // 指がボタンの外へずれても move / up を受け取り続ける
-    e.currentTarget.setPointerCapture(e.pointerId)
-    pressRectRef.current = e.currentTarget.getBoundingClientRect()
-    isLongPress.current = false
-    setLongPressing(true)
-    setDimActive(true)
-    longPressTimer.current = setTimeout(() => {
-      longPressTimer.current = null
-      isLongPress.current = true
-      setLongPressing(false)
-      setQuickSheetOpen(true)
-    }, LONG_PRESS_MS)
-  }
-
-  // わずかな指のずれでは中断せず、ボタンから大きく離れたときだけ長押しをやめる
-  function handlePressMove(e: React.PointerEvent<HTMLButtonElement>) {
-    const rect = pressRectRef.current
-    if (longPressTimer.current === null || !rect) return
-    const outside =
-      e.clientX < rect.left - PRESS_SLOP_PX ||
-      e.clientX > rect.right + PRESS_SLOP_PX ||
-      e.clientY < rect.top - PRESS_SLOP_PX ||
-      e.clientY > rect.bottom + PRESS_SLOP_PX
-    if (outside) cancelLongPress()
-  }
-
-  function cancelLongPress() {
-    setLongPressing(false)
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = null
-    }
-    // isLongPress は click ハンドラが参照するためここではリセットしない
-  }
 
   function handleQuickRecordSelect(tx: Transaction) {
     setQuickRecordTx(tx)
@@ -331,20 +297,15 @@ export default function MainLayout() {
               <motion.button
                 key={t.path}
                 onClick={() => {
-                  if (isLongPress.current) {
-                    isLongPress.current = false
-                    return
-                  }
+                  // 長押しでシートを開いた直後の click は、タブの切り替えとして扱わない
+                  if (longPress.consumeLongPress()) return
                   if (location.pathname === '/record') {
                     bumpRecordTap()
                   } else {
                     navigate(t.path)
                   }
                 }}
-                onPointerDown={startLongPress}
-                onPointerMove={handlePressMove}
-                onPointerUp={cancelLongPress}
-                onPointerCancel={cancelLongPress}
+                {...longPress.handlers}
                 // 長押しで出る OS のメニューや文字選択に操作を奪われないようにする
                 onContextMenu={(e) => e.preventDefault()}
                 style={{ WebkitTouchCallout: 'none' }}

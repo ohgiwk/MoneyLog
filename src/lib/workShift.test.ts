@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ShiftType, WorkSchedule, Workplace } from './database.types'
-import { countShiftDays, formatShiftTime, workplaceForDate } from './workShift'
+import { countShiftDays, formatShiftTime, shiftTypesByDate, workplaceForDate } from './workShift'
 
 function workplace(id: string, start_date: string | null): Workplace {
   return { id, user_id: 'u', name: id, start_date, created_at: '' }
@@ -69,6 +69,25 @@ describe('countShiftDays', () => {
       record('2026-09-06', null),
     ]
     expect(countShiftDays(records, types)).toEqual({ work: 2.5, off: 1.5 })
+  })
+})
+
+describe('shiftTypesByDate', () => {
+  const work = shiftType('work', 'work')
+  const byId = new Map([[work.id, work]])
+
+  it('区分が設定された日だけを日付で引けるようにする', () => {
+    const map = shiftTypesByDate([record('2026-10-01', 'work'), record('2026-10-02', null)], byId)
+    expect(map.get('2026-10-01')).toBe(work)
+    expect(map.has('2026-10-02')).toBe(false)
+  })
+
+  it('削除済みで見つからない区分の日は含めない', () => {
+    expect(shiftTypesByDate([record('2026-10-01', 'gone')], byId).size).toBe(0)
+  })
+
+  it('記録が空なら空の対応表を返す', () => {
+    expect(shiftTypesByDate([], byId).size).toBe(0)
   })
 })
 

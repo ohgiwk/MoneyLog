@@ -3,7 +3,6 @@ import { act, renderHook } from '@testing-library/react'
 import type { Transaction } from '../lib/database.types'
 import {
   draftFromTx,
-  expenseKey,
   migratePinnedPresets,
   pinnedItemToTx,
   readPinnedItems,
@@ -11,6 +10,7 @@ import {
   usePinnedItems,
   type PinnedItemDraft,
 } from './usePinnedItems'
+import { expenseKey } from '../utils'
 
 const draft: PinnedItemDraft = {
   name: 'いつもの昼',

@@ -96,6 +96,19 @@ export function workplaceForDate(workplaces: Workplace[], date: string): Workpla
   return current
 }
 
+// 日付 → その日の区分。区分が未設定・削除済みの日は含めない
+export function shiftTypesByDate(
+  records: WorkSchedule[],
+  shiftTypeById: Map<string, ShiftType>
+): Map<string, ShiftType> {
+  const map = new Map<string, ShiftType>()
+  for (const r of records) {
+    const type = r.shift_type_id ? shiftTypeById.get(r.shift_type_id) : undefined
+    if (type) map.set(r.date, type)
+  }
+  return map
+}
+
 // 月の出勤・休日数（半休は 0.5 日ずつ）
 export function countShiftDays(
   records: WorkSchedule[],

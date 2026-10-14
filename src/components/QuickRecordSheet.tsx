@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { transactionService } from '../lib/services/transactionService'
-import { formatYen, categoryInfo, todayStr } from '../utils'
+import { expenseKey, formatYen, categoryInfo, todayStr } from '../utils'
 import { PAYMENT_TYPES, MEAL_TYPES } from '../constants'
 import type { Transaction } from '../lib/database.types'
 import BottomSheet from './ui/BottomSheet'
@@ -13,12 +13,12 @@ import { useQuickRecordPresets } from '../hooks/useQuickRecordPresets'
 import { useStoreTypes } from '../hooks/useStoreTypes'
 import {
   draftFromTx,
-  expenseKey,
   migratePinnedPresets,
   pinnedItemToTx,
   usePinnedItems,
   type PinnedItem,
 } from '../hooks/usePinnedItems'
+import { MENU_POP } from '../lib/motion'
 
 interface Props {
   userId: string
@@ -419,10 +419,7 @@ function QuickRow({
         <AnimatePresence>
           {menu?.isOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.92, y: -6 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.92, y: -6 }}
-              transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
+              {...MENU_POP}
               style={{ transformOrigin: 'top right' }}
               className="absolute right-0 top-full mt-1 z-30 bg-surface rounded-xl shadow-lg border border-line overflow-hidden min-w-36 divide-y divide-line"
             >

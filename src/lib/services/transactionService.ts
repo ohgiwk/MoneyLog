@@ -1,6 +1,6 @@
 import { supabase } from '../supabase'
 import type { Transaction } from '../database.types'
-import { periodKey, periodRange } from '../../utils'
+import { expenseKey, periodKey, periodRange } from '../../utils'
 
 type TransactionInsert = Omit<Transaction, 'id' | 'created_at'>
 
@@ -99,10 +99,9 @@ export const transactionService = {
     if (error) throw new Error(error.message)
 
     const transactions: Transaction[] = data ?? []
-    // category + amount + memo のみで重複判定（支払方法・店舗種別の違いは同一出費とみなす）
     const keyMap = new Map<string, { count: number; tx: Transaction }>()
     for (const tx of transactions) {
-      const key = `${tx.category}|${tx.amount}|${tx.memo ?? ''}`
+      const key = expenseKey(tx)
       const existing = keyMap.get(key)
       if (existing) {
         existing.count++

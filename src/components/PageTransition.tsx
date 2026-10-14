@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
+import { EASE_SOFT } from '../lib/motion'
 
 export type NavDirection = 'forward' | 'back'
 
@@ -59,7 +60,7 @@ export default function PageTransition({
           animate="center"
           exit="exit"
           transition={{
-            x: { type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.32 },
+            x: { type: 'tween', ease: EASE_SOFT, duration: 0.32 },
             zIndex: { duration: 0 },
           }}
           style={{ gridArea: '1 / 1', minHeight: 0, height: fillHeight ? '100%' : undefined }}

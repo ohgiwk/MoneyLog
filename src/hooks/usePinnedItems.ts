@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { createSyncedStorage } from './syncedStorage'
 import type { Transaction } from '../lib/database.types'
 import { readQuickRecordPresets, writeQuickRecordPresets } from './useQuickRecordPresets'
+import { expenseKey } from '../utils'
 
 // よく記録する出費の「ピン留め」。記録とは独立した項目として端末に保存する
 export interface PinnedItem {
@@ -17,43 +18,13 @@ export interface PinnedItem {
 
 export type PinnedItemDraft = Omit<PinnedItem, 'id'>
 
-function storageKey(userId: string) {
-  return `qrpin_${userId}`
-}
+const pinnedStorage = createSyncedStorage<PinnedItem[]>('qrpin_', () => [])
 
-// 同じ画面に複数のリスト（長押しシートと記録タブ）が出るため、変更を他のインスタンスへ伝える
-const CHANGE_EVENT = 'pinned-items-change'
-type ChangeDetail = { userId: string; items: PinnedItem[] }
-
-export function readPinnedItems(userId: string): PinnedItem[] {
-  try {
-    const raw = localStorage.getItem(storageKey(userId))
-    return raw ? (JSON.parse(raw) as PinnedItem[]) : []
-  } catch {
-    return []
-  }
-}
-
-function writePinnedItems(userId: string, items: PinnedItem[]) {
-  try {
-    localStorage.setItem(storageKey(userId), JSON.stringify(items))
-  } catch {
-    // 保存できなくても、表示中の画面には変更を反映する
-  }
-  window.dispatchEvent(new CustomEvent<ChangeDetail>(CHANGE_EVENT, { detail: { userId, items } }))
-}
+export const readPinnedItems = pinnedStorage.read
+const writePinnedItems = pinnedStorage.write
 
 export function usePinnedItems(userId: string) {
-  const [items, setItems] = useState<PinnedItem[]>(() => readPinnedItems(userId))
-
-  useEffect(() => {
-    function sync(e: Event) {
-      const detail = (e as CustomEvent<ChangeDetail>).detail
-      if (detail.userId === userId) setItems(detail.items)
-    }
-    window.addEventListener(CHANGE_EVENT, sync)
-    return () => window.removeEventListener(CHANGE_EVENT, sync)
-  }, [userId])
+  const items = pinnedStorage.useValue(userId)
 
   function addItem(draft: PinnedItemDraft) {
     writePinnedItems(userId, [...items, { ...draft, id: crypto.randomUUID() }])
@@ -74,11 +45,6 @@ export function usePinnedItems(userId: string) {
   }
 
   return { items, addItem, updateItem, removeItem }
-}
-
-// よく使う出費と同じ出費かどうかの判定キー（カテゴリ|金額|メモ）
-export function expenseKey(e: { category: string; amount: number; memo: string | null }): string {
-  return `${e.category}|${e.amount}|${e.memo ?? ''}`
 }
 
 export function draftFromTx(tx: Transaction, name: string | null): PinnedItemDraft {

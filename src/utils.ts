@@ -139,3 +139,8 @@ export function holidayName(dateStr: string): string | null {
   const [y, m, d] = dateStr.split('-').map(Number)
   return isHoliday(new Date(y, m - 1, d)) ?? null
 }
+
+// 「同じ出費」とみなす判定キー（カテゴリ|金額|メモ）。支払い方法・店舗種別の違いは区別しない
+export function expenseKey(e: { category: string; amount: number; memo: string | null }): string {
+  return `${e.category}|${e.amount}|${e.memo ?? ''}`
+}

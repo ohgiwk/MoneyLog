@@ -1,5 +1,6 @@
-import { categoryInfo, formatYen } from '../../utils'
-import { GrowBar } from './GrowBar'
+import { categoryInfo } from '../../utils'
+import { BarList } from './BarList'
+import { formatExpense } from './barListStyle'
 
 interface Props {
   entries: [string, number][]
@@ -9,51 +10,22 @@ interface Props {
   onItemClick?: (cat: string) => void
 }
 
+// カテゴリ別の内訳（合計に対する割合をバーで示す）
 export function BreakdownBars({ entries, total, barColor, valueColor, onItemClick }: Props) {
-  if (entries.length === 0) {
-    return <div className="text-sm text-ink-muted py-1">データがありません</div>
-  }
   return (
-    <div className="space-y-2">
-      {entries.map(([cat, amt], index) => {
-        const pct = total > 0 ? (amt / total) * 100 : 0
-        const info = categoryInfo(cat)
-        const clickable = onItemClick != null
-        return (
-          <div
-            key={cat}
-            onClick={clickable ? () => onItemClick(cat) : undefined}
-            className={clickable ? 'cursor-pointer relative z-0 group' : undefined}
-          >
-            {clickable && (
-              <div className="absolute -inset-x-1 -inset-y-1 -z-10 rounded-lg transition-colors group-active:bg-surface-hover" />
-            )}
-            <div className="flex justify-between items-center mb-0.5">
-              <span className="text-xs text-ink flex items-center gap-1">
-                <span>{info.icon}</span>
-                {cat}
-              </span>
-              <span className={`text-xs font-semibold ${valueColor}`}>
-                -{formatYen(Math.round(amt))}
-              </span>
-            </div>
-            <div className="h-2 bg-surface-hover rounded-full overflow-hidden">
-              <GrowBar
-                pct={pct}
-                index={index}
-                axis="x"
-                className={`h-full ${barColor} rounded-full`}
-              />
-            </div>
-          </div>
-        )
-      })}
-      <div className="flex justify-between items-center pt-1 border-t border-line-subtle">
-        <span className="text-xs text-ink-muted">合計</span>
-        <span className={`text-sm font-semibold ${valueColor}`}>
-          -{formatYen(Math.round(total))}
-        </span>
-      </div>
-    </div>
+    <BarList
+      rows={entries.map(([cat, amount]) => ({
+        key: cat,
+        icon: categoryInfo(cat).icon,
+        label: cat,
+        value: amount,
+      }))}
+      scale={total}
+      total={total}
+      format={formatExpense}
+      barColor={barColor}
+      valueColor={valueColor}
+      onItemClick={onItemClick}
+    />
   )
 }

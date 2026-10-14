@@ -1,5 +1,5 @@
 import { formatYen } from '../../utils'
-import { GrowBar } from './GrowBar'
+import { GrowBar } from '../ui/GrowBar'
 
 function niceMax(value: number, steps = 4): number {
   if (value <= 0) return steps

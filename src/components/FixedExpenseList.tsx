@@ -24,6 +24,7 @@ import type { ReactNode } from 'react'
 import FabButton from './ui/FabButton'
 import PeriodToggle from './ui/PeriodToggle'
 import BottomSheet from './ui/BottomSheet'
+import { EASE_SOFT } from '../lib/motion'
 
 const STATUS_FILTER_TABS = [
   { key: 'active' as const, label: STATUS_LABELS.active.label },
@@ -387,7 +388,7 @@ export default function FixedExpenseList({
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ x: { type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.32 } }}
+              transition={{ x: { type: 'tween', ease: EASE_SOFT, duration: 0.32 } }}
               className="fixed inset-0 max-w-md mx-auto bg-surface-subtle overflow-y-auto z-[100]"
             >
               <SubscriptionPickerScreen

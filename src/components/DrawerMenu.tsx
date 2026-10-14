@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'motion/react'
+import { EASE_SOFT } from '../lib/motion'
 
 interface Props {
   onSignOut: () => void
@@ -31,7 +32,7 @@ export default function DrawerMenu({ onSignOut, onClose }: Props) {
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
-        transition={{ type: 'tween', ease: [0.32, 0.72, 0, 1], duration: 0.25 }}
+        transition={{ type: 'tween', ease: EASE_SOFT, duration: 0.25 }}
       >
         <div className="flex items-center justify-between px-4 py-4 pt-[calc(1rem+env(safe-area-inset-top))] border-b border-line-subtle">
           <span className="font-semibold text-ink">メニュー</span>

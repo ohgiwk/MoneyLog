@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
 import Button from './ui/Button'
 import { calcBudgetProgress, formatYen, mondayFirstDow } from '../utils'
+import { GrowBar } from './ui/GrowBar'
 
 export type PeriodMode = 'week' | 'month'
 
@@ -152,25 +152,21 @@ export default function BudgetProgressPanel({
       <div className="h-px bg-surface-hover" />
 
       {/* カテゴリ別予算進捗 */}
-      {/* 画面遷移用の AnimatePresence initial={false} が配下の初期アニメーションを止めるため、
-          専用の AnimatePresence で包んでバーが必ず 0 から伸びるようにする */}
       {rows.length > 0 && (
-        <AnimatePresence>
-          <div key="rows" className="space-y-2.5">
-            {rows.map(({ cat, icon, spent, budget }, index) => (
-              <BudgetProgress
-                key={cat}
-                index={index}
-                label={cat}
-                icon={icon}
-                spent={spent}
-                budget={budget}
-                color="bg-warning-400"
-                onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
-              />
-            ))}
-          </div>
-        </AnimatePresence>
+        <div className="space-y-2.5">
+          {rows.map(({ cat, icon, spent, budget }, index) => (
+            <BudgetProgress
+              key={cat}
+              index={index}
+              label={cat}
+              icon={icon}
+              spent={spent}
+              budget={budget}
+              color="bg-warning-400"
+              onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
+            />
+          ))}
+        </div>
       )}
 
       <div className="h-px bg-surface-hover" />
@@ -270,11 +266,11 @@ function BudgetProgress({
           </span>
         </div>
         <div className="h-2.5 bg-surface-muted rounded-full overflow-hidden">
-          <motion.div
+          <GrowBar
+            pct={pct}
+            index={index}
+            axis="x"
             className={`h-full rounded-full ${over ? 'bg-danger-400' : color}`}
-            initial={{ width: 0 }}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.6, ease: [0.32, 0.72, 0, 1], delay: 0.1 + index * 0.06 }}
           />
         </div>
         {over && (

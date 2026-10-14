@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createSyncedStorage } from './syncedStorage'
 
 export interface QuickPreset {
   name?: string
@@ -7,43 +7,13 @@ export interface QuickPreset {
 
 export type Presets = Record<string, QuickPreset>
 
-function storageKey(userId: string) {
-  return `qrp_${userId}`
-}
+const presetStorage = createSyncedStorage<Presets>('qrp_', () => ({}))
 
-// 同じ画面に複数のリスト（長押しシートと記録タブ）が出るため、変更を他のインスタンスへ伝える
-const CHANGE_EVENT = 'quick-record-presets-change'
-type ChangeDetail = { userId: string; presets: Presets }
-
-export function readQuickRecordPresets(userId: string): Presets {
-  try {
-    const raw = localStorage.getItem(storageKey(userId))
-    return raw ? (JSON.parse(raw) as Presets) : {}
-  } catch {
-    return {}
-  }
-}
-
-export function writeQuickRecordPresets(userId: string, presets: Presets) {
-  try {
-    localStorage.setItem(storageKey(userId), JSON.stringify(presets))
-  } catch {
-    // 保存できなくても、表示中の画面には変更を反映する
-  }
-  window.dispatchEvent(new CustomEvent<ChangeDetail>(CHANGE_EVENT, { detail: { userId, presets } }))
-}
+export const readQuickRecordPresets = presetStorage.read
+export const writeQuickRecordPresets = presetStorage.write
 
 export function useQuickRecordPresets(userId: string) {
-  const [presets, setPresets] = useState<Presets>(() => readQuickRecordPresets(userId))
-
-  useEffect(() => {
-    function sync(e: Event) {
-      const detail = (e as CustomEvent<ChangeDetail>).detail
-      if (detail.userId === userId) setPresets(detail.presets)
-    }
-    window.addEventListener(CHANGE_EVENT, sync)
-    return () => window.removeEventListener(CHANGE_EVENT, sync)
-  }, [userId])
+  const presets = presetStorage.useValue(userId)
 
   function updatePreset(key: string, patch: Partial<QuickPreset>) {
     const merged = { ...presets[key], ...patch }
@@ -72,12 +42,6 @@ export function renamePresetCategory(presets: Presets, oldName: string, newName:
 }
 
 export function renameQuickPresetCategory(userId: string, oldName: string, newName: string) {
-  try {
-    const raw = localStorage.getItem(storageKey(userId))
-    if (!raw) return
-    const next = renamePresetCategory(JSON.parse(raw) as Presets, oldName, newName)
-    localStorage.setItem(storageKey(userId), JSON.stringify(next))
-  } catch {
-    // プリセットは端末ローカルの補助情報なので、失敗しても名前変更自体は続ける
-  }
+  if (!presetStorage.has(userId)) return
+  presetStorage.write(userId, renamePresetCategory(presetStorage.read(userId), oldName, newName))
 }

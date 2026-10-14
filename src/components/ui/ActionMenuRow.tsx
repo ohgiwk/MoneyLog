@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import ConfirmDialog from './ConfirmDialog'
+import { MENU_POP } from '../../lib/motion'
 
 interface Props {
   onEdit: () => void
@@ -70,10 +71,7 @@ export default function ActionMenuRow({
           <AnimatePresence>
             {menuOpen && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.92, y: -6 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92, y: -6 }}
-                transition={{ duration: 0.15, ease: [0.2, 0, 0, 1] }}
+                {...MENU_POP}
                 style={{
                   position: 'fixed',
                   top: menuPos.top,
