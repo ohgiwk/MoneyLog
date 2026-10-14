@@ -38,7 +38,7 @@ export const TIPS: string[] = [
 export default function SavingTipsScreen() {
   const navigate = useNavigate()
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="節約のコツ" onBack={() => navigate(-1)} />
       </div>

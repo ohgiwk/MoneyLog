@@ -335,7 +335,7 @@ export default function FixedExpenseList({
       <div className="h-24" />
 
       {/* FAB */}
-      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 left-0 right-0 md:left-56 md:max-w-3xl mx-auto flex justify-end pr-5 pointer-events-none z-20">
         <FabButton onClick={() => openEditing('new')} ariaLabel="固定費を追加" />
       </div>
     </>
@@ -396,7 +396,7 @@ export default function FixedExpenseList({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ x: { type: 'tween', ease: EASE_SOFT, duration: 0.32 } }}
-              className="fixed inset-0 max-w-md mx-auto bg-surface-subtle overflow-y-auto z-[100]"
+              className="fixed inset-0 bg-surface-subtle overflow-y-auto z-[100]"
             >
               <SubscriptionPickerScreen
                 onSelect={(preset) => {

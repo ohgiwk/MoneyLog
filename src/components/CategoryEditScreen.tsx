@@ -70,7 +70,7 @@ export default function CategoryEditScreen() {
   const tabLabel = activeTab === 'expense' ? '支出' : activeTab === 'income' ? '収入' : '固定費'
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader
           title="カテゴリ編集"
@@ -128,7 +128,7 @@ export default function CategoryEditScreen() {
         )}
       </div>
 
-      <div className="fixed bottom-8 left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+      <div className="fixed bottom-8 left-0 right-0 flex justify-end pr-5 pointer-events-none z-20">
         <FabButton onClick={handleFab} ariaLabel="カテゴリを追加" />
       </div>
 

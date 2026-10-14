@@ -35,7 +35,7 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="パスワード変更" onBack={() => navigate(-1)} />
       </div>

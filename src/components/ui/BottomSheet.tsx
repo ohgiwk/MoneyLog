@@ -55,7 +55,7 @@ export default function BottomSheet({
           />
           <motion.div
             key="bs-sheet"
-            className="fixed left-0 right-0 max-w-md mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+            className="fixed left-0 right-0 md:max-w-lg mx-auto z-50 bg-surface-subtle rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
             style={{
               maxHeight: `min(${height}, calc(100dvh - var(--keyboard-height, 0px) - env(safe-area-inset-top, 0px) - 16px))`,
               bottom: 'var(--keyboard-height, 0px)',

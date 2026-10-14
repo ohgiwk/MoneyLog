@@ -19,7 +19,7 @@ export default function Toast({ message, actionLabel, onAction, onClose, duratio
 
   return (
     // 57px は MainLayout のヘッダーの高さ
-    <div className="fixed top-[calc(57px+env(safe-area-inset-top)+0.5rem)] left-0 right-0 max-w-md mx-auto px-4 z-30 pointer-events-none">
+    <div className="fixed top-[calc(57px+env(safe-area-inset-top)+0.5rem)] left-0 right-0 md:left-56 md:max-w-3xl mx-auto px-4 z-30 pointer-events-none">
       <motion.div
         role="status"
         initial={{ opacity: 0, y: -12 }}

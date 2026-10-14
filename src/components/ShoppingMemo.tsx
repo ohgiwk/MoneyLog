@@ -377,7 +377,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
 
       {/* 購入済みボタン（選択時に表示） */}
       {selected.size > 0 ? (
-        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex gap-2">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 left-0 right-0 md:left-56 md:max-w-3xl mx-auto px-4 z-20 flex gap-2">
           <button
             onClick={() => setConfirmDeleteSelected(true)}
             className="py-3.5 px-4 rounded-2xl bg-danger-500 text-white font-medium text-sm shadow-lg active:bg-danger-600 flex items-center justify-center"
@@ -408,7 +408,7 @@ export default function ShoppingMemo({ userId, expenseCategories, onTransactionA
         </div>
       ) : (
         /* FAB（追加） */
-        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 left-0 right-0 md:left-56 md:max-w-3xl mx-auto flex justify-end pr-5 pointer-events-none z-20">
           <FabButton onClick={() => openAddDialog()} ariaLabel="買い物メモを追加" />
         </div>
       )}

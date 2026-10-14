@@ -142,7 +142,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-surface border-b border-line-subtle">
         <ScreenHeader title="🎯 目標・欲しいもの" onBack={onBack} />
       </div>
@@ -180,7 +180,7 @@ export default function WishlistScreen({ userId, onBack }: Props) {
       </div>
 
       {editing === null && (
-        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 flex justify-end pr-5 pointer-events-none z-10">
           <FabButton onClick={openNew} ariaLabel="目標を追加" />
         </div>
       )}

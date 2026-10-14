@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAppContext } from '../contexts/AppContext'
 import { transactionService } from '../lib/services/transactionService'
 import { useProfileQuery } from '../hooks/queries/useProfileQuery'
@@ -29,6 +29,7 @@ const SUB_TABS: { key: SubTab; label: string }[] = [
 
 export default function RecordTab({ userId }: Props) {
   const location = useLocation()
+  const navigate = useNavigate()
   const {
     month,
     setMonth,
@@ -58,6 +59,7 @@ export default function RecordTab({ userId }: Props) {
     categoryFilter?: string
     storeTypeFilter?: string
     paymentTypeFilter?: string
+    openForm?: boolean
   } | null
   const locationState = location.state as LocationState
   const initialCategoryFilter = locationState?.categoryFilter ?? 'all'
@@ -89,6 +91,14 @@ export default function RecordTab({ userId }: Props) {
       : null
 
   const loading = txLoading && transactions.length === 0
+
+  // サイドナビの「出費を記録」から遷移してきたら入力モーダルを開く。
+  // 戻る・進むで同じ履歴に戻ったときに再び開かないよう、state は消しておく
+  useEffect(() => {
+    if (!locationState?.openForm) return
+    openForm()
+    navigate(location.pathname, { replace: true, state: null })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 下部タブの「入力」を再タップしたら入力モーダルを開く
   const initialResetSignal = useRef(resetSignal)

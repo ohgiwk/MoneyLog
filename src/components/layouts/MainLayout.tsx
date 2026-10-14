@@ -14,7 +14,7 @@ import type { Transaction } from '../../lib/database.types'
 const TABS = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/fixed', label: '固定費', icon: '📋' },
-  { path: '/record', label: '入力', icon: '✏️', special: true },
+  { path: '/record', label: '記録', icon: '✏️', special: true },
   { path: '/shopping', label: '目標', icon: '🎯' },
   { path: '/calendar', label: 'カレンダー', icon: '📅' },
 ]
@@ -85,13 +85,13 @@ export default function MainLayout() {
   return (
     <div
       id="app-root"
-      className="relative max-w-md mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden"
+      className="relative md:pl-56 mx-auto h-full bg-surface-subtle flex flex-col overflow-hidden"
     >
       <UpdateNotification />
       {user && <NewMonthBudgetDialog userId={user.id} />}
 
       {/* ヘッダー */}
-      <div className="fixed top-0 left-0 right-0 max-w-md mx-auto z-10 bg-surface-subtle border-b-2 border-primary-500 pt-[env(safe-area-inset-top)]">
+      <div className="fixed top-0 left-0 right-0 md:left-56 mx-auto z-10 bg-surface-subtle border-b-2 border-primary-500 pt-[env(safe-area-inset-top)]">
         <div className="px-4 py-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center">
           {headerBack ? (
             <button
@@ -180,16 +180,20 @@ export default function MainLayout() {
               </div>
             ) : (
               <>
+                {/* サイドバーにロゴがある幅では、ヘッダーには画面名を出す */}
                 <img
                   src={`${import.meta.env.BASE_URL}logo.png`}
                   alt=""
-                  className="w-7 h-7 object-contain"
+                  className="w-7 h-7 object-contain md:hidden"
                 />
                 <span
-                  className="text-lg text-ink-strong"
+                  className="text-lg text-ink-strong md:hidden"
                   style={{ fontFamily: "'Kiwi Maru', serif" }}
                 >
                   キンカク手帖
+                </span>
+                <span className="hidden md:inline font-semibold text-ink-strong">
+                  {TABS.find((t) => t.path === location.pathname)?.label}
                 </span>
               </>
             )}
@@ -264,9 +268,11 @@ export default function MainLayout() {
       {/* コンテンツ */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] overflow-y-auto"
+        className="flex-1 min-h-0 pt-[calc(57px+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8 overflow-y-auto"
       >
-        <Outlet />
+        <div className="md:max-w-3xl md:mx-auto">
+          <Outlet />
+        </div>
       </div>
 
       {/* 長押し中、記録ボタン以外を少しずつ暗くする。
@@ -283,10 +289,65 @@ export default function MainLayout() {
         )}
       </AnimatePresence>
 
+      {/* サイドナビ（タブレット・PC幅）。長押しの代わりに「よく記録する出費」を常に出しておく */}
+      <nav className="hidden md:flex fixed inset-y-0 left-0 w-56 z-10 flex-col gap-1 px-3 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 bg-surface-subtle border-r border-line">
+        <div className="flex items-center gap-2 px-3 pb-4">
+          <img
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt=""
+            className="w-8 h-8 object-contain"
+          />
+          <span className="text-lg text-ink-strong" style={{ fontFamily: "'Kiwi Maru', serif" }}>
+            キンカク手帖
+          </span>
+        </div>
+        {TABS.map((t) => {
+          const isActive = location.pathname === t.path
+          return (
+            <button
+              key={t.path}
+              onClick={() => {
+                if (t.path === '/shopping') bumpShoppingTap()
+                if (t.path === '/calendar') setCalendarSelectedDate(undefined)
+                navigate(t.path)
+              }}
+              className={
+                'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left ' +
+                (isActive
+                  ? 'bg-primary-500/15 text-primary-600'
+                  : 'text-ink-muted hover:bg-surface-hover active:bg-surface-hover')
+              }
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <span className="text-xl leading-none">{t.icon}</span>
+              {t.label}
+            </button>
+          )
+        })}
+        <button
+          onClick={() => {
+            if (location.pathname === '/record') {
+              bumpRecordTap()
+            } else {
+              navigate('/record', { state: { openForm: true } })
+            }
+          }}
+          className="mt-4 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-bold shadow-sm hover:bg-primary-600 active:bg-primary-600"
+        >
+          出費を記録
+        </button>
+        <button
+          onClick={() => setQuickSheetOpen(true)}
+          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-primary-500 text-primary-600 text-sm font-bold hover:bg-primary-500/10 active:bg-primary-500/10"
+        >
+          よく記録する出費
+        </button>
+      </nav>
+
       {/* ボトムナビ */}
       <div
         className={
-          'fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-surface-subtle border-t border-line flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(1,38,100,0.06)] ' +
+          'md:hidden fixed bottom-0 left-0 right-0 bg-surface-subtle border-t border-line flex justify-around pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-2px_8px_rgba(1,38,100,0.06)] ' +
           (dimActive ? 'z-20' : 'z-10')
         }
       >
@@ -309,7 +370,7 @@ export default function MainLayout() {
                 // 長押しで出る OS のメニューや文字選択に操作を奪われないようにする
                 onContextMenu={(e) => e.preventDefault()}
                 style={{ WebkitTouchCallout: 'none' }}
-                className="relative z-10 flex flex-col items-center gap-0.5 px-4 py-1 -mt-6 select-none touch-none"
+                className="relative z-10 flex-shrink-0 flex flex-col items-center gap-0.5 px-2 py-1 -mt-6 select-none touch-none"
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               >
@@ -369,7 +430,7 @@ export default function MainLayout() {
                 navigate(t.path)
               }}
               className={
-                'flex flex-col items-center gap-0.5 px-6 py-1 ' +
+                'flex-1 min-w-0 flex flex-col items-center gap-0.5 px-1 py-1 ' +
                 (isActive ? 'text-primary-500' : 'text-ink-muted')
               }
               whileTap={{ scale: 0.82 }}

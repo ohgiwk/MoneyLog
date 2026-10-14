@@ -277,7 +277,7 @@ export default function FixedExpenseTutorial({
   const totalSteps = STEPS.length
 
   return createPortal(
-    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto">
+    <div className="fixed inset-0 z-50 bg-gradient-to-b from-primary-50 to-white flex flex-col ">
       {/* 右上バツボタン */}
       <button
         onClick={() => setCloseConfirmOpen(true)}

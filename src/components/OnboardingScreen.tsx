@@ -67,7 +67,7 @@ export default function OnboardingScreen({ userId }: Props) {
 
   return (
     <div
-      className="h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col max-w-md mx-auto relative overflow-hidden"
+      className="h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col relative overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >

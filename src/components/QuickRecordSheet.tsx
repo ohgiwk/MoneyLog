@@ -246,7 +246,7 @@ export function QuickRecordList({ userId, onSelect, editable = false }: ListProp
       {editable && (
         <>
           {/* FAB */}
-          <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-20">
+          <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 left-0 right-0 md:left-56 md:max-w-3xl mx-auto flex justify-end pr-5 pointer-events-none z-20">
             <FabButton onClick={() => openPinEdit(null)} ariaLabel="ピン留めを追加" />
           </div>
 

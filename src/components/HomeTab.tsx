@@ -164,9 +164,9 @@ export default function HomeTab({ userId }: Props) {
       : sortedCategoryRows
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
       {fetchError && (
-        <div className="bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
+        <div className="lg:col-span-2 bg-danger-50 border border-danger-200 rounded-xl px-4 py-3 text-sm text-danger-600">
           {fetchError}
         </div>
       )}
@@ -443,87 +443,91 @@ export default function HomeTab({ userId }: Props) {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
-        <div className="text-sm font-semibold text-ink">収支</div>
-        <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
-        <Row label="貯蓄" value={`-${formatYen(savings)}`} valueColor="text-ink-muted" />
-        <Row
-          label="固定費"
-          value={`-${formatYen(Math.round(totalFixed))}`}
-          valueColor="text-danger-500"
-        />
-        <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-danger-500" />
-        <div className="h-px bg-surface-hover" />
-        <Row
-          label="収支"
-          value={(balance >= 0 ? '+' : '') + formatYen(balance)}
-          valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
-          bold
-        />
-        <Button variant="secondary" fullWidth size="sm" onClick={() => navigate('/analytics')}>
-          レポートを確認
-        </Button>
-      </div>
+      <div className="space-y-4">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm space-y-2.5">
+          <div className="text-sm font-semibold text-ink">収支</div>
+          <Row label="収入" value={formatYen(income)} valueColor="text-income-600" />
+          <Row label="貯蓄" value={`-${formatYen(savings)}`} valueColor="text-ink-muted" />
+          <Row
+            label="固定費"
+            value={`-${formatYen(Math.round(totalFixed))}`}
+            valueColor="text-danger-500"
+          />
+          <Row label="出費" value={`-${formatYen(oneTimeExpense)}`} valueColor="text-danger-500" />
+          <div className="h-px bg-surface-hover" />
+          <Row
+            label="収支"
+            value={(balance >= 0 ? '+' : '') + formatYen(balance)}
+            valueColor={balance >= 0 ? 'text-income-600' : 'text-danger-500'}
+            bold
+          />
+          <Button variant="secondary" fullWidth size="sm" onClick={() => navigate('/analytics')}>
+            レポートを確認
+          </Button>
+        </div>
 
-      <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
-        <div className="text-sm font-semibold text-ink-muted">今後の出費予定</div>
-        {upcomingEvents.length === 0 ? (
-          <div className="text-sm text-ink-muted">なし</div>
-        ) : (
-          <div className="space-y-4">
-            {(() => {
-              const groups = upcomingEvents.reduce<
-                Record<string, { total: number; events: typeof upcomingEvents }>
-              >((acc, event) => {
-                const month = event.date.slice(0, 7)
-                if (!acc[month]) acc[month] = { total: 0, events: [] }
-                acc[month].total += plannedExpenseOf(event)
-                acc[month].events.push(event)
-                return acc
-              }, {})
-              return Object.entries(groups).map(([month, { total, events }], i) => {
-                const [y, m] = month.split('-')
-                const label = `${y}年${Number(m)}月`
-                return (
-                  <div key={month}>
-                    {i > 0 && <div className="h-px bg-line-subtle mb-3" />}
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-ink-muted tracking-wide">
-                        {label}
-                      </span>
-                      <span className="text-xs font-bold text-danger-500">{formatYen(total)}</span>
-                    </div>
-                    <ul className="divide-y divide-line-subtle">
-                      {events.map((event) => (
-                        <li key={event.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMonth(event.date.slice(0, 7))
-                              setCalendarSelectedDate(event.date)
-                              navigate('/calendar')
-                            }}
-                            className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
-                          >
-                            <div className="flex flex-col">
-                              <span className="text-ink">{event.title}</span>
-                              <span className="text-xs text-ink-muted">
-                                {formatDateWithWeekday(event.date)}
+        <div className="bg-surface rounded-2xl p-6 shadow-sm space-y-3">
+          <div className="text-sm font-semibold text-ink-muted">今後の出費予定</div>
+          {upcomingEvents.length === 0 ? (
+            <div className="text-sm text-ink-muted">なし</div>
+          ) : (
+            <div className="space-y-4">
+              {(() => {
+                const groups = upcomingEvents.reduce<
+                  Record<string, { total: number; events: typeof upcomingEvents }>
+                >((acc, event) => {
+                  const month = event.date.slice(0, 7)
+                  if (!acc[month]) acc[month] = { total: 0, events: [] }
+                  acc[month].total += plannedExpenseOf(event)
+                  acc[month].events.push(event)
+                  return acc
+                }, {})
+                return Object.entries(groups).map(([month, { total, events }], i) => {
+                  const [y, m] = month.split('-')
+                  const label = `${y}年${Number(m)}月`
+                  return (
+                    <div key={month}>
+                      {i > 0 && <div className="h-px bg-line-subtle mb-3" />}
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-ink-muted tracking-wide">
+                          {label}
+                        </span>
+                        <span className="text-xs font-bold text-danger-500">
+                          {formatYen(total)}
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-line-subtle">
+                        {events.map((event) => (
+                          <li key={event.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMonth(event.date.slice(0, 7))
+                                setCalendarSelectedDate(event.date)
+                                navigate('/calendar')
+                              }}
+                              className="w-full flex items-center justify-between py-2 text-sm text-left active:bg-surface-subtle"
+                            >
+                              <div className="flex flex-col">
+                                <span className="text-ink">{event.title}</span>
+                                <span className="text-xs text-ink-muted">
+                                  {formatDateWithWeekday(event.date)}
+                                </span>
+                              </div>
+                              <span className="font-semibold text-ink">
+                                {formatYen(plannedExpenseOf(event))}
                               </span>
-                            </div>
-                            <span className="font-semibold text-ink">
-                              {formatYen(plannedExpenseOf(event))}
-                            </span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )
-              })
-            })()}
-          </div>
-        )}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

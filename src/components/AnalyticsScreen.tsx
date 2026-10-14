@@ -73,7 +73,7 @@ export default function AnalyticsScreen({ userId }: Props) {
           : parseInt(today.slice(5, 7))
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <div className="bg-surface border-b border-line-subtle">
         <ScreenHeader title="分析" onBack={() => navigate(-1)} />
         <div className="px-4 pt-3 pb-3">

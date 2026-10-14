@@ -21,7 +21,9 @@ export default function Modal({
   const alignClass = position === 'bottom' ? 'items-end sm:items-center' : 'items-center'
 
   const containerClass =
-    position === 'bottom' ? 'w-full max-w-md rounded-t-2xl sm:rounded-2xl' : 'w-72 mx-4 rounded-2xl'
+    position === 'bottom'
+      ? 'w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl'
+      : 'w-72 mx-4 rounded-2xl'
 
   return createPortal(
     <div className={`fixed inset-0 z-50 flex justify-center ${alignClass}`}>

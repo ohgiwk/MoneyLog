@@ -524,7 +524,7 @@ export default function WishlistPanel({ userId }: Props) {
         )}
       </div>
 
-      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto flex justify-end pr-5 pointer-events-none z-10">
+      <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 left-0 right-0 md:left-56 md:max-w-3xl mx-auto flex justify-end pr-5 pointer-events-none z-10">
         <FabButton onClick={openNew} ariaLabel="目標を追加" />
       </div>
 

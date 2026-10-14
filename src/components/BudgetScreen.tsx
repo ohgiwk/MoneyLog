@@ -161,7 +161,7 @@ export default function BudgetScreen({ userId }: Props) {
 
   return (
     <div
-      className="max-w-md mx-auto bg-surface-subtle flex flex-col overflow-hidden"
+      className="bg-surface-subtle flex flex-col overflow-hidden"
       style={{ height: 'calc(100dvh - var(--keyboard-height, 0px))' }}
     >
       {/* ヘッダー */}
@@ -313,7 +313,7 @@ export default function BudgetScreen({ userId }: Props) {
 
       {/* フローティング: 予算使用率 */}
       {budget.income > 0 && (
-        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] left-0 right-0 px-4 z-20">
           <div className="bg-income-50 dark:bg-income-950/80 rounded-2xl px-4 py-2.5 shadow-lg space-y-1.5">
             <div className="flex items-center justify-between">
               <div className="text-xs font-semibold text-income-700 dark:text-income-400">
@@ -348,7 +348,7 @@ export default function BudgetScreen({ userId }: Props) {
       )}
 
       {/* フローティング: 保存ボタン */}
-      <div className="fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 max-w-md mx-auto px-4 z-20 flex flex-col items-center gap-1">
+      <div className="fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-0 right-0 px-4 z-20 flex flex-col items-center gap-1">
         {errors.length > 0 && (
           <div className="w-full bg-danger-50 border border-danger-200 rounded-xl px-3 py-2 space-y-0.5">
             {errors.map((e) => (

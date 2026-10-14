@@ -38,7 +38,7 @@ export default function AchievementsScreen({ userId }: Props) {
   const achievedCount = achievements.filter((a) => a.achieved).length
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <ScreenHeader title="実績" onBack={() => navigate(-1)} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">

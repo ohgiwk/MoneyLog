@@ -340,7 +340,7 @@ export default function FixedExpenseHistoryScreen({ userId }: Props) {
   }
 
   return (
-    <div className="max-w-md mx-auto h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-surface-subtle flex flex-col overflow-hidden">
       <ScreenHeader title="固定費履歴" onBack={() => navigate(-1)} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
