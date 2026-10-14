@@ -116,6 +116,12 @@ export default function FixedExpenseList({
   )
   const toMonthly = (f: FixedExpense) => toMonthlyAmount(f, f.amount)
   const totalAmount = activeExpenses.reduce((s, f) => s + toMonthly(f), 0)
+  // 年払い（ローンは分割払いなので除く）の月額換算。合計は毎月の支払いだけを大きく見せ、年払い込みの額は下に添える
+  const yearlyMonthlyAmount = activeExpenses
+    .filter((f) => f.cycle === 'yearly' && !getLoanPeriod(f))
+    .reduce((s, f) => s + toMonthly(f), 0)
+  const perPeriod = (monthly: number) => (summaryPeriod === 'monthly' ? monthly : monthly * 12)
+  const periodUnit = summaryPeriod === 'monthly' ? '/月' : '/年'
 
   function renderLoanInfo(f: FixedExpense): ReactNode {
     const period = getLoanPeriod(f)
@@ -240,11 +246,15 @@ export default function FixedExpenseList({
           <PeriodToggle value={summaryPeriod} onChange={setSummaryPeriod} />
         </div>
         <div className="text-2xl font-bold text-ink">
-          {formatYen(summaryPeriod === 'monthly' ? totalAmount : totalAmount * 12)}
-          <span className="text-sm font-normal text-ink-muted">
-            {summaryPeriod === 'monthly' ? '/月' : '/年'}
-          </span>
+          {formatYen(perPeriod(totalAmount - yearlyMonthlyAmount))}
+          <span className="text-sm font-normal text-ink-muted">{periodUnit}</span>
         </div>
+        {yearlyMonthlyAmount > 0 && (
+          <div className="text-xs text-ink-muted mt-0.5">
+            年払い込み {formatYen(perPeriod(totalAmount))}
+            {periodUnit}
+          </div>
+        )}
         {fixedBudget > 0 && (
           <div className="text-xs text-ink-muted mt-1">
             予算 {formatYen(summaryPeriod === 'monthly' ? fixedBudget : fixedBudget * 12)}
